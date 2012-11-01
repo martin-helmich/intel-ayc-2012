@@ -1,0 +1,3 @@
+
+BLOCKED FILE ALERTA file has been blocked due to the 'Intel Email File Filtering Policy' rule.Context: 'functions_6e.js'Disallowed due to Ticket Number: '07f0-5090-0a7d-0002'
+See your system administrator for further information. Copyright 1999-2007 McAfee, Inc.All Rights Reserved.http://www.mcafee.com
