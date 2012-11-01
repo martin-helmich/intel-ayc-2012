@@ -226,6 +226,7 @@ float compute_cost(Travel & travel, vector<vector<string> >&alliances){
  * \param parameters The program parameters
  */
 void compute_path(vector<Flight>& flights, string to, vector<Travel>& travels, unsigned long t_min, unsigned long t_max, Parameters parameters){
+	// TODO: Stattdessen concurrent_vector!
 	vector<Travel> final_travels;
 	// TODO: Parallele Queue?
 	while(travels.size() > 0){
@@ -236,7 +237,7 @@ void compute_path(vector<Flight>& flights, string to, vector<Travel>& travels, u
 		if(current_city.to == to){
 			final_travels.push_back(travel);
 		}else{//otherwise, we need to compute a path
-			// TODO: parallel_for?
+			// TODO: parallel_for + concurrent_vector?
 			for(unsigned int i=0; i<flights.size(); i++){
 				Flight flight = flights[i];
 				if(flight.from == current_city.to &&
@@ -296,6 +297,8 @@ Travel find_cheapest(vector<Travel>& travels, vector<vector<string> >&alliances)
  */
 void fill_travel(vector<Travel>& travels, vector<Flight>& flights, string starting_point, unsigned long t_min, unsigned long t_max){
 	// TODO: parallel_for oder Tasks?
+	// TODO: Der travels-Vektor ist ein Problem, da der Zugriff darauf synchronisiert
+	// werden muss (concurrent_vector verwenden?)
 	for(unsigned int i=0; i< flights.size(); i++){
 		if(flights[i].from == starting_point &&
 				flights[i].take_off_time >= t_min &&
