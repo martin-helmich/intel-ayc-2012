@@ -181,6 +181,7 @@ void apply_discount(Travel & travel, vector<vector<string> >&alliances){
 	if(travel.flights.size()>0)
 		travel.flights[0].discout = 1;
 	if(travel.flights.size()>1){
+		// TODO: Aufgabenstellung korrekt?! Bsp: Scenario9
 		for(unsigned int i=1; i<travel.flights.size(); i++){
 			Flight& flight_before = travel.flights[i-1];
 			Flight& current_flight = travel.flights[i];
@@ -226,6 +227,7 @@ float compute_cost(Travel & travel, vector<vector<string> >&alliances){
  */
 void compute_path(vector<Flight>& flights, string to, vector<Travel>& travels, unsigned long t_min, unsigned long t_max, Parameters parameters){
 	vector<Travel> final_travels;
+	// TODO: Parallele Queue?
 	while(travels.size() > 0){
 		Travel travel = travels.back();
 		Flight current_city = travel.flights.back();
@@ -234,6 +236,7 @@ void compute_path(vector<Flight>& flights, string to, vector<Travel>& travels, u
 		if(current_city.to == to){
 			final_travels.push_back(travel);
 		}else{//otherwise, we need to compute a path
+			// TODO: parallel_for?
 			for(unsigned int i=0; i<flights.size(); i++){
 				Flight flight = flights[i];
 				if(flight.from == current_city.to &&
@@ -292,6 +295,7 @@ Travel find_cheapest(vector<Travel>& travels, vector<vector<string> >&alliances)
  * \param t_max You must not be in a plane after this value (epoch).
  */
 void fill_travel(vector<Travel>& travels, vector<Flight>& flights, string starting_point, unsigned long t_min, unsigned long t_max){
+	// TODO: parallel_for oder Tasks?
 	for(unsigned int i=0; i< flights.size(); i++){
 		if(flights[i].from == starting_point &&
 				flights[i].take_off_time >= t_min &&
