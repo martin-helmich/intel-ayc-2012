@@ -11,9 +11,13 @@
 #include <time.h>
 
 #include "types.h"
+#include "tbb/blocked_range.h"
+#include "tbb/parallel_for.h"
+#include "tbb/parallel_reduce.h"
 
 
 using namespace std;
+using namespace tbb;
 
 
 
@@ -152,6 +156,30 @@ void apply_discount(Travel & travel, vector<vector<string> >&alliances){
 	}
 }
 
+// TODO: Auslagern!
+class CostComputer
+{
+public:
+	vector<Flight> &flights;
+	int costs;
+
+	CostComputer(vector<Flight> &f) : flights(f), costs(0) {};
+	CostComputer(CostComputer &cc, split) : flights(cc.flights), costs(0) {};
+
+	void operator() (const blocked_range<unsigned int> range)
+	{
+		for(unsigned int i = range.begin(); i != range.end(); ++i)
+		{
+			costs += flights[i].cost * flights[i].discout;
+		}
+	}
+
+	void join(CostComputer &cc)
+	{
+		costs += cc.costs;
+	}
+};
+
 /**
  * \fn float compute_cost(Travel & travel, vector<vector<string> >&alliances)
  * \brief Compute the cost of a travel and uses the discounts when possible.
@@ -161,9 +189,15 @@ void apply_discount(Travel & travel, vector<vector<string> >&alliances){
 float compute_cost(Travel & travel, vector<vector<string> >&alliances){
 	float result = 0;
 	apply_discount(travel, alliances);
-	for(unsigned int i=0; i<travel.flights.size(); i++){
-		result += (travel.flights[i].cost * travel.flights[i].discout);
-	}
+
+	CostComputer cc(travel.flights);
+	parallel_reduce(blocked_range<unsigned int>(0, travel.flights.size()), cc);
+
+	return cc.costs;
+
+	//for(unsigned int i=0; i<travel.flights.size(); i++){
+	///	result += (travel.flights[i].cost * travel.flights[i].discout);
+	//}
 	return result;
 }
 
