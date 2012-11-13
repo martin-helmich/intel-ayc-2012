@@ -162,7 +162,7 @@ class CostComputer
 {
 public:
 	vector<Flight> &flights;
-	int costs;
+	float costs;
 
 	CostComputer(vector<Flight> &f) : flights(f), costs(0) {};
 	CostComputer(CostComputer &cc, split) : flights(cc.flights), costs(0) {};
@@ -188,7 +188,7 @@ public:
  * \param alliances The alliances.
  */
 float compute_cost(Travel & travel, vector<vector<string> >&alliances){
-	float result = 0;
+	//float result = 0;
 	apply_discount(travel, alliances);
 
 	CostComputer cc(travel.flights);
@@ -247,6 +247,48 @@ void compute_path(vector<Flight>& flights, string to, vector<Travel>& travels, u
 	cout << "compute_path to " << to << ": " << ((tick_count::now()-t0).seconds()*1000) << endl;
 }
 
+class TravelComparator
+{
+public:
+	Travel cheapest_travel;
+	int cheapest_cost;
+	vector<Travel> travels;
+	vector<vector<string> > alliances;
+
+	TravelComparator(vector<Travel> &t, vector<vector<string> > &a)
+	{
+		//cheapest_travel = NULL;
+		cheapest_cost = -1;
+		travels = t;
+		alliances = a;
+	}
+
+	TravelComparator(TravelComparator &cc, split) : cheapest_cost(cc.cheapest_cost), travels(cc.travels), alliances(cc.alliances) {};
+
+	void operator() (blocked_range<unsigned int> range)
+	{
+		int c;
+		for(unsigned int i=range.begin(); i != range.end(); ++i)
+		{
+			c = compute_cost(travels[i], alliances);
+			if (cheapest_cost == -1 || c < cheapest_cost)
+			{
+				cheapest_cost = c;
+				cheapest_travel = travels[i];
+			}
+		}
+	}
+
+	void join(TravelComparator &tc)
+	{
+		if (tc.cheapest_cost != -1 && tc.cheapest_cost < cheapest_cost)
+		{
+			cheapest_cost = tc.cheapest_cost;
+			cheapest_travel = tc.cheapest_travel;
+		}
+	}
+};
+
 /**
  * \fn Travel find_cheapest(vector<Travel>& travels, vector<vector<string> >&alliances)
  * \brief Finds the cheapest travel amongst the travels's vector.
@@ -257,22 +299,25 @@ void compute_path(vector<Flight>& flights, string to, vector<Travel>& travels, u
 Travel find_cheapest(vector<Travel>& travels, vector<vector<string> >&alliances){
 	tick_count t0 = tick_count::now();
 	int s0 = travels.size();
-	Travel result;
-	if(travels.size()>0){
-		result = travels.back();
-		travels.pop_back();
-	}else
-		return result;
-	while(travels.size()>0){
-		Travel temp = travels.back();
-		travels.pop_back();
-		if(compute_cost(temp, alliances) < compute_cost(result, alliances)){
-			result = temp;
-		}
-	}
+//	Travel result;
+//	if(travels.size()>0){
+//		result = travels.back();
+//		travels.pop_back();
+//	}else
+//		return result;
+//	while(travels.size()>0){
+//		Travel temp = travels.back();
+//		travels.pop_back();
+//		if(compute_cost(temp, alliances) < compute_cost(result, alliances)){
+//			result = temp;
+//		}
+//	}
+
+	TravelComparator tc(travels, alliances);
+	parallel_reduce(blocked_range<unsigned int>(0, travels.size()), tc);
 
 	cout << "find_cheapest of " << s0 << " flights: " << ((tick_count::now()-t0).seconds()*1000) << endl;
-	return result;
+	return tc.cheapest_travel;
 }
 
 /**
