@@ -194,11 +194,6 @@ float compute_cost(Travel & travel, vector<vector<string> >&alliances){
 	parallel_reduce(blocked_range<unsigned int>(0, travel.flights.size()), cc);
 
 	return cc.costs;
-
-	//for(unsigned int i=0; i<travel.flights.size(); i++){
-	///	result += (travel.flights[i].cost * travel.flights[i].discout);
-	//}
-	return result;
 }
 
 /**
