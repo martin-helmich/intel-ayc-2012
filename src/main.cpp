@@ -15,10 +15,12 @@
 #include "tbb/parallel_for.h"
 #include "tbb/parallel_reduce.h"
 #include "tbb/tick_count.h"
+#include "oma/loop_bodies.h"
 
 
 using namespace std;
 using namespace tbb;
+using namespace oma;
 
 
 
@@ -157,29 +159,7 @@ void apply_discount(Travel & travel, vector<vector<string> >&alliances){
 	}
 }
 
-// TODO: Auslagern!
-class CostComputer
-{
-public:
-	vector<Flight> &flights;
-	float costs;
 
-	CostComputer(vector<Flight> &f) : flights(f), costs(0) {};
-	CostComputer(CostComputer &cc, split) : flights(cc.flights), costs(0) {};
-
-	void operator() (const blocked_range<unsigned int> range)
-	{
-		for(unsigned int i = range.begin(); i != range.end(); ++i)
-		{
-			costs += flights[i].cost * flights[i].discout;
-		}
-	}
-
-	void join(CostComputer &cc)
-	{
-		costs += cc.costs;
-	}
-};
 
 /**
  * \fn float compute_cost(Travel & travel, vector<vector<string> >&alliances)
@@ -193,6 +173,7 @@ float compute_cost(Travel & travel, vector<vector<string> >&alliances){
 
 	CostComputer cc(travel.flights);
 	parallel_reduce(blocked_range<unsigned int>(0, travel.flights.size()), cc);
+	travel.total_cost = cc.costs;
 
 	return cc.costs;
 }
