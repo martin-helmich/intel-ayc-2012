@@ -1,5 +1,14 @@
 #!/bin/bash
 
+function getmd5()
+{
+	if [ -x md5 ] ; then
+		md5 -q "$1"
+	else
+		md5sum "$1" | awk '{print $1}'
+	fi
+}
+
 D=$(pwd)
 for S in scenarios/scenario[0-9] ; do
 	cd $S
@@ -7,13 +16,13 @@ for S in scenarios/scenario[0-9] ; do
 
 	echo -n "$S: "
 
-	if [ "$(md5 -q work_hard.txt)" = "$(md5 -q work_hard_ref.txt)" ] ; then
+	if [ "$(getmd5 work_hard.txt)" = "$(getmd5 work_hard_ref.txt)" ] ; then
 		echo -n "  OK "
 	else
 		echo -n "FAIL "
 	fi
 
-	if [ "$(md5 -q play_hard.txt)" = "$(md5 -q play_hard_ref.txt)" ] ; then
+	if [ "$(getmd5 play_hard.txt)" = "$(getmd5 play_hard_ref.txt)" ] ; then
 		echo -n "  OK "
 	else
 		echo -n "FAIL "
