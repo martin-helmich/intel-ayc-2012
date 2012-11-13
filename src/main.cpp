@@ -712,8 +712,6 @@ void output_work_hard(vector<Flight>& flights, Parameters& parameters, vector<ve
 }
 
 int main(int argc, char **argv) {
-	tick_count t0 = tick_count::now();
-
 	//Declare variables and read the args
 	Parameters parameters;
 	vector<vector<string> > alliances;
@@ -728,6 +726,8 @@ int main(int argc, char **argv) {
 	parse_alliances(alliances, parameters.alliances_file);
 //	cout<<"Printing alliances..."<<endl;
 //	print_alliances(alliances);
+	tick_count t0 = tick_count::now();
+
 	output_play_hard(flights, parameters, alliances);
 	output_work_hard(flights, parameters, alliances);
 
