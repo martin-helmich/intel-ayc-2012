@@ -2,7 +2,7 @@
 
 function getmd5()
 {
-	if [ -x md5 ] ; then
+	if [ -x /sbin/md5 ] ; then
 		md5 -q "$1"
 	else
 		md5sum "$1" | awk '{print $1}'
