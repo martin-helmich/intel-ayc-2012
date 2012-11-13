@@ -62,6 +62,7 @@ struct Flight{
  */
 struct Travel{
 	vector<Flight> flights;/*!< A travel is just a list of Flight(s). */
+	float total_cost; /* Total costs of this travel (sum of flight costs minus possible discounts). */
 };
 
 
