@@ -22,8 +22,6 @@ using namespace std;
 using namespace tbb;
 using namespace oma;
 
-
-
 time_t convert_to_timestamp(int day, int month, int year, int hour, int minute, int seconde);
 time_t convert_string_to_timestamp(string s);
 void print_params(Parameters &parameters);
@@ -52,6 +50,51 @@ vector<Travel> play_hard(vector<Flight>& flights, Parameters& parameters, vector
 void output_play_hard(vector<Flight>& flights, Parameters& parameters, vector<vector<string> >& alliances);
 void output_work_hard(vector<Flight>& flights, Parameters& parameters, vector<vector<string> >& alliances);
 time_t timegm(struct tm *tm);
+
+/*
+*  TravelComparator Class
+*/
+class TravelComparator
+{
+public:
+	Travel cheapest_travel;
+	int cheapest_cost;
+	vector<Travel> travels;
+	vector<vector<string> > alliances;
+
+	TravelComparator(vector<Travel> &t, vector<vector<string> > &a)
+	{
+		//cheapest_travel = NULL;
+		cheapest_cost = -1;
+		travels = t;
+		alliances = a;
+	}
+
+	TravelComparator(TravelComparator &cc, split) : cheapest_cost(cc.cheapest_cost), travels(cc.travels), alliances(cc.alliances) {};
+
+	void operator() (blocked_range<unsigned int> range)
+	{
+		int c;
+		for(unsigned int i=range.begin(); i != range.end(); ++i)
+		{
+			c = compute_cost(travels[i], alliances);
+			if (cheapest_cost == -1 || c < cheapest_cost)
+			{
+				cheapest_cost = c;
+				cheapest_travel = travels[i];
+			}
+		}
+	}
+
+	void join(TravelComparator &tc)
+	{
+		if (tc.cheapest_cost != -1 && tc.cheapest_cost < cheapest_cost)
+		{
+			cheapest_cost = tc.cheapest_cost;
+			cheapest_travel = tc.cheapest_travel;
+		}
+	}
+};
 
 /**
  * \fn Travel work_hard(vector<Flight>& flights, Parameters& parameters, vector<vector<string> >& alliances)
@@ -227,48 +270,6 @@ void compute_path(vector<Flight>& flights, string to, vector<Travel>& travels, u
 
 	cout << "compute_path to " << to << ": " << ((tick_count::now()-t0).seconds()*1000) << endl;
 }
-
-class TravelComparator
-{
-public:
-	Travel cheapest_travel;
-	int cheapest_cost;
-	vector<Travel> travels;
-	vector<vector<string> > alliances;
-
-	TravelComparator(vector<Travel> &t, vector<vector<string> > &a)
-	{
-		//cheapest_travel = NULL;
-		cheapest_cost = -1;
-		travels = t;
-		alliances = a;
-	}
-
-	TravelComparator(TravelComparator &cc, split) : cheapest_cost(cc.cheapest_cost), travels(cc.travels), alliances(cc.alliances) {};
-
-	void operator() (blocked_range<unsigned int> range)
-	{
-		int c;
-		for(unsigned int i=range.begin(); i != range.end(); ++i)
-		{
-			c = compute_cost(travels[i], alliances);
-			if (cheapest_cost == -1 || c < cheapest_cost)
-			{
-				cheapest_cost = c;
-				cheapest_travel = travels[i];
-			}
-		}
-	}
-
-	void join(TravelComparator &tc)
-	{
-		if (tc.cheapest_cost != -1 && tc.cheapest_cost < cheapest_cost)
-		{
-			cheapest_cost = tc.cheapest_cost;
-			cheapest_travel = tc.cheapest_travel;
-		}
-	}
-};
 
 /**
  * \fn Travel find_cheapest(vector<Travel>& travels, vector<vector<string> >&alliances)
