@@ -202,8 +202,6 @@ void apply_discount(Travel & travel, vector<vector<string> >&alliances){
 	}
 }
 
-
-
 /**
  * \fn float compute_cost(Travel & travel, vector<vector<string> >&alliances)
  * \brief Compute the cost of a travel and uses the discounts when possible.
@@ -235,7 +233,7 @@ float compute_cost(Travel & travel, vector<vector<string> >&alliances){
 void compute_path(vector<Flight>& flights, string to, vector<Travel>& travels, unsigned long t_min, unsigned long t_max, Parameters parameters){
 	// TODO: Stattdessen concurrent_vector!
 
-	tick_count t0 = tick_count::now();
+//	tick_count t0 = tick_count::now();
 	vector<Travel> final_travels;
 	// TODO: Parallele Queue?
 	while(travels.size() > 0){
@@ -268,7 +266,7 @@ void compute_path(vector<Flight>& flights, string to, vector<Travel>& travels, u
 	}
 	travels = final_travels;
 
-	cout << "compute_path to " << to << ": " << ((tick_count::now()-t0).seconds()*1000) << endl;
+//	cout << "compute_path to " << to << ": " << ((tick_count::now()-t0).seconds()*1000) << endl;
 }
 
 /**
@@ -279,7 +277,7 @@ void compute_path(vector<Flight>& flights, string to, vector<Travel>& travels, u
  * \return The cheapest travel found.
  */
 Travel find_cheapest(vector<Travel>& travels, vector<vector<string> >&alliances){
-	tick_count t0 = tick_count::now();
+	//tick_count t0 = tick_count::now();
 	int s0 = travels.size();
 //	Travel result;
 //	if(travels.size()>0){
@@ -298,7 +296,7 @@ Travel find_cheapest(vector<Travel>& travels, vector<vector<string> >&alliances)
 	TravelComparator tc(travels, alliances);
 	parallel_reduce(blocked_range<unsigned int>(0, travels.size()), tc);
 
-	cout << "find_cheapest of " << s0 << " flights: " << ((tick_count::now()-t0).seconds()*1000) << endl;
+	//cout << "find_cheapest of " << s0 << " flights: " << ((tick_count::now()-t0).seconds()*1000) << endl;
 	return tc.cheapest_travel;
 }
 
@@ -375,19 +373,19 @@ time_t convert_to_timestamp(int day, int month, int year, int hour, int minute, 
  * \return a timestamp (epoch) corresponding to the given parameter.
  */
 time_t timegm(struct tm *tm){
-       time_t ret;
-       char *tz;
+   time_t ret;
+   char *tz;
 
-       tz = getenv("TZ");
-       setenv("TZ", "", 1);
-       tzset();
-       ret = mktime(tm);
-       if (tz)
-           setenv("TZ", tz, 1);
-       else
-           unsetenv("TZ");
-       tzset();
-       return ret;
+   tz = getenv("TZ");
+   setenv("TZ", "", 1);
+   tzset();
+   ret = mktime(tm);
+   if (tz)
+       setenv("TZ", tz, 1);
+   else
+       unsetenv("TZ");
+   tzset();
+   return ret;
 }
 
 /**
@@ -748,14 +746,14 @@ int main(int argc, char **argv) {
 	parse_alliances(alliances, parameters.alliances_file);
 //	cout<<"Printing alliances..."<<endl;
 //	print_alliances(alliances);
-	tick_count t0 = tick_count::now();
+//	tick_count t0 = tick_count::now();
 
 	output_play_hard(flights, parameters, alliances);
 	output_work_hard(flights, parameters, alliances);
 
-	tick_count t1 = tick_count::now();
+//	tick_count t1 = tick_count::now();
 
-	cout << "Dauer: " << (t1-t0).seconds()*1000 << endl;
+//	cout << "Dauer: " << (t1-t0).seconds()*1000 << endl;
 }
 
 //./run -from Paris -to Los\ Angeles -departure_time_min 11152012000000 -departure_time_max 11172012000000 -arrival_time_min 11222012000000 -arrival_time_max 11252012000000 -max_layover 100000 -vacation_time_min 432000 -vacation_time_max 604800 -vacation_airports Rio London Chicago -flights flights.txt -alliances alliances.txt
