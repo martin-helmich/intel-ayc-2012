@@ -67,6 +67,10 @@ void output_work_hard(vector<Flight>& flights, Parameters& parameters,
 		vector<vector<string> >& alliances);
 time_t timegm(struct tm *tm);
 
+
+concurrent_hash_map<string, Location> location_map;
+
+
 /*
  *  TravelComparator Class
  */
@@ -318,14 +322,22 @@ void compute_path(vector<Flight>& flights, string to, vector<Travel>& travels,
 			final_travels.push_back(travel);
 		}
 		else
-		{	//otherwise, we need to compute a path
-			// TODO: parallel_for + concurrent_vector?
-			// foreach ( from.outgoing_flights as flight ) { ...
-			for (unsigned int i = 0; i < flights.size(); i++)
+		{
+			concurrent_hash_map<string, Location>::const_accessor a;
+			if (!location_map.find(a, current_city.to))
 			{
-				Flight flight = flights[i];
-				if (flight.from == current_city.to
-						&& flight.take_off_time >= t_min
+				cerr << "Fehler: Stadt " << current_city.to << " ist nicht bekannt." << endl;
+				exit(EXIT_FAILURE);
+			}
+
+			Location from = a->second;
+
+			//otherwise, we need to compute a path
+			// TODO: parallel_for + concurrent_vector?
+			for (unsigned int i=0; i < from.outgoing_flights.size(); i++)
+			{
+				Flight flight = from.outgoing_flights[i];
+				if (flight.take_off_time >= t_min
 						&& flight.land_time <= t_max
 						&& (flight.take_off_time > current_city.land_time)
 						&& flight.take_off_time - current_city.land_time
@@ -724,6 +736,37 @@ void parse_flight(vector<Flight> *flights, string& line)
 		flight.company = splittedLine[6];
 		flight.discout = 1.0;
 		flights->push_back(flight);
+
+		concurrent_hash_map<string, Location>::accessor a;
+		if (location_map.find(a, flight.from) )
+		{
+			a->second.outgoing_flights.push_back(flight);
+		}
+		else
+		{
+			Location new_loc;
+
+			new_loc.name = flight.from;
+			new_loc.outgoing_flights.push_back(flight);
+
+			location_map.insert(a, flight.from);
+			a->second = new_loc;
+		}
+
+		if (location_map.find(a, flight.to) )
+		{
+			a->second.incoming_flights.push_back(flight);
+		}
+		else
+		{
+			Location new_loc;
+
+			new_loc.name = flight.to;
+			new_loc.incoming_flights.push_back(flight);
+
+			location_map.insert(a, flight.to);
+			a->second = new_loc;
+		}
 
 		/*
 

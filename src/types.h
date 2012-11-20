@@ -65,5 +65,11 @@ struct Travel{
 	float total_cost; /* Total costs of this travel (sum of flight costs minus possible discounts). */
 };
 
+struct Location {
+	string name;
+	vector<Flight> outgoing_flights;
+	vector<Flight> incoming_flights;
+};
+
 
 #endif /* TYPES_H_ */
