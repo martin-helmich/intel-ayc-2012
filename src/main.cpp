@@ -15,6 +15,8 @@
 #include <fcntl.h>
 
 #include "types.h"
+#include "methods.h"
+
 #include "tbb/blocked_range.h"
 #include "tbb/parallel_for.h"
 #include "tbb/parallel_reduce.h"
@@ -48,7 +50,6 @@ void apply_discount(Travel & travel, vector<vector<string> >&alliances);
 float compute_cost(Travel & travel, vector<vector<string> >&alliances);
 void print_alliances(vector<vector<string> > &alliances);
 void print_flights(vector<Flight>& flights);
-bool nerver_traveled_to(Travel travel, string city);
 void print_travel(Travel& travel, vector<vector<string> >&alliances);
 void compute_path(vector<Flight>& flights, string to, vector<Travel>& travels,
 		unsigned long t_min, unsigned long t_max, Parameters parameters);
@@ -310,6 +311,8 @@ void compute_path(vector<Flight>& flights, string to, vector<Travel>& travels,
 
 //	tick_count t0 = tick_count::now();
 	vector<Travel> final_travels;
+	mutex final_travels_lock, travels_lock;
+
 	// TODO: Parallele Queue?
 	while (travels.size() > 0)
 	{
@@ -334,7 +337,13 @@ void compute_path(vector<Flight>& flights, string to, vector<Travel>& travels,
 
 			//otherwise, we need to compute a path
 			// TODO: parallel_for + concurrent_vector?
-			for (unsigned int i=0; i < from.outgoing_flights.size(); i++)
+
+			PathComputingInnerLoop loop(&travels, &final_travels, &from.outgoing_flights,
+					&travels_lock, &final_travels_lock, t_min, t_max, parameters, &current_city,
+					&travel, to);
+			parallel_for(blocked_range<unsigned int>(0, from.outgoing_flights.size()), loop);
+
+			/*for (unsigned int i=0; i < from.outgoing_flights.size(); i++)
 			{
 				Flight flight = from.outgoing_flights[i];
 				if (flight.take_off_time >= t_min
@@ -355,7 +364,7 @@ void compute_path(vector<Flight>& flights, string to, vector<Travel>& travels,
 						travels.push_back(newTravel);
 					}
 				}
-			}
+			}*/
 		}
 	}
 	travels = final_travels;
