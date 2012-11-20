@@ -73,14 +73,14 @@ time_t timegm(struct tm *tm);
 class TravelComparator
 {
 public:
-	Travel cheapest_travel;
+	Travel *cheapest_travel;
 	int cheapest_cost;
-	vector<Travel> travels;
-	vector<vector<string> > alliances;
+	vector<Travel> *travels;
+	vector<vector<string> > *alliances;
 
-	TravelComparator(vector<Travel> &t, vector<vector<string> > &a)
+	TravelComparator(vector<Travel> *t, vector<vector<string> > *a)
 	{
-		//cheapest_travel = NULL;
+		cheapest_travel = NULL;
 		cheapest_cost = -1;
 		travels = t;
 		alliances = a;
@@ -98,11 +98,11 @@ public:
 		int c;
 		for (unsigned int i = range.begin(); i != range.end(); ++i)
 		{
-			c = compute_cost(travels[i], alliances);
+			c = compute_cost(travels->at(i), *alliances);
 			if (cheapest_cost == -1 || c < cheapest_cost)
 			{
 				cheapest_cost = c;
-				cheapest_travel = travels[i];
+				cheapest_travel = &travels->at(i);
 			}
 		}
 	}
@@ -178,20 +178,24 @@ vector<Travel> play_hard(vector<Flight>& flights, Parameters& parameters,
 				parameters.dep_time_min - parameters.vacation_time_max,
 				parameters.dep_time_min - parameters.vacation_time_min,
 				parameters);
+		cout << "Computed paths from home to vacation." << endl;
 		//compute the paths from vacation to conference
 		fill_travel(vacation_to_conference, flights,
 				current_airport_of_interest, parameters.dep_time_min,
 				parameters.dep_time_max);
 		compute_path(flights, parameters.to, vacation_to_conference,
 				parameters.dep_time_min, parameters.dep_time_max, parameters);
+		cout << "Computed paths from vacation to conference." << endl;
 		//compute the paths from conference to home
 		fill_travel(conference_to_home, flights, parameters.to,
 				parameters.ar_time_min, parameters.ar_time_max);
 		compute_path(flights, parameters.from, conference_to_home,
 				parameters.ar_time_min, parameters.ar_time_max, parameters);
+		cout << "Computed paths from conference to home." << endl;
 		merge_path(home_to_vacation, vacation_to_conference);
 		merge_path(home_to_vacation, conference_to_home);
 		all_travels = home_to_vacation;
+		cout << "merged" << endl;
 
 		/*
 		 * The second part compute a travel from home -> conference -> vacation -> home
@@ -203,12 +207,14 @@ vector<Travel> play_hard(vector<Flight>& flights, Parameters& parameters,
 				parameters.dep_time_min, parameters.dep_time_max);
 		compute_path(flights, parameters.to, home_to_conference,
 				parameters.dep_time_min, parameters.dep_time_max, parameters);
+		cout << "compute the paths from home to conference" << endl;
 		//compute the paths from conference to vacation
 		fill_travel(conference_to_vacation, flights, parameters.to,
 				parameters.ar_time_min, parameters.ar_time_max);
 		compute_path(flights, current_airport_of_interest,
 				conference_to_vacation, parameters.ar_time_min,
 				parameters.ar_time_max, parameters);
+		cout << "compute the paths from conference to vacation" << endl;
 		//compute paths from vacation to home
 		fill_travel(vacation_to_home, flights, current_airport_of_interest,
 				parameters.ar_time_max + parameters.vacation_time_min,
@@ -217,10 +223,12 @@ vector<Travel> play_hard(vector<Flight>& flights, Parameters& parameters,
 				parameters.ar_time_max + parameters.vacation_time_min,
 				parameters.ar_time_max + parameters.vacation_time_max,
 				parameters);
+		cout << "compute paths from vacation to home" << endl;
 		merge_path(home_to_conference, conference_to_vacation);
 		merge_path(home_to_conference, vacation_to_home);
 		all_travels.insert(all_travels.end(), home_to_conference.begin(),
 				home_to_conference.end());
+		cout << "merged" << endl;
 		Travel cheapest_travel = find_cheapest(all_travels, alliances);
 		results.push_back(cheapest_travel);
 	}
@@ -312,6 +320,7 @@ void compute_path(vector<Flight>& flights, string to, vector<Travel>& travels,
 		else
 		{	//otherwise, we need to compute a path
 			// TODO: parallel_for + concurrent_vector?
+			// foreach ( from.outgoing_flights as flight ) { ...
 			for (unsigned int i = 0; i < flights.size(); i++)
 			{
 				Flight flight = flights[i];
@@ -367,11 +376,12 @@ Travel find_cheapest(vector<Travel>& travels, vector<vector<string> >&alliances)
 //		}
 //	}
 
-	TravelComparator tc(travels, alliances);
+	cout << "Find cheapest of " << s0 << " flights" << endl;
+	TravelComparator tc(&travels, &alliances);
 	parallel_reduce(blocked_range<unsigned int>(0, travels.size()), tc);
 
 	//cout << "find_cheapest of " << s0 << " flights: " << ((tick_count::now()-t0).seconds()*1000) << endl;
-	return tc.cheapest_travel;
+	return *tc.cheapest_travel;
 }
 
 /**
@@ -714,6 +724,14 @@ void parse_flight(vector<Flight> *flights, string& line)
 		flight.company = splittedLine[6];
 		flight.discout = 1.0;
 		flights->push_back(flight);
+
+		/*
+
+		if ( flight.from not in hashmap )
+		 hashmap[flight.from] = new location();
+		hashmap[flight.from].outgoing_flights[] = flight
+
+		 */
 	}
 }
 
