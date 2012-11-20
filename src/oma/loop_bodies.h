@@ -10,6 +10,7 @@
 
 #include <vector>
 #include "tbb/blocked_range.h"
+#include "tbb/mutex.h"
 #include "../types.h"
 
 using namespace std;
@@ -50,6 +51,41 @@ public:
 	}
 
 	void operator()(const blocked_range<unsigned int> range) const;
+};
+
+class PathComputingInnerLoop
+{
+private:
+	vector<Travel> *travels, *final_travels;
+	vector<Flight> *flights;
+	mutex *travels_lock, *final_travels_lock;
+	unsigned long t_min;
+	unsigned long t_max;
+	Parameters parameters;
+	Flight *current_city;
+	Travel *travel;
+	string to;
+
+public:
+	PathComputingInnerLoop(vector<Travel> *t, vector<Travel> *ft, vector<Flight> *f,
+			mutex *tl, mutex *ftl, unsigned long tmi, unsigned long tma, Parameters &p, Flight *c,
+			Travel *ct, string to)
+	{
+		travels = t;
+		final_travels = ft;
+		flights = f;
+		travels_lock = tl;
+		final_travels_lock = ftl;
+
+		t_min = tmi;
+		t_max = tma;
+		parameters = p;
+		current_city = c;
+		travel = ct;
+		this->to = to;
+	}
+
+	void operator()(blocked_range<unsigned int> &range) const;
 };
 
 }
