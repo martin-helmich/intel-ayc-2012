@@ -21,6 +21,7 @@
 #include "tbb/tick_count.h"
 #include "tbb/mutex.h"
 #include "oma/loop_bodies.h"
+#include "tbb/concurrent_hash_map.h"
 
 using namespace std;
 using namespace tbb;
@@ -451,16 +452,58 @@ time_t convert_to_timestamp(int day, int month, int year, int hour, int minute,
 	return timegm(&time);
 }
 
+concurrent_hash_map<int, time_t> times;
+
 /**
  * \fn time_t timegm(struct tm *tm)
  * \brief Convert a tm structure into a timestamp.
  * \return a timestamp (epoch) corresponding to the given parameter.
  */
-
 time_t timegm(struct tm *tm)
 {
 	time_t ret;
-	//har *tz;
+	char *tz;
+	
+	int year = tm->tm_year * 100 + tm->tm_mon;
+	time_t month_ts;
+
+	concurrent_hash_map<int, time_t>::const_accessor a;
+	if (times.find(a, year))
+	{
+		month_ts = a->second;
+	}
+	else
+	{
+		concurrent_hash_map<int, time_t>::accessor b;
+		if (times.insert(b, year))
+		{
+			struct tm time;
+			time.tm_year = tm->tm_year;
+			time.tm_mon = tm->tm_mon;
+			time.tm_mday = 1;
+			time.tm_hour = 0;
+			time.tm_min = 0;
+			time.tm_sec = 0;
+
+			tz = getenv("TZ");
+			setenv("TZ", "", 1);
+			tzset();
+
+			month_ts = mktime(&time);
+			b->second = month_ts;
+
+			if (tz) setenv("TZ", tz, 1);
+			else unsetenv("TZ");
+			tzset();
+		}
+	}
+
+	month_ts += (tm->tm_mday - 1) * 60*60*24;
+	month_ts += (tm->tm_hour) * 60*60;
+	month_ts += (tm->tm_min) * 60;
+	month_ts += tm->tm_sec;
+
+	return month_ts;
 
 	//tz = getenv("TZ");
 	//setenv("TZ", "", 1);
@@ -1020,13 +1063,13 @@ int main(int argc, char **argv)
 	cout << "Read " << flights.size() << " flights." << endl;
 //	print_flights(flights, (ofstream&) cout);
 //	cout<<"flights printed "<<endl;
-	parse_alliances(alliances, parameters.alliances_file);
+	//parse_alliances(alliances, parameters.alliances_file);
 //	cout<<"Printing alliances..."<<endl;
 //	print_alliances(alliances);
 //	tick_count t0 = tick_count::now();
 
-	output_play_hard(flights, parameters, alliances);
-	output_work_hard(flights, parameters, alliances);
+	//output_play_hard(flights, parameters, alliances);
+	//output_work_hard(flights, parameters, alliances);
 
 //	tick_count t1 = tick_count::now();
 
