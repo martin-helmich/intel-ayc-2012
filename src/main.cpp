@@ -457,20 +457,18 @@ time_t convert_to_timestamp(int day, int month, int year, int hour, int minute,
  * \return a timestamp (epoch) corresponding to the given parameter.
  */
 
-mutex lock;
-
 time_t timegm(struct tm *tm)
 {
 	time_t ret;
-	char *tz;
+	//har *tz;
 
-	tz = getenv("TZ");
-	setenv("TZ", "", 1);
-	tzset();
+	//tz = getenv("TZ");
+	//setenv("TZ", "", 1);
+	//tzset();
 	ret = mktime(tm);
-	if (tz) setenv("TZ", tz, 1);
-	else unsetenv("TZ");
-	tzset();
+	//if (tz) setenv("TZ", tz, 1);
+	//else unsetenv("TZ");
+	//tzset();
 	return ret;
 }
 
@@ -659,7 +657,6 @@ void split_string(vector<string>& result, string line, char separator)
 void parse_flight(vector<Flight> *flights, string& line)
 {
 	vector<string> splittedLine;
-	cout << line;
 	split_string(splittedLine, line, ';');
 	if (splittedLine.size() == 7)
 	{
@@ -787,7 +784,17 @@ void parse_flights(vector<Flight>& flights, string filename)
 	FlightParser fp(m, &lfs);
 	fp.setFlights(&flights);
 
+	char *tz;
+
+	tz = getenv("TZ");
+	setenv("TZ", "", 1);
+	tzset();
+
 	parallel_reduce(blocked_range<int>(1, lfs.size()), fp);
+
+	if (tz) setenv("TZ", tz, 1);
+	else unsetenv("TZ");
+	tzset();
 
 	/*for (int i = 1; i < lfs.size(); i++)
 	{
