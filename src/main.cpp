@@ -1063,17 +1063,17 @@ int main(int argc, char **argv)
 	cout << "Read " << flights.size() << " flights." << endl;
 //	print_flights(flights, (ofstream&) cout);
 //	cout<<"flights printed "<<endl;
-	//parse_alliances(alliances, parameters.alliances_file);
+	parse_alliances(alliances, parameters.alliances_file);
 //	cout<<"Printing alliances..."<<endl;
 //	print_alliances(alliances);
-//	tick_count t0 = tick_count::now();
+	tick_count t0 = tick_count::now();
 
-	//output_play_hard(flights, parameters, alliances);
-	//output_work_hard(flights, parameters, alliances);
+	output_play_hard(flights, parameters, alliances);
+	output_work_hard(flights, parameters, alliances);
 
-//	tick_count t1 = tick_count::now();
+	tick_count t1 = tick_count::now();
 
-//	cout << "Dauer: " << (t1-t0).seconds()*1000 << endl;
+	cout << "Dauer: " << (t1-t0).seconds()*1000 << endl;
 }
 
 //./run -from Paris -to Los\ Angeles -departure_time_min 11152012000000 -departure_time_max 11172012000000 -arrival_time_min 11222012000000 -arrival_time_max 11252012000000 -max_layover 100000 -vacation_time_min 432000 -vacation_time_max 604800 -vacation_airports Rio London Chicago -flights flights.txt -alliances alliances.txt
