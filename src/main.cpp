@@ -843,87 +843,52 @@ public:
  */
 void parse_flights(vector<Flight>& flights, string filename)
 {
-
-	/*string line = "";
-	 ifstream file;
-	 file.open(filename.c_str());
-	 if (!file.is_open())
-	 {
-	 cerr << "Problem while opening the file " << filename << endl;
-	 exit(0);
-	 }
-	 while (!file.eof())
-	 {
-	 getline(file, line);
-	 parse_flight(flights, line);
-	 }
-	 return;*/
-
-	//FILE *f;
 	char *m;
 	struct stat stat;
 	int fd;
 	off_t l;
 
+	// Try to open the input file and do a stat() syscall on it.
+	// Exit with an error message if either operation fails.
 	fd = open(filename.c_str(), O_RDONLY);
-	if (fstat(fd, &stat) != 0)
+	if (fd && fstat(fd, &stat) != 0)
 	{
-		cerr << "Could not stat " << filename << endl;
+		cerr << "Could not open or stat " << filename << endl;
 		exit(1);
 	}
 
+	// Get file size from stat call and map the entire file into memory.
 	l = stat.st_size;
+	m = (char*) mmap((void*) m, l, PROT_READ, MAP_PRIVATE, fd, 0);
 
-	m = (char*) mmap((void*) m, stat.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
-
-	/*off_t s = 0;
-	 int j=0;
-	 char** f = (char**) calloc(8, 256);
-	 char* c = f[0];
-	 */
-
+	// Iterate through the entire file and search for line feeds.
+	// Store all linefeeds into a vector.
 	vector<int> lfs;
-
 	lfs.push_back(-1);
 	for (off_t i = 0; i < l; i++)
 	{
+		// 10 = LF
 		if (m[i] == 10)
 		{
 			lfs.push_back(i);
-			//cout << "Found LF at " << i << endl;
+
+			// Each line is at least 39 characters long (assuming 14 character
+			// datetime values and at least 1 character for every other value),
+			// so it is safe to assume that no linefeed will occur for the next
+			// 39 characters.
+			i += 39;
 		}
 	}
 
+	// Iterate over all found linefeeds and parse each line in parallel.
 	FlightParser fp(m, &lfs);
 	fp.setFlights(&flights);
 
-	char *tz;
-
-	tz = getenv("TZ");
-	setenv("TZ", "", 1);
-	tzset();
-
 	parallel_reduce(blocked_range<int>(1, lfs.size()), fp);
 
-	if (tz) setenv("TZ", tz, 1);
-	else unsetenv("TZ");
-	tzset();
-
-	/*for (int i = 1; i < lfs.size(); i++)
-	{
-		//cout << "String from " << lfs[i-1]+1 << " to " << lfs[i] << endl;
-
-		//printf("%x ", m[lfs[i-1]+1] & 0xFF);
-		//printf("%x\n", m[lfs[i]-1] & 0xFF);
-
-		char* b = (char*) malloc(lfs[i] - lfs[i - 1] + 1);
-		strncpy(b, (m + lfs[i - 1] + 1), lfs[i] - lfs[i - 1] - 1);
-		b[lfs[i] - lfs[i - 1] - 1] = 0x00;
-		string s(b);
-
-		//cout << b << endl;
-		parse_flight(flights, s);
-	}*/
+	// Unmap file from memory and close file handle.
+	munmap(m, stat.st_size);
+	close(fd);
 }
 
 /**
