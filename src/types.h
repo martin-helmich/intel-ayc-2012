@@ -71,5 +71,11 @@ struct Location {
 	vector<Flight> incoming_flights;
 };
 
+struct Solution
+{
+	vector<Travel> play_hard;
+	Travel work_hard;
+};
+
 
 #endif /* TYPES_H_ */
