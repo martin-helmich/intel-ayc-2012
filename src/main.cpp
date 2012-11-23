@@ -784,7 +784,7 @@ void parse_flight(vector<Flight> *flights, string& line)
 		// in a hash map for fast access and all incoming and outgoing flights from
 		// or to these locations in adjacency lists.
 		concurrent_hash_map<string, Location>::accessor a;
-		if (location_map.find(a, flight.from))
+		if (! location_map.insert(a, flight.from))
 		{
 			a->second.outgoing_flights.push_back(flight);
 		}
@@ -794,14 +794,15 @@ void parse_flight(vector<Flight> *flights, string& line)
 
 			new_loc.name = flight.from;
 			new_loc.outgoing_flights.push_back(flight);
-
-			location_map.insert(a, flight.from);
 			a->second = new_loc;
 		}
+		a.release();
 
-		if (location_map.find(a, flight.to))
+
+		concurrent_hash_map<string, Location>::accessor b;
+		if (! location_map.insert(b, flight.to))
 		{
-			a->second.incoming_flights.push_back(flight);
+			b->second.incoming_flights.push_back(flight);
 		}
 		else
 		{
@@ -810,9 +811,9 @@ void parse_flight(vector<Flight> *flights, string& line)
 			new_loc.name = flight.to;
 			new_loc.incoming_flights.push_back(flight);
 
-			location_map.insert(a, flight.to);
-			a->second = new_loc;
+			b->second = new_loc;
 		}
+		b.release();
 	}
 }
 
