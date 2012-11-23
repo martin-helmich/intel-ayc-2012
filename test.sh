@@ -10,7 +10,7 @@ function getmd5()
 }
 
 D=$(pwd)
-for S in scenarios/scenario* ; do
+for S in scenarios/scenario{1..10} ; do
 	cd $S
 	./script.sh > /dev/null
 
