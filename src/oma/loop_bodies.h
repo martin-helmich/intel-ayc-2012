@@ -29,12 +29,10 @@ public:
 			flights(f), costs(0)
 	{
 	}
-	;
 	CostComputer(CostComputer &cc, split) :
 			flights(cc.flights), costs(0)
 	{
 	}
-	;
 
 	void operator()(const blocked_range<unsigned int> range);
 	void join(CostComputer &cc);

@@ -26,14 +26,10 @@ oma::FindPathTask::FindPathTask(string f, string t, int tmi, int tma,
 
 tbb::task* oma::FindPathTask::execute()
 {
-	cout << "Compute path from " << from << " to " << to << endl;
-
 	vector<Travel> temporary_travels;
 
 	fill_travel(&temporary_travels, *flights, from, t_min, t_max);
 	compute_path(*flights, to, &temporary_travels, t_min, t_max, *parameters, travels);
-
-	cout << "Compute path from " << from << " to " << to << " DONE" << endl;
 
 	return NULL;
 }
