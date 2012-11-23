@@ -172,14 +172,32 @@ Solution play_and_work_hard(vector<Flight>& flights, Parameters& parameters,
 		vector<vector<string> >& alliances)
 {
 	Solution solution;
-	vector<Travel> results, home_to_conference, conference_to_home;
+	int n = parameters.airports_of_interest.size();
+	vector<Travel> results, home_to_conference, conference_to_home,
+			home_to_vacation[n], vacation_to_conference[n],
+			conference_to_vacation[n], vacation_to_home[n];
 
-	list<string>::iterator it = parameters.airports_of_interest.begin();
-	int i = 0;
-	for (; it != parameters.airports_of_interest.end(); it++)
+	task_list tasks;
+
+	// The paths from conference to home and vice versa need to be computed
+	// only once. We can reuse them later.
+	//compute the paths from conference to home
+	tasks.push_back(
+			*new (task::allocate_root()) FindPathTask(parameters.to,
+					parameters.from, parameters.ar_time_min,
+					parameters.ar_time_max, &parameters, &flights,
+					&conference_to_home));
+	//compute the paths from home to conference
+	tasks.push_back(
+			*new (task::allocate_root()) FindPathTask(parameters.from,
+					parameters.to, parameters.dep_time_min,
+					parameters.dep_time_max, &parameters, &flights,
+					&home_to_conference));
+
+//	list<string>::iterator it = parameters.airports_of_interest.begin();
+	for (int i = 0; i < parameters.airports_of_interest.size(); i++)
 	{
-		string current_airport_of_interest = *it;
-		vector<Travel> all_travels;
+		string current_airport_of_interest = parameters.airports_of_interest[i];
 
 #ifdef DEBUG
 		cout << "Computing path over " << current_airport_of_interest << endl;
@@ -188,10 +206,8 @@ Solution play_and_work_hard(vector<Flight>& flights, Parameters& parameters,
 		// Optimization: Do not compute the two possibilities (home->conference->vacation->home
 		// and home->vacation->conference->home) sequentially but, compute all partial paths in
 		// parallel and merge afterwards.
-		vector<Travel> home_to_vacation, vacation_to_conference,
-				conference_to_vacation, vacation_to_home;
-
-		task_list tasks;
+		//vector<Travel> home_to_vacation, vacation_to_conference,
+		//		conference_to_vacation, vacation_to_home;
 
 		//compute the paths from home to vacation
 		tasks.push_back(
@@ -199,75 +215,58 @@ Solution play_and_work_hard(vector<Flight>& flights, Parameters& parameters,
 						current_airport_of_interest,
 						parameters.dep_time_min - parameters.vacation_time_max,
 						parameters.dep_time_min - parameters.vacation_time_min,
-						&parameters, &flights, &home_to_vacation));
+						&parameters, &flights, &home_to_vacation[i]));
 		//compute the paths from vacation to conference
 		tasks.push_back(
 				*new (task::allocate_root()) FindPathTask(
 						current_airport_of_interest, parameters.to,
 						parameters.dep_time_min, parameters.dep_time_max,
-						&parameters, &flights, &vacation_to_conference));
-
-		// The paths from conference to home and vice versa need to be computed
-		// only once. We can reuse them later.
-		if (i == 0)
-		{
-			//compute the paths from conference to home
-			tasks.push_back(
-					*new (task::allocate_root()) FindPathTask(parameters.to,
-							parameters.from, parameters.ar_time_min,
-							parameters.ar_time_max, &parameters, &flights,
-							&conference_to_home));
-			//compute the paths from home to conference
-			tasks.push_back(
-					*new (task::allocate_root()) FindPathTask(parameters.from,
-							parameters.to, parameters.dep_time_min,
-							parameters.dep_time_max, &parameters, &flights,
-							&home_to_conference));
-		}
+						&parameters, &flights, &vacation_to_conference[i]));
 
 		//compute the paths from conference to vacation
 		tasks.push_back(
 				*new (task::allocate_root()) FindPathTask(parameters.to,
 						current_airport_of_interest, parameters.ar_time_min,
 						parameters.ar_time_max, &parameters, &flights,
-						&conference_to_vacation));
+						&conference_to_vacation[i]));
 		//compute paths from vacation to home
 		tasks.push_back(
 				*new (task::allocate_root()) FindPathTask(
 						current_airport_of_interest, parameters.from,
 						parameters.ar_time_max + parameters.vacation_time_min,
 						parameters.ar_time_max + parameters.vacation_time_max,
-						&parameters, &flights, &vacation_to_home));
+						&parameters, &flights, &vacation_to_home[i]));
+	}
 
-		task::spawn_root_and_wait(tasks);
+	task::spawn_root_and_wait(tasks);
 
-		merge_path(home_to_vacation, vacation_to_conference);
-		merge_path(home_to_vacation, conference_to_home);
-		all_travels = home_to_vacation;
+	// Compute the "work hard" solution.
+	// This is possible, since the required home->conference and conference->home
+	// paths are created as a "by-product" of the "play hard" scenario.
+	vector<Travel> work_hard = home_to_conference;
+	merge_path(work_hard, conference_to_home);
+
+	Travel cheapest_work_hard = find_cheapest(work_hard, alliances);
+	solution.work_hard = cheapest_work_hard;
+
+	for (int i = 0; i < parameters.airports_of_interest.size(); i++)
+	{
+		vector<Travel> all_travels;
+
+		merge_path(home_to_vacation[i], vacation_to_conference[i]);
+		merge_path(home_to_vacation[i], conference_to_home);
+		all_travels = home_to_vacation[i];
 
 		vector<Travel> temp = home_to_conference;
 
-		merge_path(temp, conference_to_vacation);
-		merge_path(temp, vacation_to_home);
+		merge_path(temp, conference_to_vacation[i]);
+		merge_path(temp, vacation_to_home[i]);
 		all_travels.insert(all_travels.end(), temp.begin(), temp.end());
 
 		Travel cheapest_travel = find_cheapest(all_travels, alliances);
 		solution.play_hard.push_back(cheapest_travel);
-
-		// Compute the "work hard" solution alongside the first "play hard" solution.
-		// This is possible, since the required home->conference and conference->home
-		// paths are created as a "by-product" of the "play hard" scenario.
-		if (i == 0)
-		{
-			vector<Travel> work_hard = home_to_conference;
-			merge_path(work_hard, conference_to_home);
-
-			Travel cheapest_work_hard = find_cheapest(work_hard, alliances);
-			solution.work_hard = cheapest_work_hard;
-		}
-
-		i++;
 	}
+
 	return solution;
 }
 
@@ -314,7 +313,7 @@ void apply_discount(Travel & travel, vector<vector<string> >&alliances)
  */
 float compute_cost(Travel & travel, vector<vector<string> >&alliances)
 {
-	//float result = 0;
+//float result = 0;
 	apply_discount(travel, alliances);
 
 	CostComputer cc(travel.flights);
@@ -339,14 +338,14 @@ void compute_path(vector<Flight>& flights, string to, vector<Travel> *travels,
 		unsigned long t_min, unsigned long t_max, Parameters parameters,
 		vector<Travel> *final_travels)
 {
-	// TODO: Stattdessen concurrent_vector!
+// TODO: Stattdessen concurrent_vector!
 
 //	tick_count t0 = tick_count::now();
-	//vector<Travel> final_travels;
+//vector<Travel> final_travels;
 	mutex final_travels_lock, travels_lock;
 	float cmin = numeric_limits<float>::max(), cmax = cmin;
 
-	// TODO: Parallele Queue?
+// TODO: Parallele Queue?
 	while (travels->size() > 0)
 	{
 		Travel travel = travels->back();
@@ -369,7 +368,7 @@ void compute_path(vector<Flight>& flights, string to, vector<Travel> *travels,
 			{
 				cerr << "Fehler: Stadt " << current_city.to
 						<< " ist nicht bekannt." << endl;
-				exit(EXIT_FAILURE);
+				exit(100);
 			}
 
 			Location from = a->second;
@@ -392,7 +391,7 @@ void compute_path(vector<Flight>& flights, string to, vector<Travel> *travels,
 						&& flight.take_off_time - current_city.land_time
 								<= parameters.max_layover_time
 						&& nerver_traveled_to(travel, flight.to)
-						&& flight.cost * 0.7 + travel.min_cost < cmax)
+						&& flight.cost * 0.7 + travel.min_cost <= cmax)
 				{
 					Travel newTravel = travel;
 					newTravel.flights.push_back(flight);
@@ -417,7 +416,7 @@ void compute_path(vector<Flight>& flights, string to, vector<Travel> *travels,
 			}
 		}
 	}
-	//travels = final_travels;
+//travels = final_travels;
 
 //	cout << "compute_path to " << to << ": " << ((tick_count::now()-t0).seconds()*1000) << endl;
 }
@@ -431,7 +430,7 @@ void compute_path(vector<Flight>& flights, string to, vector<Travel> *travels,
  */
 Travel find_cheapest(vector<Travel>& travels, vector<vector<string> >&alliances)
 {
-	//tick_count t0 = tick_count::now();
+//tick_count t0 = tick_count::now();
 	int s0 = travels.size();
 //	Travel result;
 //	if(travels.size()>0){
@@ -458,7 +457,7 @@ Travel find_cheapest(vector<Travel>& travels, vector<vector<string> >&alliances)
 	TravelComparator tc(&travels, &alliances);
 	parallel_reduce(blocked_range<unsigned int>(0, travels.size()), tc);
 
-	//cout << "find_cheapest of " << s0 << " flights: " << ((tick_count::now()-t0).seconds()*1000) << endl;
+//cout << "find_cheapest of " << s0 << " flights: " << ((tick_count::now()-t0).seconds()*1000) << endl;
 	return *tc.cheapest_travel;
 }
 
@@ -494,8 +493,8 @@ void fill_travel(vector<Travel> *travels, vector<Flight>& flights,
 		{
 			Travel t;
 			t.flights.push_back(l.outgoing_flights[i]);
-			t.max_cost += l.outgoing_flights[i].cost;
-			t.min_cost += 0.7 * l.outgoing_flights[i].cost;
+			t.max_cost = l.outgoing_flights[i].cost;
+			t.min_cost = 0.7 * l.outgoing_flights[i].cost;
 			travels->push_back(t);
 		}
 	}
@@ -562,18 +561,18 @@ time_t timegm(struct tm *tm)
 {
 	char *tz;
 
-	// Create a simple hash from the year and month.
+// Create a simple hash from the year and month.
 	int year = tm->tm_year * 100 + tm->tm_mon;
 	time_t month_ts;
 
-	// On Linux, mktime() apparently requires exclusive access to some system
-	// resource that is ensured by using futex locks. This makes it very hard to
-	// parallelize.
-	// In order to minimize the amount of these expensive mktime() calls, we only
-	// compute "base dates" for each month/year combination which are subsequently
-	// stored into a concurrent hash map. The actual timestamps are then computed
-	// manually using the "base timestamp" plus the amount of seconds for the
-	// day/hour/minute.
+// On Linux, mktime() apparently requires exclusive access to some system
+// resource that is ensured by using futex locks. This makes it very hard to
+// parallelize.
+// In order to minimize the amount of these expensive mktime() calls, we only
+// compute "base dates" for each month/year combination which are subsequently
+// stored into a concurrent hash map. The actual timestamps are then computed
+// manually using the "base timestamp" plus the amount of seconds for the
+// day/hour/minute.
 	concurrent_hash_map<int, time_t>::const_accessor a;
 	if (times.find(a, year))
 	{
@@ -662,9 +661,9 @@ void print_params(Parameters &parameters)
 	cout << "alliances_file : " << parameters.alliances_file << endl;
 	cout << "work_hard_file : " << parameters.work_hard_file << endl;
 	cout << "play_hard_file : " << parameters.play_hard_file << endl;
-	list<string>::iterator it = parameters.airports_of_interest.begin();
-	for (; it != parameters.airports_of_interest.end(); it++)
-		cout << "airports_of_interest : " << *it << endl;
+//	list<string>::iterator it = parameters.airports_of_interest.begin();
+//	for (; it != parameters.airports_of_interest.end(); it++)
+//		cout << "airports_of_interest : " << *it << endl;
 	cout << "flights : " << parameters.flights_file << endl;
 	cout << "alliances : " << parameters.alliances_file << endl;
 	cout << "nb_threads : " << parameters.nb_threads << endl;
@@ -925,7 +924,7 @@ void parse_flights(vector<Flight>& flights, string filename)
 	// Store all linefeeds into a vector.
 	vector<int> lfs;
 	lfs.push_back(-1);
-	for (off_t i = 0; i < l; i++)
+	for (off_t i = 38; i < l; i++)
 	{
 		// 10 = LF
 		if (m[i] == 10)
@@ -1143,13 +1142,12 @@ void output_solutions(vector<Flight>& flights, Parameters& parameters,
 	ph_out.open(parameters.play_hard_file.c_str());
 	wh_out.open(parameters.work_hard_file.c_str());
 
-	list<string> cities = parameters.airports_of_interest;
+	vector<string> cities = parameters.airports_of_interest;
 	for (unsigned int i = 0; i < solution.play_hard.size(); i++)
 	{
-		ph_out << "“Play Hard” Proposition " << (i + 1) << " : "
-				<< cities.front() << endl;
+		ph_out << "“Play Hard” Proposition " << (i + 1) << " : " << cities[i]
+				<< endl;
 		print_travel(solution.play_hard[i], alliances, ph_out);
-		cities.pop_front();
 		ph_out << endl;
 	}
 	ph_out.close();
@@ -1204,7 +1202,7 @@ void print_cities()
 
 int main(int argc, char **argv)
 {
-	//Declare variables and read the args
+//Declare variables and read the args
 	Parameters parameters;
 	vector<vector<string> > alliances;
 	read_parameters(parameters, argc, argv);

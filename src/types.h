@@ -31,7 +31,7 @@ struct Parameters{
 	unsigned long max_layover_time;/*!< You don't want to wait more than this amount of time at the airport between 2 flights (in seconds) */
 	unsigned long vacation_time_min;/*!< Your minimum vacation time (in seconds). You can't be in a plane during this time. */
 	unsigned long vacation_time_max;/*!< Your maximum vacation time (in seconds). You can't be in a plane during this time. */
-	list<string> airports_of_interest;/*!< The list of cities you are interested in. */
+	vector<string> airports_of_interest;/*!< The list of cities you are interested in. */
 	string flights_file;/*!< The name of the file containing the flights. */
 	string alliances_file;/*!< The name of the file containing the company alliances. */
 	string work_hard_file;/*!< The file used to output the work hard result. */
@@ -63,6 +63,8 @@ struct Flight{
 struct Travel{
 	vector<Flight> flights;/*!< A travel is just a list of Flight(s). */
 	float total_cost; /* Total costs of this travel (sum of flight costs minus possible discounts). */
+	float min_cost;
+	float max_cost;
 };
 
 struct Location {
