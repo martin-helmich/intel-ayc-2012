@@ -13,6 +13,7 @@
 #include <sys/stat.h>
 #include <sys/mman.h>
 #include <fcntl.h>
+#include <limits>
 
 #include "types.h"
 #include "methods.h"
@@ -31,6 +32,8 @@ using namespace tbb;
 using namespace oma;
 
 #define DEBUG
+
+#define ENABLE_ALLIANCE_MAP 1
 
 time_t convert_to_timestamp(int day, int month, int year, int hour, int minute,
 		int seconde);
@@ -66,6 +69,7 @@ void output_play_hard(vector<Flight>& flights, Parameters& parameters,
 void output_work_hard(vector<Flight>& flights, Parameters& parameters,
 		vector<vector<string> >& alliances);
 time_t timegm(struct tm *tm);
+void print_cities();
 
 concurrent_hash_map<string, Location> location_map;
 
@@ -92,8 +96,8 @@ public:
 			cheapest_cost(cc.cheapest_cost), travels(cc.travels), alliances(
 					cc.alliances)
 	{
+		cheapest_travel = NULL;
 	}
-	;
 
 	void operator()(blocked_range<unsigned int> range)
 	{
@@ -340,6 +344,7 @@ void compute_path(vector<Flight>& flights, string to, vector<Travel> *travels,
 //	tick_count t0 = tick_count::now();
 	//vector<Travel> final_travels;
 	mutex final_travels_lock, travels_lock;
+	float cmin = numeric_limits<float>::max(), cmax = cmin;
 
 	// TODO: Parallele Queue?
 	while (travels->size() > 0)
@@ -350,6 +355,11 @@ void compute_path(vector<Flight>& flights, string to, vector<Travel> *travels,
 		//First, if a direct flight exist, it must be in the final travels
 		if (current_city.to == to)
 		{
+			if (travel.max_cost < cmin)
+			{
+				cmax = travel.max_cost;
+				cmin = travel.min_cost;
+			}
 			final_travels->push_back(travel);
 		}
 		else
@@ -367,34 +377,44 @@ void compute_path(vector<Flight>& flights, string to, vector<Travel> *travels,
 			//otherwise, we need to compute a path
 			// TODO: parallel_for + concurrent_vector?
 
-			PathComputingInnerLoop loop(travels, final_travels,
-					&from.outgoing_flights, &travels_lock, &final_travels_lock,
-					t_min, t_max, parameters, &current_city, &travel, to);
-			parallel_for(
-					blocked_range<unsigned int>(0,
-							from.outgoing_flights.size()), loop);
+			/*PathComputingInnerLoop loop(travels, final_travels,
+			 &from.outgoing_flights, &travels_lock, &final_travels_lock,
+			 t_min, t_max, parameters, &current_city, &travel, to, &best);
+			 parallel_for(
+			 blocked_range<unsigned int>(0,
+			 from.outgoing_flights.size()), loop);*/
 
-			/*for (unsigned int i = 0; i < from.outgoing_flights.size(); i++)
-			 {
-			 Flight flight = from.outgoing_flights[i];
-			 if (flight.take_off_time >= t_min && flight.land_time <= t_max
-			 && (flight.take_off_time > current_city.land_time)
-			 && flight.take_off_time - current_city.land_time
-			 <= parameters.max_layover_time
-			 && nerver_traveled_to(travel, flight.to))
-			 {
-			 Travel newTravel = travel;
-			 newTravel.flights.push_back(flight);
-			 if (flight.to == to)
-			 {
-			 final_travels->push_back(newTravel);
-			 }
-			 else
-			 {
-			 travels->push_back(newTravel);
-			 }
-			 }
-			 }*/
+			for (unsigned int i = 0; i < from.outgoing_flights.size(); i++)
+			{
+				Flight flight = from.outgoing_flights[i];
+				if (flight.take_off_time >= t_min && flight.land_time <= t_max
+						&& (flight.take_off_time > current_city.land_time)
+						&& flight.take_off_time - current_city.land_time
+								<= parameters.max_layover_time
+						&& nerver_traveled_to(travel, flight.to)
+						&& flight.cost * 0.7 + travel.min_cost < cmax)
+				{
+					Travel newTravel = travel;
+					newTravel.flights.push_back(flight);
+					newTravel.max_cost += flight.cost;
+					newTravel.min_cost += 0.7 * flight.cost;
+
+					if (flight.to == to)
+					{
+						final_travels->push_back(newTravel);
+
+						if (newTravel.max_cost < cmin)
+						{
+							cmin = newTravel.min_cost;
+							cmax = newTravel.max_cost;
+						}
+					}
+					else
+					{
+						travels->push_back(newTravel);
+					}
+				}
+			}
 		}
 	}
 	//travels = final_travels;
@@ -427,7 +447,14 @@ Travel find_cheapest(vector<Travel>& travels, vector<vector<string> >&alliances)
 //		}
 //	}
 
-	cout << "Find cheapest of " << s0 << " flights" << endl;
+	cout << "Find cheapest of " << s0 << " travels." << endl;
+
+	if (s0 == 0)
+	{
+		cerr << "Travel list is empty!" << endl;
+		exit(EXIT_FAILURE);
+	}
+
 	TravelComparator tc(&travels, &alliances);
 	parallel_reduce(blocked_range<unsigned int>(0, travels.size()), tc);
 
@@ -467,6 +494,8 @@ void fill_travel(vector<Travel> *travels, vector<Flight>& flights,
 		{
 			Travel t;
 			t.flights.push_back(l.outgoing_flights[i]);
+			t.max_cost += l.outgoing_flights[i].cost;
+			t.min_cost += 0.7 * l.outgoing_flights[i].cost;
 			travels->push_back(t);
 		}
 	}
@@ -494,6 +523,8 @@ void merge_path(vector<Travel>& travel1, vector<Travel>& travel2)
 				Travel new_travel = t1;
 				new_travel.flights.insert(new_travel.flights.end(),
 						t2.flights.begin(), t2.flights.end());
+				new_travel.max_cost += t2.max_cost;
+				new_travel.min_cost += t2.min_cost;
 				result.push_back(new_travel);
 			}
 		}
@@ -784,7 +815,7 @@ void parse_flight(vector<Flight> *flights, string& line)
 		// in a hash map for fast access and all incoming and outgoing flights from
 		// or to these locations in adjacency lists.
 		concurrent_hash_map<string, Location>::accessor a;
-		if (! location_map.insert(a, flight.from))
+		if (!location_map.insert(a, flight.from))
 		{
 			a->second.outgoing_flights.push_back(flight);
 		}
@@ -798,9 +829,8 @@ void parse_flight(vector<Flight> *flights, string& line)
 		}
 		a.release();
 
-
 		concurrent_hash_map<string, Location>::accessor b;
-		if (! location_map.insert(b, flight.to))
+		if (!location_map.insert(b, flight.to))
 		{
 			b->second.incoming_flights.push_back(flight);
 		}
@@ -962,6 +992,10 @@ void parse_alliances(vector<vector<string> > &alliances, string filename)
 	}
 }
 
+#ifdef ENABLE_ALLIANCE_MAP
+concurrent_hash_map<string, bool> alliance_map;
+#endif
+
 /**
  * \fn bool company_are_in_a_common_alliance(const string& c1, const string& c2, vector<vector<string> >& alliances)
  * \brief Check if 2 companies are in the same alliance.
@@ -972,18 +1006,39 @@ void parse_alliances(vector<vector<string> > &alliances, string filename)
 bool company_are_in_a_common_alliance(const string& c1, const string& c2,
 		vector<vector<string> >& alliances)
 {
-	bool result = false;
-	for (unsigned int i = 0; i < alliances.size(); i++)
+#ifdef ENABLE_ALLIANCE_MAP
+	concurrent_hash_map<string, bool>::accessor a;
+	if (!alliance_map.insert(a, c1 + c2))
 	{
-		bool c1_found = false, c2_found = false;
-		for (unsigned int j = 0; j < alliances[i].size(); j++)
+#endif
+		bool result = false;
+		for (unsigned int i = 0; i < alliances.size(); i++)
 		{
-			if (alliances[i][j] == c1) c1_found = true;
-			if (alliances[i][j] == c2) c2_found = true;
+			bool c1_found = false, c2_found = false;
+			for (unsigned int j = 0; j < alliances[i].size(); j++)
+			{
+				if (alliances[i][j] == c1) c1_found = true;
+				if (alliances[i][j] == c2) c2_found = true;
+			}
+			if (c1_found && c2_found)
+			{
+#ifdef ENABLE_ALLIANCE_MAP
+				a->second = true;
+#endif
+				return true;
+			}
 		}
-		result |= (c1_found && c2_found);
+#ifdef ENABLE_ALLIANCE_MAP
+		a->second = false;
+#endif
+		return false;
+#ifdef ENABLE_ALLIANCE_MAP
 	}
-	return result;
+	else
+	{
+		return a->second;
+	}
+#endif
 }
 
 /**
@@ -1122,6 +1177,31 @@ void output_work_hard(vector<Flight>& flights, Parameters& parameters,
 	output.close();
 }
 
+void print_cities()
+{
+	concurrent_hash_map<string, Location>::iterator i;
+
+	for (i = location_map.begin(); i != location_map.end(); ++i)
+	{
+		cout << i->second.name << endl;
+
+		cout << "    OUTGOING (" << i->second.outgoing_flights.size() << "):"
+				<< endl;
+		for (int j = 0; j < i->second.outgoing_flights.size(); j++)
+		{
+			cout << "        ";
+			print_flight(i->second.outgoing_flights[j], (ofstream&) cout);
+		}
+
+		cout << "    INCOMING:" << endl;
+		for (int j = 0; j < i->second.incoming_flights.size(); j++)
+		{
+			cout << "        ";
+			print_flight(i->second.incoming_flights[j], (ofstream&) cout);
+		}
+	}
+}
+
 int main(int argc, char **argv)
 {
 	//Declare variables and read the args
@@ -1132,6 +1212,7 @@ int main(int argc, char **argv)
 //	print_params(parameters);
 	vector<Flight> flights;
 	parse_flights(flights, parameters.flights_file);
+//	print_cities();
 //	cout<<"Printing flights..."<<endl;
 	cout << "Read " << flights.size() << " flights." << endl;
 //	print_flights(flights, (ofstream&) cout);
