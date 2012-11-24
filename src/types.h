@@ -12,8 +12,9 @@
 #include <vector>
 #include <list>
 
-using namespace std;
+#include "tbb/spin_mutex.h";
 
+using namespace std;
 
 /**
  * \struct Parameters
@@ -67,8 +68,20 @@ struct Travel
 	float total_cost; /* Total costs of this travel (sum of flight costs minus possible discounts). */
 	float min_cost;
 	float max_cost;
+
+	void add_flight(Flight &f)
+	{
+		min_cost += f.cost * 0.7;
+		max_cost += f.cost;
+		flights.push_back(f);
+	}
 };
 
+/**
+ * Models a single location (i.e. a possible flight origin or destination).
+ *
+ * In our flight graph, the locations are nodes, flights are edges.
+ */
 struct Location
 {
 	string name;
@@ -80,7 +93,40 @@ struct Solution
 {
 	vector<Travel> play_hard;
 	Travel work_hard;
+	tbb::spin_mutex lock;
+
+	void add_play_hard(unsigned int i, Travel &t)
+	{
+		// Resize the vector if necessary (throws segfaults otherwise).
+		// Typically, both competition and average wait time are expected to be low, so
+		// in theory, a spin lock should do quite well.
+		lock.lock();
+		if (play_hard.size() <= i)
+		{
+			play_hard.resize(i + 1);
+		}
+		lock.unlock();
+
+		play_hard[i] = t;
+	}
 };
 
+struct CostRange
+{
+	float min;
+	float max;
+
+	void setMinMax(float i, float a)
+	{
+		min = i;
+		max = a;
+	}
+
+	inline void fromTravel(Travel *t)
+	{
+		min = t->min_cost;
+		max = t->max_cost;
+	}
+};
 
 #endif /* TYPES_H_ */
