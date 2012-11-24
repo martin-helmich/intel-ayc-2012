@@ -8,7 +8,6 @@
 #ifndef TYPES_H_
 #define TYPES_H_
 
-
 #include <string>
 #include <vector>
 #include <list>
@@ -21,7 +20,8 @@ using namespace std;
  * \brief Store the program's parameters.
  * This structure don't need to be modified but feel free to change it if you want.
  */
-struct Parameters{
+struct Parameters
+{
 	string from;/*!< The city where the travel begins */
 	string to;/*!< The city where the conference takes place */
 	unsigned long dep_time_min;/*!< The minimum departure time for the conference (epoch). No flight towards the conference's city must be scheduled before this time. */
@@ -44,7 +44,8 @@ struct Parameters{
  * \brief Store a single flight data.
  *This structure don't need to be modified but feel free to change it if you want.
  */
-struct Flight{
+struct Flight
+{
 	string id;/*!< Unique id of the flight. */
 	string from;/*!< City where you take off. */
 	string to;/*!< City where you land. */
@@ -60,14 +61,16 @@ struct Flight{
  * \brief Store a travel.
  * This structure don't need to be modified but feel free to change it if you want.
  */
-struct Travel{
+struct Travel
+{
 	vector<Flight> flights;/*!< A travel is just a list of Flight(s). */
 	float total_cost; /* Total costs of this travel (sum of flight costs minus possible discounts). */
 	float min_cost;
 	float max_cost;
 };
 
-struct Location {
+struct Location
+{
 	string name;
 	vector<Flight> outgoing_flights;
 	vector<Flight> incoming_flights;

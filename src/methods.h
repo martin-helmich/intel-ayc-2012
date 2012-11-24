@@ -16,5 +16,7 @@ void fill_travel(vector<Travel> *travels, vector<Flight>& flights,
 void compute_path(vector<Flight>& flights, string to, vector<Travel> *travels,
 		unsigned long t_min, unsigned long t_max, Parameters parameters,
 		vector<Travel> *final_travels);
+void merge_path(vector<Travel>& travel1, vector<Travel>& travel2);
+Travel find_cheapest(vector<Travel>& travels, vector<vector<string> >&alliances);
 
 #endif /* METHODS_H_ */
