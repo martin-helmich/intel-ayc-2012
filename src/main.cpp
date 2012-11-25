@@ -26,6 +26,7 @@
 #include "oma/loop_bodies.h"
 #include "oma/tasks.h"
 #include "tbb/concurrent_hash_map.h"
+#include "tbb/task_scheduler_init.h"
 
 using namespace std;
 using namespace tbb;
@@ -1161,6 +1162,9 @@ int main(int argc, char **argv)
 	Parameters parameters;
 	vector<vector<string> > alliances;
 	read_parameters(parameters, argc, argv);
+
+	task_scheduler_init init(parameters.nb_threads);
+
 //	cout<<"Printing parameters..."<<endl;
 //	print_params(parameters);
 	vector<Flight> flights;
