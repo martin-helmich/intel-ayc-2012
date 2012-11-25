@@ -329,10 +329,10 @@ float compute_cost(Travel & travel, vector<vector<string> >&alliances)
  */
 void compute_path(vector<Flight>& flights, string to, vector<Travel> *travels,
 		unsigned long t_min, unsigned long t_max, Parameters parameters,
-		vector<Travel> *final_travels)
+		vector<Travel> *final_travels, CostRange *min_range)
 {
 	mutex final_travels_lock, travels_lock;
-	CostRange min_range = { numeric_limits<float>::max(), numeric_limits<float>::max() };
+	//CostRange min_range = { numeric_limits<float>::max(), numeric_limits<float>::max() };
 
 // TODO: Parallele Queue?
 	while (travels->size() > 0)
@@ -343,10 +343,10 @@ void compute_path(vector<Flight>& flights, string to, vector<Travel> *travels,
 		//First, if a direct flight exist, it must be in the final travels
 		if (current_city.to == to)
 		{
-			if (travel.max_cost < min_range.min)
-			{
-				min_range.fromTravel(&travel);
-			}
+//			if (travel.max_cost < min_range->min)
+//			{
+			min_range->from_travel(&travel);
+//			}
 			final_travels->push_back(travel);
 		}
 		else
@@ -376,7 +376,7 @@ void compute_path(vector<Flight>& flights, string to, vector<Travel> *travels,
 						&& flight.take_off_time - current_city.land_time
 								<= parameters.max_layover_time
 						&& nerver_traveled_to(travel, flight.to)
-						/*&& flight.cost * 0.7 + travel.min_cost <= min_range.max*/)
+						&& flight.cost * 0.7 + travel.min_cost <= min_range->max)
 				{
 					Travel newTravel = travel;
 					newTravel.add_flight(flight);
@@ -384,11 +384,7 @@ void compute_path(vector<Flight>& flights, string to, vector<Travel> *travels,
 					if (flight.to == to)
 					{
 						final_travels->push_back(newTravel);
-
-						if (newTravel.max_cost < min_range.min)
-						{
-							min_range.fromTravel(&newTravel);
-						}
+						min_range->from_travel(&newTravel);
 					}
 					else
 					{
@@ -414,6 +410,7 @@ Travel find_cheapest(vector<Travel>& travels, vector<vector<string> >&alliances)
 {
 	int s0 = travels.size();
 
+	OUT("Find cheapest of " << s0 << " travels.");
 //	cout << "Find cheapest of " << s0 << " travels." << endl;
 
 	if (s0 == 0)
@@ -439,8 +436,9 @@ Travel find_cheapest(vector<Travel>& travels, vector<vector<string> >&alliances)
  * \param t_min You must not be in a plane before this value (epoch).
  * \param t_max You must not be in a plane after this value (epoch).
  */
-void fill_travel(vector<Travel> *travels, vector<Flight>& flights, string starting_point,
-		unsigned long t_min, unsigned long t_max)
+void fill_travel(Travels *travels, Travels *final_travels, vector<Flight>& flights,
+		string starting_point, unsigned long t_min, unsigned long t_max,
+		CostRange *min_range, string destination_point)
 {
 	Location l;
 	concurrent_hash_map<string, Location>::const_accessor a;
@@ -456,11 +454,21 @@ void fill_travel(vector<Travel> *travels, vector<Flight>& flights, string starti
 	for (unsigned int i = 0; i < l.outgoing_flights.size(); i++)
 	{
 		if (l.outgoing_flights[i].take_off_time >= t_min
-				&& l.outgoing_flights[i].land_time <= t_max)
+				&& l.outgoing_flights[i].land_time <= t_max
+				&& l.outgoing_flights[i].cost * 0.7 <= min_range->max)
 		{
 			Travel t;
 			t.add_flight(l.outgoing_flights[i]);
-			travels->push_back(t);
+
+			if (l.outgoing_flights[i].to == destination_point)
+			{
+				min_range->from_travel(&t);
+				final_travels->push_back(t);
+			}
+			else
+			{
+				travels->push_back(t);
+			}
 		}
 	}
 }

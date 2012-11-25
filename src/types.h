@@ -8,9 +8,18 @@
 #ifndef TYPES_H_
 #define TYPES_H_
 
+
+#ifdef DEBUG
+#define OUT(a) cout << a << endl;
+#else
+#define OUT(a)
+#endif
+
+
 #include <string>
 #include <vector>
 #include <list>
+#include <limits>
 
 #include "tbb/spin_mutex.h";
 
@@ -124,6 +133,7 @@ struct CostRange
 {
 	float min;
 	float max;
+	tbb::spin_mutex lock;
 
 	void setMinMax(float i, float a)
 	{
@@ -131,10 +141,15 @@ struct CostRange
 		max = a;
 	}
 
-	inline void fromTravel(Travel *t)
+	inline void from_travel(Travel *t)
 	{
-		min = t->min_cost;
-		max = t->max_cost;
+		lock.lock();
+		if (t->max_cost < min)
+		{
+			max = t->max_cost;
+			min = t->min_cost;
+		}
+		lock.unlock();
 	}
 };
 

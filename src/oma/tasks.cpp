@@ -8,6 +8,8 @@
  */
 
 #include <iostream>
+#include <limits>
+
 #include "tasks.h"
 #include "../methods.h"
 
@@ -29,10 +31,34 @@ oma::FindPathTask::FindPathTask(string f, string t, int tmi, int tma, Parameters
 
 tbb::task* oma::FindPathTask::execute()
 {
-	vector<Travel> temp_travels;
+	Travels temp_travels, all_paths;
+	CostRange min_range;
 
-	fill_travel(&temp_travels, *flights, from, t_min, t_max);
-	compute_path(*flights, to, &temp_travels, t_min, t_max, *parameters, travels);
+	min_range.max = numeric_limits<float>::max();
+	min_range.min = numeric_limits<float>::max();
+
+	OUT("STRT: " << from << " -> " << to);
+
+	fill_travel(&temp_travels, &all_paths, *flights, from, t_min, t_max, &min_range, to);
+
+	OUT("INIT: " << from << " -> " << to << " : " << temp_travels.size() << ", "
+			<< min_range.min << "-" << min_range.max);
+
+	compute_path(*flights, to, &temp_travels, t_min, t_max, *parameters, &all_paths,
+			&min_range);
+
+	OUT("DONE: " << from << " -> " << to << " : " << all_paths.size() << ", "
+			<< min_range.min << "-" << min_range.max);
+
+	for (unsigned int i = 0; i < all_paths.size(); i++)
+	{
+		if (all_paths[i].min_cost <= min_range.max)
+		{
+			travels->push_back(all_paths[i]);
+		}
+	}
+
+	OUT("REDC: " << from << " -> " << to << " : " << travels->size());
 
 	return NULL;
 }
