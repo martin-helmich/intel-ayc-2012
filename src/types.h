@@ -69,6 +69,11 @@ struct Travel
 	float min_cost;
 	float max_cost;
 
+	Travel() :
+		 total_cost(0), min_cost(0), max_cost(0)
+	{
+	}
+
 	void add_flight(Flight &f)
 	{
 		min_cost += f.cost * 0.7;
