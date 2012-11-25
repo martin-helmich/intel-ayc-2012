@@ -22,15 +22,15 @@ namespace oma
 class CostComputer
 {
 public:
-	vector<Flight> &flights;
+	Travel *travel;
 	float costs;
 
-	CostComputer(vector<Flight> &f) :
-			flights(f), costs(0)
+	CostComputer(Travel *t) :
+			travel(t), costs(0)
 	{
 	}
 	CostComputer(CostComputer &cc, split) :
-			flights(cc.flights), costs(0)
+			travel(cc.travel), costs(0)
 	{
 	}
 

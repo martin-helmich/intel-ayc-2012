@@ -40,7 +40,7 @@ time_t convert_to_timestamp(int day, int month, int year, int hour, int minute,
 		int seconde);
 time_t convert_string_to_timestamp(string s);
 void print_params(Parameters &parameters);
-void print_flight(Flight& flight);
+void print_flight(Flight& flight, float discount, ofstream& output);
 void read_parameters(Parameters& parameters, int argc, char **argv);
 void split_string(vector<string>& result, string line, char separator);
 void parse_flight(vector<Flight>& flights, string& line);
@@ -55,16 +55,16 @@ bool has_just_traveled_with_alliance(Flight& flight_before, Flight& current_flig
 void apply_discount(Travel & travel, vector<vector<string> >&alliances);
 float compute_cost(Travel & travel, vector<vector<string> >&alliances);
 void print_alliances(vector<vector<string> > &alliances);
-void print_flights(vector<Flight>& flights);
+void print_flights(vector<Flight>& flights, vector<float> discounts, ofstream& output);
 void print_travel(Travel& travel, vector<vector<string> >&alliances);
-Travel work_hard(vector<Flight>& flights, Parameters& parameters,
-		vector<vector<string> >& alliances);
+//Travel work_hard(vector<Flight>& flights, Parameters& parameters,
+//		vector<vector<string> >& alliances);
 Solution play_and_work_hard(vector<Flight>& flights, Parameters& parameters,
 		vector<vector<string> >& alliances);
-void output_play_hard(vector<Flight>& flights, Parameters& parameters,
-		vector<vector<string> >& alliances);
-void output_work_hard(vector<Flight>& flights, Parameters& parameters,
-		vector<vector<string> >& alliances);
+//void output_play_hard(vector<Flight>& flights, Parameters& parameters,
+//		vector<vector<string> >& alliances);
+//void output_work_hard(vector<Flight>& flights, Parameters& parameters,
+//		vector<vector<string> >& alliances);
 time_t timegm(struct tm *tm);
 void print_cities();
 
@@ -129,27 +129,26 @@ public:
  * \param alliances The alliances between companies.
  * \return The cheapest trip found.
  */
-Travel work_hard(vector<Flight>& flights, Parameters& parameters,
-		vector<vector<string> >& alliances)
-{
-	vector<Travel> travels, final_travels;
-	//First, we need to create as much travels as it as the number of flights that take off from the
-	//first city
-	fill_travel(&travels, flights, parameters.from, parameters.dep_time_min,
-			parameters.dep_time_max);
-	compute_path(flights, parameters.to, &travels, parameters.dep_time_min,
-			parameters.dep_time_max, parameters, &final_travels);
-	vector<Travel> travels_back, final_travels_back;
-	//Then we need to travel back
-	fill_travel(&travels_back, flights, parameters.to, parameters.ar_time_min,
-			parameters.ar_time_max);
-	compute_path(flights, parameters.from, &travels_back, parameters.ar_time_min,
-			parameters.ar_time_max, parameters, &final_travels_back);
-	merge_path(final_travels, final_travels_back);
-	Travel go = find_cheapest(final_travels, alliances);
-	return go;
-}
-
+//Travel work_hard(vector<Flight>& flights, Parameters& parameters,
+//		vector<vector<string> >& alliances)
+//{
+//	vector<Travel> travels, final_travels;
+//	//First, we need to create as much travels as it as the number of flights that take off from the
+//	//first city
+//	fill_travel(&travels, flights, parameters.from, parameters.dep_time_min,
+//			parameters.dep_time_max);
+//	compute_path(flights, parameters.to, &travels, parameters.dep_time_min,
+//			parameters.dep_time_max, parameters, &final_travels);
+//	vector<Travel> travels_back, final_travels_back;
+//	//Then we need to travel back
+//	fill_travel(&travels_back, flights, parameters.to, parameters.ar_time_min,
+//			parameters.ar_time_max);
+//	compute_path(flights, parameters.from, &travels_back, parameters.ar_time_min,
+//			parameters.ar_time_max, parameters, &final_travels_back);
+//	merge_path(final_travels, final_travels_back);
+//	Travel go = find_cheapest(final_travels, alliances);
+//	return go;
+//}
 /**
  * Solves BOTH the "Work Hard" AND the "Play Hard" problem.
  *
@@ -272,28 +271,25 @@ Solution play_and_work_hard(vector<Flight>& flights, Parameters& parameters,
  */
 void apply_discount(Travel & travel, vector<vector<string> >&alliances)
 {
-	if (travel.flights.size() > 0) travel.flights[0].discout = 1;
+//	if (travel.flights.size() > 0) travel.flights[0].discout = 1;
 	if (travel.flights.size() > 1)
 	{
-		// TODO: Aufgabenstellung korrekt?! Bsp: Scenario9
 		for (unsigned int i = 1; i < travel.flights.size(); i++)
 		{
 			Flight& flight_before = travel.flights[i - 1];
 			Flight& current_flight = travel.flights[i];
 			if (has_just_traveled_with_company(flight_before, current_flight))
 			{
-				flight_before.discout = 0.7;
-				current_flight.discout = 0.7;
+				travel.discounts[i] = 0.7;
+				travel.discounts[i - 1] = 0.7;
+//				flight_before.discout = 0.7;
+//				current_flight.discout = 0.7;
 			}
 			else if (has_just_traveled_with_alliance(flight_before, current_flight,
 					alliances))
 			{
-				if (flight_before.discout > 0.8) flight_before.discout = 0.8;
-				current_flight.discout = 0.8;
-			}
-			else
-			{
-				current_flight.discout = 1;
+				if (travel.discounts[i - 1] > 0.8) travel.discounts[i - 1] = 0.8;
+				travel.discounts[i] = 0.8;
 			}
 		}
 	}
@@ -309,7 +305,7 @@ float compute_cost(Travel & travel, vector<vector<string> >&alliances)
 {
 	apply_discount(travel, alliances);
 
-	CostComputer cc(travel.flights);
+	CostComputer cc(&travel);
 	parallel_reduce(blocked_range<unsigned int>(0, travel.flights.size()), cc);
 	travel.total_cost = cc.costs;
 
@@ -495,6 +491,8 @@ void merge_path(vector<Travel>& travel1, vector<Travel>& travel2)
 				Travel new_travel = t1;
 				new_travel.flights.insert(new_travel.flights.end(), t2.flights.begin(),
 						t2.flights.end());
+				new_travel.discounts.insert(new_travel.discounts.end(),
+						t2.discounts.begin(), t2.discounts.end());
 				new_travel.max_cost += t2.max_cost;
 				new_travel.min_cost += t2.min_cost;
 				result.push_back(new_travel);
@@ -646,7 +644,7 @@ void print_params(Parameters &parameters)
  * \fn void print_flight(Flight& flight)
  * \brief You can use this function to display a flight
  */
-void print_flight(Flight& flight, ofstream& output)
+void print_flight(Flight& flight, float discount, ofstream& output)
 {
 	struct tm * take_off_t, *land_t;
 	take_off_t = gmtime(((const time_t*) &(flight.take_off_time)));
@@ -658,7 +656,7 @@ void print_flight(Flight& flight, ofstream& output)
 	land_t = gmtime(((const time_t*) &(flight.land_time)));
 	output << flight.to << " (" << (land_t->tm_mon + 1) << "/" << land_t->tm_mday << " "
 			<< land_t->tm_hour << "h" << land_t->tm_min << "min" << ")-";
-	output << flight.cost << "$" << "-" << flight.discout * 100 << "%" << endl;
+	output << flight.cost << "$" << "-" << discount * 100 << "%" << endl;
 
 }
 
@@ -1053,10 +1051,10 @@ void print_alliances(vector<vector<string> > &alliances)
  * \brief Display the flights on the standard output.
  * \param flights The flights.
  */
-void print_flights(vector<Flight>& flights, ofstream& output)
+void print_flights(vector<Flight>& flights, vector<float> discounts, ofstream& output)
 {
 	for (unsigned int i = 0; i < flights.size(); i++)
-		print_flight(flights[i], output);
+		print_flight(flights[i], discounts[i], output);
 }
 
 /**
@@ -1082,7 +1080,7 @@ bool nerver_traveled_to(Travel travel, string city)
 void print_travel(Travel& travel, vector<vector<string> >&alliances, ofstream& output)
 {
 	output << "Price : " << compute_cost(travel, alliances) << endl;
-	print_flights(travel.flights, output);
+	print_flights(travel.flights, travel.discounts, output);
 	output << endl;
 }
 
@@ -1124,17 +1122,16 @@ void output_solutions(vector<Flight>& flights, Parameters& parameters,
  * \param parameters The parameters.
  * \param alliances The alliances between companies.
  */
-void output_work_hard(vector<Flight>& flights, Parameters& parameters,
-		vector<vector<string> >& alliances)
-{
-	ofstream output;
-	output.open(parameters.work_hard_file.c_str());
-	Travel travel = work_hard(flights, parameters, alliances);
-	output << "“Work Hard” Proposition :" << endl;
-	print_travel(travel, alliances, output);
-	output.close();
-}
-
+//void output_work_hard(vector<Flight>& flights, Parameters& parameters,
+//		vector<vector<string> >& alliances)
+//{
+//	ofstream output;
+//	output.open(parameters.work_hard_file.c_str());
+//	Travel travel = work_hard(flights, parameters, alliances);
+//	output << "“Work Hard” Proposition :" << endl;
+//	print_travel(travel, alliances, output);
+//	output.close();
+//}
 /**
  * Dumps the flight graph.
  *
@@ -1152,14 +1149,14 @@ void print_cities()
 		for (uint j = 0; j < i->second.outgoing_flights.size(); j++)
 		{
 			cout << "        ";
-			print_flight(i->second.outgoing_flights[j], (ofstream&) cout);
+			print_flight(i->second.outgoing_flights[j], 1.0, (ofstream&) cout);
 		}
 
 		cout << "    INCOMING:" << endl;
 		for (uint j = 0; j < i->second.incoming_flights.size(); j++)
 		{
 			cout << "        ";
-			print_flight(i->second.incoming_flights[j], (ofstream&) cout);
+			print_flight(i->second.incoming_flights[j], 1.0, (ofstream&) cout);
 		}
 	}
 }

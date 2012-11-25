@@ -14,7 +14,7 @@ void oma::CostComputer::operator()(const blocked_range<unsigned int> range)
 {
 	for (unsigned int i = range.begin(); i != range.end(); ++i)
 	{
-		costs += flights[i].cost * flights[i].discout;
+		costs += travel->flights[i].cost * travel->discounts[i];
 	}
 }
 
