@@ -16,10 +16,6 @@
 #include "../types.h"
 #include "../methods.h"
 
-// Yes, we are lazy and don't want to type "vector<vector<string> >" too often... ;)
-typedef vector<Travel> Travels;
-typedef vector<vector<string> > Alliances;
-
 
 namespace oma
 {

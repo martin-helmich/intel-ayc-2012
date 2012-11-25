@@ -82,6 +82,10 @@ struct Travel
 	}
 };
 
+// Yes, we are lazy and don't want to type "vector<vector<string> >" too often... ;)
+typedef vector<Travel> Travels;
+typedef vector<vector<string> > Alliances;
+
 /**
  * Models a single location (i.e. a possible flight origin or destination).
  *
