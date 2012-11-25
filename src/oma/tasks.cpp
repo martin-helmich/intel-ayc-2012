@@ -73,6 +73,15 @@ oma::WorkHardTask::WorkHardTask(Travels *htc, Travels *cth, Solution *s, Allianc
 
 tbb::task* oma::WorkHardTask::execute()
 {
+	// Return empty travel when one of the two partial routes is empty.
+	if (home_to_conference->size() == 0 || conference_to_home->size() == 0)
+	{
+		Travel empty;
+		solution->work_hard = empty;
+
+		return NULL;
+	}
+
 	vector<Travel> work_hard = *home_to_conference;
 	merge_path(work_hard, *conference_to_home);
 
@@ -109,6 +118,12 @@ tbb::task* oma::PlayHardTask::execute()
 	merge_path(temp, *conference_to_vacation);
 	merge_path(temp, *vacation_to_home);
 	all_travels.insert(all_travels.end(), temp.begin(), temp.end());
+
+	if (all_travels.size() == 0)
+	{
+		Travel empty;
+		solution->add_play_hard(solution_index, empty);
+	}
 
 	Travel cheapest_travel = find_cheapest(all_travels, *alliances);
 	solution->add_play_hard(solution_index, cheapest_travel);
