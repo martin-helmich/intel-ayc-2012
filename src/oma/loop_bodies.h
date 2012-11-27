@@ -22,19 +22,17 @@ namespace oma
 class CostComputer
 {
 public:
-	vector<Flight> &flights;
-	float costs;
+	Travel *travel;
+	double costs;
 
-	CostComputer(vector<Flight> &f) :
-			flights(f), costs(0)
+	CostComputer(Travel *t) :
+			travel(t), costs(0)
 	{
 	}
-	;
 	CostComputer(CostComputer &cc, split) :
-			flights(cc.flights), costs(0)
+			travel(cc.travel), costs(0)
 	{
 	}
-	;
 
 	void operator()(const blocked_range<unsigned int> range);
 	void join(CostComputer &cc);

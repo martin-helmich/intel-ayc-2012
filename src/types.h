@@ -9,19 +9,29 @@
 #define TYPES_H_
 
 
+#ifdef DEBUG
+#define OUT(a) cout << a << endl;
+#else
+#define OUT(a)
+#endif
+
+
 #include <string>
 #include <vector>
 #include <list>
+#include <limits>
+
+#include "tbb/spin_mutex.h";
 
 using namespace std;
-
 
 /**
  * \struct Parameters
  * \brief Store the program's parameters.
  * This structure don't need to be modified but feel free to change it if you want.
  */
-struct Parameters{
+struct Parameters
+{
 	string from;/*!< The city where the travel begins */
 	string to;/*!< The city where the conference takes place */
 	unsigned long dep_time_min;/*!< The minimum departure time for the conference (epoch). No flight towards the conference's city must be scheduled before this time. */
@@ -31,7 +41,7 @@ struct Parameters{
 	unsigned long max_layover_time;/*!< You don't want to wait more than this amount of time at the airport between 2 flights (in seconds) */
 	unsigned long vacation_time_min;/*!< Your minimum vacation time (in seconds). You can't be in a plane during this time. */
 	unsigned long vacation_time_max;/*!< Your maximum vacation time (in seconds). You can't be in a plane during this time. */
-	list<string> airports_of_interest;/*!< The list of cities you are interested in. */
+	vector<string> airports_of_interest;/*!< The list of cities you are interested in. */
 	string flights_file;/*!< The name of the file containing the flights. */
 	string alliances_file;/*!< The name of the file containing the company alliances. */
 	string work_hard_file;/*!< The file used to output the work hard result. */
@@ -44,7 +54,8 @@ struct Parameters{
  * \brief Store a single flight data.
  *This structure don't need to be modified but feel free to change it if you want.
  */
-struct Flight{
+struct Flight
+{
 	string id;/*!< Unique id of the flight. */
 	string from;/*!< City where you take off. */
 	string to;/*!< City where you land. */
@@ -60,16 +71,88 @@ struct Flight{
  * \brief Store a travel.
  * This structure don't need to be modified but feel free to change it if you want.
  */
-struct Travel{
+struct Travel
+{
 	vector<Flight> flights;/*!< A travel is just a list of Flight(s). */
-	float total_cost; /* Total costs of this travel (sum of flight costs minus possible discounts). */
+	vector<float> discounts;
+	double total_cost; /* Total costs of this travel (sum of flight costs minus possible discounts). */
+	double min_cost;
+	double max_cost;
+
+	Travel() :
+		 total_cost(0), min_cost(0), max_cost(0)
+	{
+	}
+
+	void add_flight(Flight &f)
+	{
+		min_cost += f.cost * 0.7;
+		max_cost += f.cost;
+		flights.push_back(f);
+		discounts.push_back(1.0);
+	}
 };
 
-struct Location {
+// Yes, we are lazy and don't want to type "vector<vector<string> >" too often... ;)
+typedef vector<Travel> Travels;
+typedef vector<vector<string> > Alliances;
+
+/**
+ * Models a single location (i.e. a possible flight origin or destination).
+ *
+ * In our flight graph, the locations are nodes, flights are edges.
+ */
+struct Location
+{
 	string name;
 	vector<Flight> outgoing_flights;
 	vector<Flight> incoming_flights;
 };
 
+struct Solution
+{
+	vector<Travel> play_hard;
+	Travel work_hard;
+	tbb::spin_mutex lock;
+
+	void add_play_hard(unsigned int i, Travel &t)
+	{
+		// Resize the vector if necessary (throws segfaults otherwise).
+		// Typically, both competition and average wait time are expected to be low, so
+		// in theory, a spin lock should do quite well.
+		lock.lock();
+		if (play_hard.size() <= i)
+		{
+			play_hard.resize(i + 1);
+		}
+		lock.unlock();
+
+		play_hard[i] = t;
+	}
+};
+
+struct CostRange
+{
+	double min;
+	double max;
+	tbb::spin_mutex lock;
+
+	CostRange()
+	{
+		min = numeric_limits<double>::max();
+		max = numeric_limits<double>::max();
+	}
+
+	inline void from_travel(Travel *t)
+	{
+		lock.lock();
+		if (t->max_cost <= min)
+		{
+			max = t->max_cost;
+			min = t->min_cost;
+		}
+		lock.unlock();
+	}
+};
 
 #endif /* TYPES_H_ */
