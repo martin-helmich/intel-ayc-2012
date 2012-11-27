@@ -21,7 +21,7 @@
 #include <list>
 #include <limits>
 
-#include "tbb/spin_mutex.h";
+#include "tbb/spin_mutex.h"
 
 using namespace std;
 

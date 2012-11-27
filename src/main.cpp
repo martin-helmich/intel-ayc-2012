@@ -374,7 +374,8 @@ public:
 			 blocked_range<unsigned int>(0,
 			 from.outgoing_flights.size()), loop);*/
 
-			for (unsigned int i = 0; i < from->outgoing_flights.size(); i++)
+			unsigned int s = from->outgoing_flights.size();
+			for (unsigned int i = 0; i < s; i++)
 			{
 				Flight *flight = (Flight*) &(from->outgoing_flights[i]);
 				if (flight->take_off_time >= t_min && flight->land_time <= t_max
@@ -542,7 +543,8 @@ void fill_travel(Travels *travels, Travels *final_travels, vector<Flight>& fligh
 
 	l = a->second;
 
-	for (unsigned int i = 0; i < l.outgoing_flights.size(); i++)
+	unsigned int s = l.outgoing_flights.size();
+	for (unsigned int i = 0; i < s; i++)
 	{
 		if (l.outgoing_flights[i].take_off_time >= t_min
 				&& l.outgoing_flights[i].land_time <= t_max
@@ -563,7 +565,8 @@ void fill_travel(Travels *travels, Travels *final_travels, vector<Flight>& fligh
 		}
 	}
 
-	for (unsigned int i = 0; i < temp.size(); i++)
+	s = temp.size();
+	for (unsigned int i = 0; i < s; i++)
 	{
 		if (temp[i].min_cost <= min_range->max)
 		{
@@ -581,10 +584,12 @@ void fill_travel(Travels *travels, Travels *final_travels, vector<Flight>& fligh
 void merge_path(vector<Travel>& travel1, vector<Travel>& travel2)
 {
 	vector<Travel> result;
-	for (unsigned int i = 0; i < travel1.size(); i++)
+	unsigned int s1 = travel1.size(), s2;
+	for (unsigned int i = 0; i < s1; i++)
 	{
 		Travel *t1 = &travel1[i];
-		for (unsigned j = 0; j < travel2.size(); j++)
+		s2 = travel2.size();
+		for (unsigned j = 0; j < s2; j++)
 		{
 			Travel *t2 = &travel2[j];
 			Flight *last_flight_t1 = &t1->flights.back();
@@ -988,7 +993,7 @@ mutex rfl;
  */
 void parse_flights(vector<Flight>& flights, string filename)
 {
-	char *m;
+	char *m = NULL;
 	struct stat stat;
 	int fd;
 	off_t l;

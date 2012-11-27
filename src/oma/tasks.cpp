@@ -47,9 +47,10 @@ tbb::task* oma::FindPathTask::execute()
 	OUT("DONE: " << from << " -> " << to << " : " << all_paths.size() << ", "
 			<< min_range.min << "-" << min_range.max);
 
-	for (unsigned int i = 0; i < all_paths.size(); i++)
+	unsigned int s = all_paths.size();
+	for (unsigned int i = 0; i < s; i++)
 	{
-		if (all_paths[i].min_cost <= min_range.max)
+		if (/*true || */ all_paths[i].min_cost * 0.99 <= min_range.max)
 		{
 			travels->push_back(all_paths[i]);
 		}
