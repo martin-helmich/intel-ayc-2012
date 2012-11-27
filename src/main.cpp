@@ -347,25 +347,25 @@ public:
 
 	void operator()(Travel travel, parallel_do_feeder<Travel>& f) const
 	{
-		Flight current_city = travel.flights.back();
+		Flight *current_city = &(travel.flights.back());
 
 		//First, if a direct flight exist, it must be in the final travels
-		if (current_city.to == to)
+		if (current_city->to == to)
 		{
-//			min_range->from_travel(&travel);
+			min_range->from_travel(&travel);
 			final_travels->push_back(travel);
 		}
 		else
 		{
 			concurrent_hash_map<string, Location>::const_accessor a;
-			if (!location_map.find(a, current_city.to))
+			if (!location_map.find(a, current_city->to))
 			{
-				cerr << "Fehler: Stadt " << current_city.to << " ist nicht bekannt."
+				cerr << "Fehler: Stadt " << current_city->to << " ist nicht bekannt."
 						<< endl;
 				exit(100);
 			}
 
-			Location from = a->second;
+			const Location *from = &(a->second);
 
 			/*PathComputingInnerLoop loop(travels, final_travels,
 			 &from.outgoing_flights, &travels_lock, &final_travels_lock,
@@ -374,21 +374,21 @@ public:
 			 blocked_range<unsigned int>(0,
 			 from.outgoing_flights.size()), loop);*/
 
-			for (unsigned int i = 0; i < from.outgoing_flights.size(); i++)
+			for (unsigned int i = 0; i < from->outgoing_flights.size(); i++)
 			{
-				Flight flight = from.outgoing_flights[i];
-				if (flight.take_off_time >= t_min && flight.land_time <= t_max
-						&& (flight.take_off_time > current_city.land_time)
-						&& flight.take_off_time - current_city.land_time
+				Flight *flight = (Flight*) &(from->outgoing_flights[i]);
+				if (flight->take_off_time >= t_min && flight->land_time <= t_max
+						&& (flight->take_off_time > current_city->land_time)
+						&& flight->take_off_time - current_city->land_time
 								<= parameters.max_layover_time
-						&& nerver_traveled_to(travel, flight.to)
-						&& flight.cost * 0.7 + travel.min_cost <= min_range->max)
+						&& nerver_traveled_to(travel, flight->to)
+						&& flight->cost * 0.7 + travel.min_cost <= min_range->max)
 				{
 
 					Travel newTravel = travel;
-					newTravel.add_flight(flight);
+					newTravel.add_flight(*flight);
 
-					if (flight.to == to)
+					if (flight->to == to)
 					{
 						final_travels_lock->lock();
 						final_travels->push_back(newTravel);
@@ -397,7 +397,6 @@ public:
 					}
 					else
 					{
-						//travels->push_back(newTravel);
 						f.add(newTravel);
 					}
 				}
@@ -430,7 +429,7 @@ void compute_path(vector<Flight>& flights, string to, vector<Travel> *travels,
 
 	//mutex final_travels_lock, travels_lock;
 	//CostRange min_range = { numeric_limits<float>::max(), numeric_limits<float>::max() };
-
+/*
 // TODO: Parallele Queue?
 	while (travels->size() > 0)
 	{
@@ -458,13 +457,6 @@ void compute_path(vector<Flight>& flights, string to, vector<Travel> *travels,
 
 			Location from = a->second;
 
-			/*PathComputingInnerLoop loop(travels, final_travels,
-			 &from.outgoing_flights, &travels_lock, &final_travels_lock,
-			 t_min, t_max, parameters, &current_city, &travel, to, &best);
-			 parallel_for(
-			 blocked_range<unsigned int>(0,
-			 from.outgoing_flights.size()), loop);*/
-
 			for (unsigned int i = 0; i < from.outgoing_flights.size(); i++)
 			{
 				Flight flight = from.outgoing_flights[i];
@@ -490,7 +482,7 @@ void compute_path(vector<Flight>& flights, string to, vector<Travel> *travels,
 				}
 			}
 		}
-	}
+	}*/
 //travels = final_travels;
 
 //	cout << "compute_path to " << to << ": " << ((tick_count::now()-t0).seconds()*1000) << endl;
