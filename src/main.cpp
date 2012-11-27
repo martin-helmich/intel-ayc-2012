@@ -77,7 +77,7 @@ class TravelComparator
 {
 public:
 	Travel *cheapest_travel;
-	int cheapest_cost;
+	double cheapest_cost;
 	vector<Travel> *travels;
 	vector<vector<string> > *alliances;
 
@@ -97,7 +97,7 @@ public:
 
 	void operator()(blocked_range<unsigned int> range)
 	{
-		int c;
+		double c;
 		for (unsigned int i = range.begin(); i != range.end(); ++i)
 		{
 			c = compute_cost(&travels->at(i), alliances);
@@ -330,9 +330,11 @@ private:
 	Parameters parameters;
 	string to;
 	unsigned long t_min, t_max;
+	CostRange *min_range;
 
 public:
-	ParallelPathComputer(vector<Travel> *ft, mutex *ftl, Parameters &p, string t, unsigned long tmi, unsigned long tma)
+	ParallelPathComputer(vector<Travel> *ft, mutex *ftl, Parameters &p, string t,
+			unsigned long tmi, unsigned long tma, CostRange *r)
 	{
 		final_travels = ft;
 		final_travels_lock = ftl;
@@ -340,6 +342,7 @@ public:
 		t_min = tmi;
 		t_max = tma;
 		to = t;
+		min_range = r;
 	}
 
 	void operator()(Travel travel, parallel_do_feeder<Travel>& f) const
@@ -379,7 +382,7 @@ public:
 						&& flight.take_off_time - current_city.land_time
 								<= parameters.max_layover_time
 						&& nerver_traveled_to(travel, flight.to)
-						/*&& flight.cost * 0.7 + travel.min_cost <= min_range->max*/)
+						&& flight.cost * 0.7 + travel.min_cost <= min_range->max)
 				{
 
 					Travel newTravel = travel;
@@ -388,10 +391,9 @@ public:
 					if (flight.to == to)
 					{
 						final_travels_lock->lock();
-//						cout << "JAAA!" << endl;
 						final_travels->push_back(newTravel);
+						min_range->from_travel(&newTravel);
 						final_travels_lock->unlock();
-//						min_range->from_travel(&newTravel);
 					}
 					else
 					{
@@ -420,7 +422,7 @@ void compute_path(vector<Flight>& flights, string to, vector<Travel> *travels,
 		vector<Travel> *final_travels, CostRange *min_range)
 {
 	mutex final_travels_lock;
-	ParallelPathComputer ppc(final_travels, &final_travels_lock, parameters, to, t_min, t_max);
+	ParallelPathComputer ppc(final_travels, &final_travels_lock, parameters, to, t_min, t_max, min_range);
 
 	parallel_do(travels->begin(), travels->end(), ppc);
 
@@ -471,7 +473,7 @@ void compute_path(vector<Flight>& flights, string to, vector<Travel> *travels,
 						&& flight.take_off_time - current_city.land_time
 								<= parameters.max_layover_time
 						&& nerver_traveled_to(travel, flight.to)
-						/*&& flight.cost * 0.7 + travel.min_cost <= min_range->max*/)
+						&& flight.cost * 0.7 + travel.min_cost <= min_range->max)
 				{
 					Travel newTravel = travel;
 					newTravel.add_flight(flight);
@@ -501,9 +503,9 @@ void compute_path(vector<Flight>& flights, string to, vector<Travel> *travels,
  * \param alliances The alliances
  * \return The cheapest travel found.
  */
-Travel find_cheapest(vector<Travel>& travels, vector<vector<string> >&alliances)
+Travel find_cheapest(vector<Travel> *travels, vector<vector<string> > *alliances)
 {
-	int s0 = travels.size();
+	int s0 = travels->size();
 
 	OUT("Find cheapest of " << s0 << " travels.");
 //	cout << "Find cheapest of " << s0 << " travels." << endl;
@@ -514,8 +516,9 @@ Travel find_cheapest(vector<Travel>& travels, vector<vector<string> >&alliances)
 		exit(110);
 	}
 
-	TravelComparator tc(&travels, &alliances);
-	parallel_reduce(blocked_range<unsigned int>(0, travels.size()), tc);
+	TravelComparator tc(travels, alliances);
+	parallel_reduce(blocked_range<unsigned int>(0, travels->size()), tc);
+//	tc(blocked_range<unsigned int>(0, travels.size()));
 
 	return *tc.cheapest_travel;
 }
@@ -531,12 +534,10 @@ Travel find_cheapest(vector<Travel>& travels, vector<vector<string> >&alliances)
  * \param t_min You must not be in a plane before this value (epoch).
  * \param t_max You must not be in a plane after this value (epoch).
  */
-mutex t;
 void fill_travel(Travels *travels, Travels *final_travels, vector<Flight>& flights,
 		string starting_point, unsigned long t_min, unsigned long t_max,
 		CostRange *min_range, string destination_point)
 {
-	mutex::scoped_lock lk(t);
 	Location l;
 	concurrent_hash_map<string, Location>::const_accessor a;
 	Travels temp;
@@ -553,7 +554,7 @@ void fill_travel(Travels *travels, Travels *final_travels, vector<Flight>& fligh
 	{
 		if (l.outgoing_flights[i].take_off_time >= t_min
 				&& l.outgoing_flights[i].land_time <= t_max
-				/*&& l.outgoing_flights[i].cost * 0.7 <= min_range->max*/)
+				&& l.outgoing_flights[i].cost * 0.7 <= min_range->max)
 		{
 			Travel t;
 			t.add_flight(l.outgoing_flights[i]);
@@ -590,21 +591,21 @@ void merge_path(vector<Travel>& travel1, vector<Travel>& travel2)
 	vector<Travel> result;
 	for (unsigned int i = 0; i < travel1.size(); i++)
 	{
-		Travel t1 = travel1[i];
+		Travel *t1 = &travel1[i];
 		for (unsigned j = 0; j < travel2.size(); j++)
 		{
-			Travel t2 = travel2[j];
-			Flight last_flight_t1 = t1.flights.back();
-			Flight first_flight_t2 = t2.flights[0];
-			if (last_flight_t1.land_time < first_flight_t2.take_off_time)
+			Travel *t2 = &travel2[j];
+			Flight *last_flight_t1 = &t1->flights.back();
+			Flight *first_flight_t2 = &t2->flights[0];
+			if (last_flight_t1->land_time < first_flight_t2->take_off_time)
 			{
-				Travel new_travel = t1;
-				new_travel.flights.insert(new_travel.flights.end(), t2.flights.begin(),
-						t2.flights.end());
+				Travel new_travel = *t1;
+				new_travel.flights.insert(new_travel.flights.end(), t2->flights.begin(),
+						t2->flights.end());
 				new_travel.discounts.insert(new_travel.discounts.end(),
-						t2.discounts.begin(), t2.discounts.end());
-				new_travel.max_cost += t2.max_cost;
-				new_travel.min_cost += t2.min_cost;
+						t2->discounts.begin(), t2->discounts.end());
+				new_travel.max_cost += t2->max_cost;
+				new_travel.min_cost += t2->min_cost;
 				result.push_back(new_travel);
 			}
 		}
@@ -1020,7 +1021,7 @@ void parse_flights(vector<Flight>& flights, string filename)
 	for (off_t i = 38; i < l; i++)
 	{
 		// 10 = LF
-		if (m[i] == 10)
+		if (i < l && m[i] == 10)
 		{
 			lfs.push_back(i);
 
