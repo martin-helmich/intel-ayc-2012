@@ -34,14 +34,11 @@ tbb::task* oma::FindPathTask::execute()
 	Travels temp_travels, all_paths;
 	CostRange min_range;
 
-	min_range.max = numeric_limits<float>::max();
-	min_range.min = numeric_limits<float>::max();
-
 	OUT("STRT: " << from << " -> " << to);
 
 	fill_travel(&temp_travels, &all_paths, *flights, from, t_min, t_max, &min_range, to);
 
-	OUT("INIT: " << from << " -> " << to << " : " << temp_travels.size() << ", "
+	OUT("INIT: " << from << " -> " << to << " : " << temp_travels.size() << "/" << all_paths.size() << ", "
 			<< min_range.min << "-" << min_range.max);
 
 	compute_path(*flights, to, &temp_travels, t_min, t_max, *parameters, &all_paths,

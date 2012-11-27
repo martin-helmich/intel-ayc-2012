@@ -12,6 +12,9 @@ function getmd5()
 D=$(pwd)
 for S in scenarios/scenario{1..10} ; do
 	cd $S
+
+	rm play_hard.txt work_hard.txt
+
 	./script.sh > /dev/null
 
 	echo -n "$S: "

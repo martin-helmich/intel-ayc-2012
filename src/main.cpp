@@ -53,7 +53,7 @@ bool has_just_traveled_with_company(Flight& flight_before, Flight& current_fligh
 bool has_just_traveled_with_alliance(Flight& flight_before, Flight& current_flight,
 		vector<vector<string> >& alliances);
 void apply_discount(Travel & travel, vector<vector<string> >&alliances);
-float compute_cost(Travel & travel, vector<vector<string> >&alliances);
+double compute_cost(Travel & travel, vector<vector<string> >&alliances);
 void print_alliances(vector<vector<string> > &alliances);
 void print_flights(vector<Flight>& flights, vector<float> discounts, ofstream& output);
 void print_travel(Travel& travel, vector<vector<string> >&alliances);
@@ -301,15 +301,26 @@ void apply_discount(Travel & travel, vector<vector<string> >&alliances)
  * \param travel The travel.
  * \param alliances The alliances.
  */
-float compute_cost(Travel & travel, vector<vector<string> >&alliances)
+double compute_cost(Travel & travel, vector<vector<string> >&alliances)
 {
 	apply_discount(travel, alliances);
 
-	CostComputer cc(&travel);
-	parallel_reduce(blocked_range<unsigned int>(0, travel.flights.size()), cc);
-	travel.total_cost = cc.costs;
+	// Parallelism does not make much sense here... Due to various optimizations, most
+	// travels are only 3 to 6 flights in length. Scheduling overhead becomes pretty obvious
+	// here...
+	travel.total_cost = 0;
+	for(unsigned int i=0; i < travel.flights.size(); i ++)
+	{
+		travel.total_cost += travel.discounts[i] * travel.flights[i].cost;
+	}
 
-	return cc.costs;
+	return travel.total_cost;
+
+	/*CostComputer cc(&travel);
+	parallel_reduce(blocked_range<unsigned int>(0, travel.flights.size()), cc);
+	travel.total_cost = cc.costs;*/
+
+//	return cc.costs;
 }
 
 /**
@@ -432,12 +443,15 @@ Travel find_cheapest(vector<Travel>& travels, vector<vector<string> >&alliances)
  * \param t_min You must not be in a plane before this value (epoch).
  * \param t_max You must not be in a plane after this value (epoch).
  */
+mutex t;
 void fill_travel(Travels *travels, Travels *final_travels, vector<Flight>& flights,
 		string starting_point, unsigned long t_min, unsigned long t_max,
 		CostRange *min_range, string destination_point)
 {
+	mutex::scoped_lock lk(t);
 	Location l;
 	concurrent_hash_map<string, Location>::const_accessor a;
+	Travels temp;
 
 	if (!location_map.find(a, starting_point))
 	{
@@ -463,8 +477,16 @@ void fill_travel(Travels *travels, Travels *final_travels, vector<Flight>& fligh
 			}
 			else
 			{
-				travels->push_back(t);
+				temp.push_back(t);
 			}
+		}
+	}
+
+	for (unsigned int i = 0; i < temp.size(); i++)
+	{
+		if (temp[i].min_cost <= min_range->max)
+		{
+			travels->push_back(temp[i]);
 		}
 	}
 }
@@ -522,6 +544,7 @@ time_t convert_to_timestamp(int day, int month, int year, int hour, int minute,
 }
 
 concurrent_hash_map<int, time_t> times;
+mutex ol;
 
 /**
  * \fn time_t timegm(struct tm *tm)
@@ -548,12 +571,14 @@ time_t timegm(struct tm *tm)
 	if (times.find(a, year))
 	{
 		month_ts = a->second;
+		a.release();
 	}
 	else
 	{
 		concurrent_hash_map<int, time_t>::accessor b;
 		if (times.insert(b, year))
 		{
+			mutex::scoped_lock lk(ol);
 			struct tm time;
 			time.tm_year = tm->tm_year;
 			time.tm_mon = tm->tm_mon;
@@ -572,6 +597,10 @@ time_t timegm(struct tm *tm)
 			if (tz) setenv("TZ", tz, 1);
 			else unsetenv("TZ");
 			tzset();
+		}
+		else
+		{
+			month_ts = b->second;
 		}
 	}
 
@@ -868,6 +897,8 @@ public:
 	}
 };
 
+mutex rfl;
+
 /**
  * \fn void parse_flights(vector<Flight>& flights, string filename)
  * \brief This function parses the flights from a file.
@@ -918,6 +949,7 @@ void parse_flights(vector<Flight>& flights, string filename)
 	fp.setFlights(&flights);
 
 	parallel_reduce(blocked_range<int>(1, lfs.size()), fp);
+//	fp(blocked_range<int>(1, lfs.size()));
 
 	// Unmap file from memory and close file handle.
 	munmap(m, stat.st_size);
@@ -1180,6 +1212,7 @@ int main(int argc, char **argv)
 //	print_flights(flights, (ofstream&) cout);
 //	cout<<"flights printed "<<endl;
 	parse_alliances(alliances, parameters.alliances_file);
+	cout << "Read " << alliances.size() << " alliances." << endl;
 //	cout<<"Printing alliances..."<<endl;
 //	print_alliances(alliances);
 	tick_count t0 = tick_count::now();
