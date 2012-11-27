@@ -36,24 +36,24 @@ tbb::task* oma::FindPathTask::execute()
 
 	OUT("STRT: " << from << " -> " << to);
 
-	fill_travel(&temp_travels, &all_paths, *flights, from, t_min, t_max, &min_range, to);
+	fill_travel(&temp_travels, travels, *flights, from, t_min, t_max, &min_range, to);
 
 	OUT("INIT: " << from << " -> " << to << " : " << temp_travels.size() << "/" << all_paths.size() << ", "
 			<< min_range.min << "-" << min_range.max);
 
-	compute_path(*flights, to, &temp_travels, t_min, t_max, *parameters, &all_paths,
+	compute_path(*flights, to, &temp_travels, t_min, t_max, *parameters, travels,
 			&min_range);
 
 	OUT("DONE: " << from << " -> " << to << " : " << all_paths.size() << ", "
 			<< min_range.min << "-" << min_range.max);
 
-	for (unsigned int i = 0; i < all_paths.size(); i++)
-	{
-		if (all_paths[i].min_cost <= min_range.max)
-		{
-			travels->push_back(all_paths[i]);
-		}
-	}
+//	for (unsigned int i = 0; i < all_paths.size(); i++)
+//	{
+//		if (all_paths[i].min_cost <= min_range.max)
+//		{
+//			travels->push_back(all_paths[i]);
+//		}
+//	}
 
 	OUT("REDC: " << from << " -> " << to << " : " << travels->size());
 

@@ -15,6 +15,8 @@
 #include <fcntl.h>
 #include <limits>
 
+#define DEBUG 1
+
 #include "types.h"
 #include "methods.h"
 
@@ -27,14 +29,11 @@
 #include "oma/tasks.h"
 #include "tbb/concurrent_hash_map.h"
 #include "tbb/task_scheduler_init.h"
+#include "tbb/parallel_do.h"
 
 using namespace std;
 using namespace tbb;
 using namespace oma;
-
-#define DEBUG
-
-#define ENABLE_ALLIANCE_MAP 1
 
 time_t convert_to_timestamp(int day, int month, int year, int hour, int minute,
 		int seconde);
@@ -48,12 +47,12 @@ void parse_flights(vector<Flight>& flights, string filename);
 void parse_alliance(vector<string> &alliance, string line);
 void parse_alliances(vector<vector<string> > &alliances, string filename);
 bool company_are_in_a_common_alliance(const string& c1, const string& c2,
-		vector<vector<string> >& alliances);
+		vector<vector<string> > *alliances);
 bool has_just_traveled_with_company(Flight& flight_before, Flight& current_flight);
 bool has_just_traveled_with_alliance(Flight& flight_before, Flight& current_flight,
-		vector<vector<string> >& alliances);
-void apply_discount(Travel & travel, vector<vector<string> >&alliances);
-double compute_cost(Travel & travel, vector<vector<string> >&alliances);
+		vector<vector<string> > *alliances);
+void apply_discount(Travel *travel, vector<vector<string> >*alliances);
+double compute_cost(Travel *travel, vector<vector<string> >*alliances);
 void print_alliances(vector<vector<string> > &alliances);
 void print_flights(vector<Flight>& flights, vector<float> discounts, ofstream& output);
 void print_travel(Travel& travel, vector<vector<string> >&alliances);
@@ -101,7 +100,7 @@ public:
 		int c;
 		for (unsigned int i = range.begin(); i != range.end(); ++i)
 		{
-			c = compute_cost(travels->at(i), *alliances);
+			c = compute_cost(&travels->at(i), alliances);
 			if (cheapest_cost == -1 || c < cheapest_cost)
 			{
 				cheapest_cost = c;
@@ -269,27 +268,27 @@ Solution play_and_work_hard(vector<Flight>& flights, Parameters& parameters,
  * \param travel A travel (it will be modified to apply the discounts).
  * \param alliances The alliances.
  */
-void apply_discount(Travel & travel, vector<vector<string> >&alliances)
+void apply_discount(Travel *travel, vector<vector<string> >*alliances)
 {
 //	if (travel.flights.size() > 0) travel.flights[0].discout = 1;
-	if (travel.flights.size() > 1)
+	if (travel->flights.size() > 1)
 	{
-		for (unsigned int i = 1; i < travel.flights.size(); i++)
+		for (unsigned int i = 1; i < travel->flights.size(); i++)
 		{
-			Flight& flight_before = travel.flights[i - 1];
-			Flight& current_flight = travel.flights[i];
+			Flight& flight_before = travel->flights[i - 1];
+			Flight& current_flight = travel->flights[i];
 			if (has_just_traveled_with_company(flight_before, current_flight))
 			{
-				travel.discounts[i] = 0.7;
-				travel.discounts[i - 1] = 0.7;
+				travel->discounts[i] = 0.7;
+				travel->discounts[i - 1] = 0.7;
 //				flight_before.discout = 0.7;
 //				current_flight.discout = 0.7;
 			}
 			else if (has_just_traveled_with_alliance(flight_before, current_flight,
 					alliances))
 			{
-				if (travel.discounts[i - 1] > 0.8) travel.discounts[i - 1] = 0.8;
-				travel.discounts[i] = 0.8;
+				if (travel->discounts[i - 1] > 0.8) travel->discounts[i - 1] = 0.8;
+				travel->discounts[i] = 0.8;
 			}
 		}
 	}
@@ -301,20 +300,20 @@ void apply_discount(Travel & travel, vector<vector<string> >&alliances)
  * \param travel The travel.
  * \param alliances The alliances.
  */
-double compute_cost(Travel & travel, vector<vector<string> >&alliances)
+double compute_cost(Travel *travel, vector<vector<string> >*alliances)
 {
 	apply_discount(travel, alliances);
 
 	// Parallelism does not make much sense here... Due to various optimizations, most
 	// travels are only 3 to 6 flights in length. Scheduling overhead becomes pretty obvious
 	// here...
-	travel.total_cost = 0;
-	for(unsigned int i=0; i < travel.flights.size(); i ++)
+	travel->total_cost = 0;
+	for(unsigned int i=0; i < travel->flights.size(); i ++)
 	{
-		travel.total_cost += travel.discounts[i] * travel.flights[i].cost;
+		travel->total_cost += travel->discounts[i] * travel->flights[i].cost;
 	}
 
-	return travel.total_cost;
+	return travel->total_cost;
 
 	/*CostComputer cc(&travel);
 	parallel_reduce(blocked_range<unsigned int>(0, travel.flights.size()), cc);
@@ -322,6 +321,88 @@ double compute_cost(Travel & travel, vector<vector<string> >&alliances)
 
 //	return cc.costs;
 }
+
+class ParallelPathComputer
+{
+private:
+	vector<Travel> *final_travels;
+	mutex *final_travels_lock;
+	Parameters parameters;
+	string to;
+	unsigned long t_min, t_max;
+
+public:
+	ParallelPathComputer(vector<Travel> *ft, mutex *ftl, Parameters &p, string t, unsigned long tmi, unsigned long tma)
+	{
+		final_travels = ft;
+		final_travels_lock = ftl;
+		parameters = p;
+		t_min = tmi;
+		t_max = tma;
+		to = t;
+	}
+
+	void operator()(Travel travel, parallel_do_feeder<Travel>& f) const
+	{
+		Flight current_city = travel.flights.back();
+
+		//First, if a direct flight exist, it must be in the final travels
+		if (current_city.to == to)
+		{
+//			min_range->from_travel(&travel);
+			final_travels->push_back(travel);
+		}
+		else
+		{
+			concurrent_hash_map<string, Location>::const_accessor a;
+			if (!location_map.find(a, current_city.to))
+			{
+				cerr << "Fehler: Stadt " << current_city.to << " ist nicht bekannt."
+						<< endl;
+				exit(100);
+			}
+
+			Location from = a->second;
+
+			/*PathComputingInnerLoop loop(travels, final_travels,
+			 &from.outgoing_flights, &travels_lock, &final_travels_lock,
+			 t_min, t_max, parameters, &current_city, &travel, to, &best);
+			 parallel_for(
+			 blocked_range<unsigned int>(0,
+			 from.outgoing_flights.size()), loop);*/
+
+			for (unsigned int i = 0; i < from.outgoing_flights.size(); i++)
+			{
+				Flight flight = from.outgoing_flights[i];
+				if (flight.take_off_time >= t_min && flight.land_time <= t_max
+						&& (flight.take_off_time > current_city.land_time)
+						&& flight.take_off_time - current_city.land_time
+								<= parameters.max_layover_time
+						&& nerver_traveled_to(travel, flight.to)
+						/*&& flight.cost * 0.7 + travel.min_cost <= min_range->max*/)
+				{
+
+					Travel newTravel = travel;
+					newTravel.add_flight(flight);
+
+					if (flight.to == to)
+					{
+						final_travels_lock->lock();
+//						cout << "JAAA!" << endl;
+						final_travels->push_back(newTravel);
+						final_travels_lock->unlock();
+//						min_range->from_travel(&newTravel);
+					}
+					else
+					{
+						//travels->push_back(newTravel);
+						f.add(newTravel);
+					}
+				}
+			}
+		}
+	}
+};
 
 /**
  * \fn void compute_path(vector<Flight>& flights, string to, vector<Travel>& travels, unsigned long t_min, unsigned long t_max, Parameters parameters)
@@ -338,7 +419,14 @@ void compute_path(vector<Flight>& flights, string to, vector<Travel> *travels,
 		unsigned long t_min, unsigned long t_max, Parameters parameters,
 		vector<Travel> *final_travels, CostRange *min_range)
 {
-	mutex final_travels_lock, travels_lock;
+	mutex final_travels_lock;
+	ParallelPathComputer ppc(final_travels, &final_travels_lock, parameters, to, t_min, t_max);
+
+	parallel_do(travels->begin(), travels->end(), ppc);
+
+	return;
+
+	//mutex final_travels_lock, travels_lock;
 	//CostRange min_range = { numeric_limits<float>::max(), numeric_limits<float>::max() };
 
 // TODO: Parallele Queue?
@@ -383,7 +471,7 @@ void compute_path(vector<Flight>& flights, string to, vector<Travel> *travels,
 						&& flight.take_off_time - current_city.land_time
 								<= parameters.max_layover_time
 						&& nerver_traveled_to(travel, flight.to)
-						&& flight.cost * 0.7 + travel.min_cost <= min_range->max)
+						/*&& flight.cost * 0.7 + travel.min_cost <= min_range->max*/)
 				{
 					Travel newTravel = travel;
 					newTravel.add_flight(flight);
@@ -465,7 +553,7 @@ void fill_travel(Travels *travels, Travels *final_travels, vector<Flight>& fligh
 	{
 		if (l.outgoing_flights[i].take_off_time >= t_min
 				&& l.outgoing_flights[i].land_time <= t_max
-				&& l.outgoing_flights[i].cost * 0.7 <= min_range->max)
+				/*&& l.outgoing_flights[i].cost * 0.7 <= min_range->max*/)
 		{
 			Travel t;
 			t.add_flight(l.outgoing_flights[i]);
@@ -948,8 +1036,8 @@ void parse_flights(vector<Flight>& flights, string filename)
 	FlightParser fp(m, &lfs);
 	fp.setFlights(&flights);
 
-	parallel_reduce(blocked_range<int>(1, lfs.size()), fp);
-//	fp(blocked_range<int>(1, lfs.size()));
+//	parallel_reduce(blocked_range<int>(1, lfs.size()), fp);
+	fp(blocked_range<int>(1, lfs.size()));
 
 	// Unmap file from memory and close file handle.
 	munmap(m, stat.st_size);
@@ -1005,18 +1093,18 @@ void parse_alliances(vector<vector<string> > &alliances, string filename)
  * \param alliances A 2D vector representing the alliances. Companies on the same line are in the same alliance.
  */
 bool company_are_in_a_common_alliance(const string& c1, const string& c2,
-		vector<vector<string> >& alliances)
+		vector<vector<string> > *alliances)
 {
 	concurrent_hash_map<string, bool>::accessor a;
 	if (!alliance_map.insert(a, c1 + c2))
 	{
-		for (unsigned int i = 0; i < alliances.size(); i++)
+		for (unsigned int i = 0; i < alliances->size(); i++)
 		{
 			bool c1_found = false, c2_found = false;
-			for (unsigned int j = 0; j < alliances[i].size(); j++)
+			for (unsigned int j = 0; j < alliances->at(i).size(); j++)
 			{
-				if (alliances[i][j] == c1) c1_found = true;
-				if (alliances[i][j] == c2) c2_found = true;
+				if (alliances->at(i)[j] == c1) c1_found = true;
+				if (alliances->at(i)[j] == c2) c2_found = true;
 			}
 			if (c1_found && c2_found)
 			{
@@ -1054,7 +1142,7 @@ bool has_just_traveled_with_company(Flight& flight_before, Flight& current_fligh
  * \return The 2 flights are with the same alliance.
  */
 bool has_just_traveled_with_alliance(Flight& flight_before, Flight& current_flight,
-		vector<vector<string> >& alliances)
+		vector<vector<string> > *alliances)
 {
 	return company_are_in_a_common_alliance(current_flight.company, flight_before.company,
 			alliances);
@@ -1111,7 +1199,7 @@ bool nerver_traveled_to(Travel travel, string city)
  */
 void print_travel(Travel& travel, vector<vector<string> >&alliances, ofstream& output)
 {
-	output << "Price : " << compute_cost(travel, alliances) << endl;
+	output << "Price : " << compute_cost(&travel, &alliances) << endl;
 	print_flights(travel.flights, travel.discounts, output);
 	output << endl;
 }
