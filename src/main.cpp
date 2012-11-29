@@ -548,20 +548,23 @@ void fill_travel(Travels *travels, Travels *final_travels, vector<Flight>& fligh
  * \param travel1 The first part of the trip.
  * \param travel2 The second part of the trip.
  */
-void merge_path(vector<Travel>& travel1, vector<Travel>& travel2)
+void merge_path(Travels *results, Travels *travels1, Travels *travels2)
 {
-	vector<Travel> result;
-	unsigned int s1 = travel1.size(), s2;
+	vector<Travel> temp_result;
+	CostRange min_range;
+
+	unsigned int s1 = travels1->size(), s2;
 	for (unsigned int i = 0; i < s1; i++)
 	{
-		Travel *t1 = &travel1[i];
-		s2 = travel2.size();
+		Travel *t1 = &(travels1->at(i));
+		s2 = travels2->size();
 		for (unsigned j = 0; j < s2; j++)
 		{
-			Travel *t2 = &travel2[j];
+			Travel *t2 = &(travels2->at(j));
 			Flight *last_flight_t1 = &t1->flights.back();
 			Flight *first_flight_t2 = &t2->flights[0];
-			if (last_flight_t1->land_time < first_flight_t2->take_off_time)
+			if (last_flight_t1->land_time < first_flight_t2->take_off_time
+					&& t1->min_cost + t2->min_cost < min_range.max)
 			{
 				Travel new_travel = *t1;
 				new_travel.flights.insert(new_travel.flights.end(), t2->flights.begin(),
@@ -570,11 +573,21 @@ void merge_path(vector<Travel>& travel1, vector<Travel>& travel2)
 						t2->discounts.begin(), t2->discounts.end());
 				new_travel.max_cost += t2->max_cost;
 				new_travel.min_cost += t2->min_cost;
-				result.push_back(new_travel);
+
+				min_range.from_travel(&new_travel);
+				temp_result.push_back(new_travel);
 			}
 		}
 	}
-	travel1 = result;
+
+	unsigned int s3 = temp_result.size();
+	for (unsigned int i = 0; i < s3; i++)
+	{
+		if(temp_result[i].min_cost <= min_range.max)
+		{
+			results->push_back(temp_result[i]);
+		}
+	}
 }
 
 /**

@@ -80,8 +80,8 @@ tbb::task* oma::WorkHardTask::execute()
 		return NULL;
 	}
 
-	vector<Travel> work_hard = *home_to_conference;
-	merge_path(work_hard, *conference_to_home);
+	vector<Travel> work_hard;
+	merge_path(&work_hard, home_to_conference, conference_to_home);
 
 	Travel cheapest_work_hard = find_cheapest(&work_hard, alliances);
 	solution->work_hard = cheapest_work_hard;
@@ -105,17 +105,15 @@ oma::PlayHardTask::PlayHardTask(Travels *htv, Travels *vtc, Travels *cth, Travel
 
 tbb::task* oma::PlayHardTask::execute()
 {
-	vector<Travel> all_travels;
+	vector<Travel> all_travels, home_to_vacation_to_conference;
 
-	merge_path(*home_to_vacation, *vacation_to_conference);
-	merge_path(*home_to_vacation, *conference_to_home);
-	all_travels = *home_to_vacation;
+	merge_path(&home_to_vacation_to_conference, home_to_vacation, vacation_to_conference);
+	merge_path(&all_travels, &home_to_vacation_to_conference, conference_to_home);
 
-	vector<Travel> temp = *home_to_conference;
+	vector<Travel> home_to_conference_to_vacation;
 
-	merge_path(temp, *conference_to_vacation);
-	merge_path(temp, *vacation_to_home);
-	all_travels.insert(all_travels.end(), temp.begin(), temp.end());
+	merge_path(&home_to_conference_to_vacation, home_to_conference, conference_to_vacation);
+	merge_path(&all_travels, &home_to_conference_to_vacation, vacation_to_home);
 
 	if (all_travels.size() == 0)
 	{
