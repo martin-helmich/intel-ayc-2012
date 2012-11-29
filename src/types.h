@@ -75,9 +75,9 @@ struct Travel
 {
 	vector<Flight> flights;/*!< A travel is just a list of Flight(s). */
 	vector<float> discounts;
-	double total_cost; /* Total costs of this travel (sum of flight costs minus possible discounts). */
-	double min_cost;
-	double max_cost;
+	float total_cost; /* Total costs of this travel (sum of flight costs minus possible discounts). */
+	float min_cost;
+	float max_cost;
 
 	Travel() :
 		 total_cost(0), min_cost(0), max_cost(0)
@@ -133,14 +133,14 @@ struct Solution
 
 struct CostRange
 {
-	double min;
-	double max;
+	float min;
+	float max;
 	tbb::spin_mutex lock;
 
 	CostRange()
 	{
-		min = numeric_limits<double>::max();
-		max = numeric_limits<double>::max();
+		min = numeric_limits<float>::max();
+		max = numeric_limits<float>::max();
 	}
 
 	inline void from_travel(Travel *t)

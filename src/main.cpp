@@ -52,7 +52,7 @@ bool has_just_traveled_with_company(Flight& flight_before, Flight& current_fligh
 bool has_just_traveled_with_alliance(Flight& flight_before, Flight& current_flight,
 		vector<vector<string> > *alliances);
 void apply_discount(Travel *travel, vector<vector<string> >*alliances);
-double compute_cost(Travel *travel, vector<vector<string> >*alliances);
+float compute_cost(Travel *travel, vector<vector<string> >*alliances);
 void print_alliances(vector<vector<string> > &alliances);
 void print_flights(vector<Flight>& flights, vector<float> discounts, ofstream& output);
 void print_travel(Travel& travel, vector<vector<string> >&alliances);
@@ -77,7 +77,7 @@ class TravelComparator
 {
 public:
 	Travel *cheapest_travel;
-	double cheapest_cost;
+	float cheapest_cost;
 	vector<Travel> *travels;
 	vector<vector<string> > *alliances;
 
@@ -97,7 +97,7 @@ public:
 
 	void operator()(blocked_range<unsigned int> range)
 	{
-		double c;
+		float c;
 		for (unsigned int i = range.begin(); i != range.end(); ++i)
 		{
 			c = compute_cost(&travels->at(i), alliances);
@@ -268,7 +268,7 @@ void apply_discount(Travel *travel, vector<vector<string> >*alliances)
  * \param travel The travel.
  * \param alliances The alliances.
  */
-double compute_cost(Travel *travel, vector<vector<string> >*alliances)
+float compute_cost(Travel *travel, vector<vector<string> >*alliances)
 {
 	apply_discount(travel, alliances);
 

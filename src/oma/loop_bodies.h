@@ -23,7 +23,7 @@ class CostComputer
 {
 public:
 	Travel *travel;
-	double costs;
+	float costs;
 
 	CostComputer(Travel *t) :
 			travel(t), costs(0)
