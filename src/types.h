@@ -8,13 +8,11 @@
 #ifndef TYPES_H_
 #define TYPES_H_
 
-
 #ifdef DEBUG
 #define OUT(a) cout << a << endl;
 #else
 #define OUT(a)
 #endif
-
 
 #include <string>
 #include <vector>
@@ -71,26 +69,22 @@ struct Flight
  * \brief Store a travel.
  * This structure don't need to be modified but feel free to change it if you want.
  */
-struct Travel
+class Travel
 {
+public:
 	vector<Flight> flights;/*!< A travel is just a list of Flight(s). */
 	vector<float> discounts;
 	float total_cost; /* Total costs of this travel (sum of flight costs minus possible discounts). */
 	float min_cost;
 	float max_cost;
+	int size;
 
 	Travel() :
-		 total_cost(0), min_cost(0), max_cost(0)
+			total_cost(0), min_cost(0), max_cost(0), size(0)
 	{
 	}
 
-	void add_flight(Flight &f)
-	{
-		min_cost += f.cost * 0.7;
-		max_cost += f.cost;
-		flights.push_back(f);
-		discounts.push_back(1.0);
-	}
+	void add_flight(Flight &f, vector<vector<string> > *a);
 };
 
 // Yes, we are lazy and don't want to type "vector<vector<string> >" too often... ;)

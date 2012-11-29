@@ -32,6 +32,7 @@ private:
 	vector<Flight> *flights;
 	Travels *travels;
 	int t_min, t_max;
+	Alliances *alliances;
 
 public:
 	/**
@@ -42,7 +43,7 @@ public:
 	 * @param tmi Minimum
 	 */
 	FindPathTask(string f, string t, int tmi, int tma, Parameters *p, vector<Flight> *fl,
-			Travels *tr);
+			Travels *tr, Alliances *a);
 	task* execute();
 };
 
