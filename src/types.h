@@ -85,6 +85,7 @@ public:
 	}
 
 	void add_flight(Flight &f, vector<vector<string> > *a);
+	void merge_travel(Travel *t, vector<vector<string> > *a);
 };
 
 // Yes, we are lazy and don't want to type "vector<vector<string> >" too often... ;)

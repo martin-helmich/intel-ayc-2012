@@ -545,7 +545,7 @@ void fill_travel(Travels *travels, Travels *final_travels, vector<Flight>& fligh
  * \param travel1 The first part of the trip.
  * \param travel2 The second part of the trip.
  */
-void merge_path(Travels *results, Travels *travels1, Travels *travels2)
+void merge_path(Travels *results, Travels *travels1, Travels *travels2, Alliances *alliances)
 {
 	vector<Travel> temp_result;
 	CostRange min_range;
@@ -564,12 +564,7 @@ void merge_path(Travels *results, Travels *travels1, Travels *travels2)
 					&& t1->min_cost + t2->min_cost < min_range.max)
 			{
 				Travel new_travel = *t1;
-				new_travel.flights.insert(new_travel.flights.end(), t2->flights.begin(),
-						t2->flights.end());
-				new_travel.discounts.insert(new_travel.discounts.end(),
-						t2->discounts.begin(), t2->discounts.end());
-				new_travel.max_cost += t2->max_cost;
-				new_travel.min_cost += t2->min_cost;
+				new_travel.merge_travel(t2, alliances);
 
 				min_range.from_travel(&new_travel);
 				temp_result.push_back(new_travel);

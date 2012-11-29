@@ -17,7 +17,7 @@ void fill_travel(Travels *travels, Travels *final_travels, vector<Flight>& fligh
 void compute_path(vector<Flight>& flights, string to, vector<Travel> *travels,
 		unsigned long t_min, unsigned long t_max, Parameters parameters,
 		vector<Travel> *final_travels, CostRange *min_range, Alliances *alliances);
-void merge_path(Travels *results, Travels *travels1, Travels *travels2);
+void merge_path(Travels *results, Travels *travels1, Travels *travels2, Alliances *alliances);
 Travel find_cheapest(vector<Travel> *travels, vector<vector<string> > *alliances);
 bool company_are_in_a_common_alliance(const string& c1, const string& c2,
 		vector<vector<string> > *alliances);

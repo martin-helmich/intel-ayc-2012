@@ -41,3 +41,34 @@ void Travel::add_flight(Flight &f, vector<vector<string> > *a)
 	discounts.push_back(discount);
 	size ++;
 }
+
+void Travel::merge_travel(Travel *t, vector<vector<string> > *a)
+{
+	Flight *l1, *f2;
+	float discount = 1.0;
+
+	l1 = &(flights.back());
+	f2 = &(t->flights.front());
+
+	if (l1->company == f2->company)
+	{
+	}
+
+	if (discounts[size - 1] > discount)
+	{
+		max_cost -= (discounts[size - 1] - discount) * l1->cost;
+		discounts[size - 1] = discount;
+	}
+
+	if (t->discounts[0] > discount)
+	{
+		t->max_cost -= (t->discounts[0] - discount) * f2->cost;
+		t->discounts[0] = discount;
+	}
+
+	flights.insert(flights.end(), t->flights.begin(), t->flights.end());
+	discounts.insert(discounts.end(), t->discounts.begin(), t->discounts.end());
+
+	min_cost += t->min_cost;
+	max_cost += t->max_cost;
+}
