@@ -148,7 +148,9 @@ struct CostRange
 		lock.lock();
 		if (t->max_cost <= min)
 		{
-			max = t->max_cost;
+			// Add a few coins in order to account for float arithmetics uncertainties.
+			// 2 dollars work, 1 dollar however, does not. Haven't really figured out why... :(
+			max = t->max_cost + 2;
 			min = t->min_cost;
 		}
 		lock.unlock();
