@@ -1006,8 +1006,8 @@ void parse_flights(vector<Flight>& flights, string filename)
 	FlightParser fp(m, &lfs);
 	fp.setFlights(&flights);
 
-//	parallel_reduce(blocked_range<int>(1, lfs.size()), fp);
-	fp(blocked_range<int>(1, lfs.size()));
+	parallel_reduce(blocked_range<int>(1, lfs.size()), fp);
+//	fp(blocked_range<int>(1, lfs.size()));
 
 	// Unmap file from memory and close file handle.
 	munmap(m, stat.st_size);
