@@ -57,6 +57,11 @@ void Travel::merge_travel(Travel *t, vector<vector<string> > *a)
 
 	if (l1->company == f2->company)
 	{
+		discount = 0.7;
+	}
+	else if (company_are_in_a_common_alliance(l1->company, f2->company, a))
+	{
+		discount = 0.8;
 	}
 
 	if (discounts[size - 1] > discount)
@@ -76,4 +81,6 @@ void Travel::merge_travel(Travel *t, vector<vector<string> > *a)
 
 	min_cost += t->min_cost;
 	max_cost += t->max_cost;
+
+	size += t->size;
 }
