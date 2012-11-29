@@ -545,39 +545,31 @@ void fill_travel(Travels *travels, Travels *final_travels, vector<Flight>& fligh
  * \param travel1 The first part of the trip.
  * \param travel2 The second part of the trip.
  */
-void merge_path(Travels *results, Travels *travels1, Travels *travels2, Alliances *alliances)
+void merge_path(Travels *results, Travels *travels1, Travels *travels2,
+		Alliances *alliances, bool final)
 {
-	vector<Travel> temp_result;
-	CostRange min_range;
+	PathMergingOuterLoop pmol(travels1, travels2, alliances, final);
+	parallel_reduce(blocked_range<unsigned int>(0, travels1->size()), pmol);
 
-	unsigned int s1 = travels1->size(), s2;
-	for (unsigned int i = 0; i < s1; i++)
+	if (final)
 	{
-		Travel *t1 = &(travels1->at(i));
-		s2 = travels2->size();
-		for (unsigned j = 0; j < s2; j++)
+		if (pmol.get_cheapest() != NULL)
 		{
-			Travel *t2 = &(travels2->at(j));
-			Flight *last_flight_t1 = &t1->flights.back();
-			Flight *first_flight_t2 = &t2->flights[0];
-			if (last_flight_t1->land_time < first_flight_t2->take_off_time
-					&& t1->min_cost + t2->min_cost < min_range.max)
-			{
-				Travel new_travel = *t1;
-				new_travel.merge_travel(t2, alliances);
-
-				min_range.from_travel(&new_travel);
-				temp_result.push_back(new_travel);
-			}
+			results->push_back(*pmol.get_cheapest());
 		}
+		return;
 	}
-
-	unsigned int s3 = temp_result.size();
-	for (unsigned int i = 0; i < s3; i++)
+	else
 	{
-		if (temp_result[i].min_cost <= min_range.max)
+		Travels *temp_result = pmol.get_results();
+
+		unsigned int s3 = temp_result->size();
+		for (unsigned int i = 0; i < s3; i++)
 		{
-			results->push_back(temp_result[i]);
+			if ((&(temp_result->at(i)))->min_cost <= pmol.min_range.max)
+			{
+				results->push_back(temp_result->at(i));
+			}
 		}
 	}
 }
@@ -1169,7 +1161,7 @@ bool nerver_traveled_to(Travel travel, string city)
  */
 void print_travel(Travel& travel, vector<vector<string> >&alliances, ofstream& output)
 {
-	output << "Price : " << compute_cost(&travel, &alliances) << endl;
+	output << "Price : " << travel.max_cost << endl;
 	print_flights(travel.flights, travel.discounts, output);
 	output << endl;
 }

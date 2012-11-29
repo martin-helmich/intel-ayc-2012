@@ -83,10 +83,9 @@ tbb::task* oma::WorkHardTask::execute()
 	}
 
 	vector<Travel> work_hard;
-	merge_path(&work_hard, home_to_conference, conference_to_home, alliances);
+	merge_path(&work_hard, home_to_conference, conference_to_home, alliances, true);
 
-	Travel cheapest_work_hard = find_cheapest(&work_hard, alliances);
-	solution->work_hard = cheapest_work_hard;
+	solution->work_hard = work_hard[0];
 
 	return NULL;
 }
@@ -109,22 +108,33 @@ tbb::task* oma::PlayHardTask::execute()
 {
 	vector<Travel> all_travels, home_to_vacation_to_conference;
 
-	merge_path(&home_to_vacation_to_conference, home_to_vacation, vacation_to_conference, alliances);
-	merge_path(&all_travels, &home_to_vacation_to_conference, conference_to_home, alliances);
+	merge_path(&home_to_vacation_to_conference, home_to_vacation, vacation_to_conference,
+			alliances);
+	merge_path(&all_travels, &home_to_vacation_to_conference, conference_to_home,
+			alliances, true);
 
 	vector<Travel> home_to_conference_to_vacation;
 
-	merge_path(&home_to_conference_to_vacation, home_to_conference, conference_to_vacation, alliances);
-	merge_path(&all_travels, &home_to_conference_to_vacation, vacation_to_home, alliances);
+	merge_path(&home_to_conference_to_vacation, home_to_conference,
+			conference_to_vacation, alliances);
+	merge_path(&all_travels, &home_to_conference_to_vacation, vacation_to_home, alliances,
+			true);
 
 	if (all_travels.size() == 0)
 	{
 		Travel empty;
 		solution->add_play_hard(solution_index, empty);
 	}
-
-	Travel cheapest_travel = find_cheapest(&all_travels, alliances);
-	solution->add_play_hard(solution_index, cheapest_travel);
+	else if (all_travels.size() == 1)
+	{
+		solution->add_play_hard(solution_index, all_travels[0]);
+	}
+	else
+	{
+		if (all_travels[0].max_cost < all_travels[1].max_cost) solution->add_play_hard(
+				solution_index, all_travels[0]);
+		else solution->add_play_hard(solution_index, all_travels[1]);
+	}
 
 	return NULL;
 }
