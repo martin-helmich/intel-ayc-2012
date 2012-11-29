@@ -48,8 +48,8 @@ void parse_alliance(vector<string> &alliance, string line);
 void parse_alliances(vector<vector<string> > &alliances, string filename);
 bool company_are_in_a_common_alliance(const string& c1, const string& c2,
 		vector<vector<string> > *alliances);
-bool has_just_traveled_with_company(Flight& flight_before, Flight& current_flight);
-bool has_just_traveled_with_alliance(Flight& flight_before, Flight& current_flight,
+bool has_just_traveled_with_company(Flight *flight_before, Flight *current_flight);
+bool has_just_traveled_with_alliance(Flight *flight_before, Flight *current_flight,
 		vector<vector<string> > *alliances);
 void apply_discount(Travel *travel, vector<vector<string> >*alliances);
 float compute_cost(Travel *travel, vector<vector<string> >*alliances);
@@ -245,8 +245,8 @@ void apply_discount(Travel *travel, vector<vector<string> >*alliances)
 	{
 		for (unsigned int i = 1; i < travel->flights.size(); i++)
 		{
-			Flight& flight_before = travel->flights[i - 1];
-			Flight& current_flight = travel->flights[i];
+			Flight *flight_before = &travel->flights[i - 1];
+			Flight *current_flight = &travel->flights[i];
 			if (has_just_traveled_with_company(flight_before, current_flight))
 			{
 				travel->discounts[i] = 0.7;
@@ -317,9 +317,12 @@ public:
 	{
 		Flight *current_city = &(travel.flights.back());
 
-		//First, if a direct flight exist, it must be in the final travels
+		// First, if a direct flight exist, it must be in the final travels.
+		// Should not occur, since we already filter these out in fill_travel.
 		if (current_city->to == to)
 		{
+			mutex::scoped_lock l(*final_travels_lock);
+
 			min_range->from_travel(&travel);
 			final_travels->push_back(travel);
 		}
@@ -354,19 +357,19 @@ public:
 						&& flight->cost * 0.7 + travel.min_cost <= min_range->max)
 				{
 
-					Travel newTravel = travel;
-					newTravel.add_flight(*flight);
+					Travel new_travel = travel;
+					new_travel.add_flight(*flight);
 
 					if (flight->to == to)
 					{
-						final_travels_lock->lock();
-						final_travels->push_back(newTravel);
-						min_range->from_travel(&newTravel);
-						final_travels_lock->unlock();
+						mutex::scoped_lock lock(*final_travels_lock);
+
+						final_travels->push_back(new_travel);
+						min_range->from_travel(&new_travel);
 					}
 					else
 					{
-						f.add(newTravel);
+						f.add(new_travel);
 					}
 				}
 			}
@@ -494,7 +497,7 @@ void fill_travel(Travels *travels, Travels *final_travels, vector<Flight>& fligh
 		string starting_point, unsigned long t_min, unsigned long t_max,
 		CostRange *min_range, string destination_point)
 {
-	Location l;
+	const Location *l;
 	concurrent_hash_map<string, Location>::const_accessor a;
 	Travels temp;
 
@@ -504,19 +507,20 @@ void fill_travel(Travels *travels, Travels *final_travels, vector<Flight>& fligh
 		exit(120);
 	}
 
-	l = a->second;
+	l = &(a->second);
 
-	unsigned int s = l.outgoing_flights.size();
+	unsigned int s = l->outgoing_flights.size();
 	for (unsigned int i = 0; i < s; i++)
 	{
-		if (l.outgoing_flights[i].take_off_time >= t_min
-				&& l.outgoing_flights[i].land_time <= t_max
-				&& l.outgoing_flights[i].cost * 0.7 <= min_range->max)
+		Flight *f = (Flight*) &(l->outgoing_flights[i]);
+		if (f->take_off_time >= t_min
+				&& f->land_time <= t_max
+				&& f->cost * 0.7 <= min_range->max)
 		{
 			Travel t;
-			t.add_flight(l.outgoing_flights[i]);
+			t.add_flight(*f);
 
-			if (l.outgoing_flights[i].to == destination_point)
+			if (f->to == destination_point)
 			{
 				min_range->from_travel(&t);
 				final_travels->push_back(t);
@@ -1089,9 +1093,9 @@ bool company_are_in_a_common_alliance(const string& c1, const string& c2,
  * \param current_flight The second flight.
  * \return The 2 flights are with the same company
  */
-bool has_just_traveled_with_company(Flight& flight_before, Flight& current_flight)
+bool has_just_traveled_with_company(Flight *flight_before, Flight *current_flight)
 {
-	return flight_before.company == current_flight.company;
+	return flight_before->company == current_flight->company;
 }
 
 /**
@@ -1102,10 +1106,10 @@ bool has_just_traveled_with_company(Flight& flight_before, Flight& current_fligh
  * \param alliances The alliances.
  * \return The 2 flights are with the same alliance.
  */
-bool has_just_traveled_with_alliance(Flight& flight_before, Flight& current_flight,
+bool has_just_traveled_with_alliance(Flight *flight_before, Flight *current_flight,
 		vector<vector<string> > *alliances)
 {
-	return company_are_in_a_common_alliance(current_flight.company, flight_before.company,
+	return company_are_in_a_common_alliance(current_flight->company, flight_before->company,
 			alliances);
 }
 
