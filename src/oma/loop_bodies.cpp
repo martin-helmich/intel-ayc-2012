@@ -29,8 +29,7 @@ void oma::PathComputingInnerLoop::operator()(blocked_range<unsigned int> &range)
 	{
 		Flight flight = flights->at(i);
 
-		if (flight.take_off_time >= t_min
-				&& flight.land_time <= t_max
+		if (flight.take_off_time >= t_min && flight.land_time <= t_max
 				&& (flight.take_off_time > current_city->land_time)
 				&& flight.take_off_time - current_city->land_time
 						<= parameters.max_layover_time

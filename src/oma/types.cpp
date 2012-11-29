@@ -22,8 +22,11 @@ void Travel::add_flight(Flight &f, vector<vector<string> > *a)
 		{
 			discount = 0.7;
 		}
-		else if (company_are_in_a_common_alliance(flights[size - 1].company,
-				f.company, a)) discount = 0.8;
+		else if (company_are_in_a_common_alliance(flights[size - 1].company, f.company,
+				a))
+		{
+			discount = 0.8;
+		}
 
 		if (discount < 1)
 		{
@@ -37,9 +40,11 @@ void Travel::add_flight(Flight &f, vector<vector<string> > *a)
 
 	min_cost += f.cost * 0.7;
 	max_cost += f.cost * discount;
+
 	flights.push_back(f);
 	discounts.push_back(discount);
-	size ++;
+
+	size++;
 }
 
 void Travel::merge_travel(Travel *t, vector<vector<string> > *a)
@@ -48,7 +53,7 @@ void Travel::merge_travel(Travel *t, vector<vector<string> > *a)
 	float discount = 1.0;
 
 	l1 = &(flights.back());
-	f2 = &(t->flights.front());
+	f2 = &(t->flights[0]);
 
 	if (l1->company == f2->company)
 	{

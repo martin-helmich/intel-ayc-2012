@@ -37,7 +37,8 @@ tbb::task* oma::FindPathTask::execute()
 
 	OUT("STRT: " << from << " -> " << to);
 
-	fill_travel(&temp_travels, &all_paths, *flights, from, t_min, t_max, &min_range, to, alliances);
+	fill_travel(&temp_travels, &all_paths, *flights, from, t_min, t_max, &min_range, to,
+			alliances);
 
 	OUT("INIT: " << from << " -> " << to << " : " << temp_travels.size() << "/" << all_paths.size() << ", "
 			<< min_range.min << "-" << min_range.max);
