@@ -120,35 +120,6 @@ public:
 };
 
 /**
- * \fn Travel work_hard(vector<Flight>& flights, Parameters& parameters, vector<vector<string> >& alliances)
- * \brief Solve the "Work Hard" problem.
- * This problem can be considered as the easy one. The goal is to find the cheapest way to join a point B from a point A regarding some parameters.
- * \param flights The list of available flights.
- * \param parameters The parameters.
- * \param alliances The alliances between companies.
- * \return The cheapest trip found.
- */
-//Travel work_hard(vector<Flight>& flights, Parameters& parameters,
-//		vector<vector<string> >& alliances)
-//{
-//	vector<Travel> travels, final_travels;
-//	//First, we need to create as much travels as it as the number of flights that take off from the
-//	//first city
-//	fill_travel(&travels, flights, parameters.from, parameters.dep_time_min,
-//			parameters.dep_time_max);
-//	compute_path(flights, parameters.to, &travels, parameters.dep_time_min,
-//			parameters.dep_time_max, parameters, &final_travels);
-//	vector<Travel> travels_back, final_travels_back;
-//	//Then we need to travel back
-//	fill_travel(&travels_back, flights, parameters.to, parameters.ar_time_min,
-//			parameters.ar_time_max);
-//	compute_path(flights, parameters.from, &travels_back, parameters.ar_time_min,
-//			parameters.ar_time_max, parameters, &final_travels_back);
-//	merge_path(final_travels, final_travels_back);
-//	Travel go = find_cheapest(final_travels, alliances);
-//	return go;
-//}
-/**
  * Solves BOTH the "Work Hard" AND the "Play Hard" problem.
  *
  * This function works in two phases:
@@ -270,7 +241,6 @@ Solution play_and_work_hard(vector<Flight>& flights, Parameters& parameters,
  */
 void apply_discount(Travel *travel, vector<vector<string> >*alliances)
 {
-//	if (travel.flights.size() > 0) travel.flights[0].discout = 1;
 	if (travel->flights.size() > 1)
 	{
 		for (unsigned int i = 1; i < travel->flights.size(); i++)
@@ -281,8 +251,6 @@ void apply_discount(Travel *travel, vector<vector<string> >*alliances)
 			{
 				travel->discounts[i] = 0.7;
 				travel->discounts[i - 1] = 0.7;
-//				flight_before.discout = 0.7;
-//				current_flight.discout = 0.7;
 			}
 			else if (has_just_traveled_with_alliance(flight_before, current_flight,
 					alliances))
@@ -484,9 +452,6 @@ void compute_path(vector<Flight>& flights, string to, vector<Travel> *travels,
 			}
 		}
 	}*/
-//travels = final_travels;
-
-//	cout << "compute_path to " << to << ": " << ((tick_count::now()-t0).seconds()*1000) << endl;
 }
 
 /**
@@ -496,12 +461,11 @@ void compute_path(vector<Flight>& flights, string to, vector<Travel> *travels,
  * \param alliances The alliances
  * \return The cheapest travel found.
  */
-Travel find_cheapest(vector<Travel> *travels, vector<vector<string> > *alliances)
+Travel find_cheapest(Travels *travels, Alliances *alliances)
 {
 	int s0 = travels->size();
 
 	OUT("Find cheapest of " << s0 << " travels.");
-//	cout << "Find cheapest of " << s0 << " travels." << endl;
 
 	if (s0 == 0)
 	{
@@ -511,7 +475,6 @@ Travel find_cheapest(vector<Travel> *travels, vector<vector<string> > *alliances
 
 	TravelComparator tc(travels, alliances);
 	parallel_reduce(blocked_range<unsigned int>(0, travels->size()), tc);
-//	tc(blocked_range<unsigned int>(0, travels.size()));
 
 	return *tc.cheapest_travel;
 }
