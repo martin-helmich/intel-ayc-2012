@@ -17,6 +17,7 @@
 #include "../methods.h"
 
 using namespace std;
+using namespace oma;
 
 oma::FindPathTask::FindPathTask(string f, string t, int tmi, int tma, Parameters *p,
 		vector<Flight> *fl, vector<Travel> *tr, Alliances *a)
