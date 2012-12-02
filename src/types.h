@@ -152,6 +152,15 @@ struct CostRange
 		}
 		lock.unlock();
 	}
+
+	inline void cas(CostRange *c)
+	{
+		if (c->max < max)
+		{
+			max = c->max;
+			min = c->min;
+		}
+	}
 };
 
 #endif /* TYPES_H_ */

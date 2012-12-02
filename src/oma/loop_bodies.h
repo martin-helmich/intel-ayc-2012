@@ -86,6 +86,25 @@ public:
 	void operator()(blocked_range<unsigned int> &range) const;
 };
 
+class PathMergingOuterLoop
+{
+private:
+	Travels *travels1, *travels2, results;
+	Alliances *alliances;
+	Travel *cheapest;
+	bool final;
+
+public:
+	CostRange min_range;
+
+	PathMergingOuterLoop(Travels *t1, Travels *t2, Alliances *a, bool f=false);
+	PathMergingOuterLoop(PathMergingOuterLoop &pmol, split);
+	void operator()(blocked_range<unsigned int> &range);
+	void join(PathMergingOuterLoop& pmol);
+	Travels* get_results();
+	Travel* get_cheapest();
+};
+
 }
 
 #endif /* COSTCOMPARATOR_H_ */

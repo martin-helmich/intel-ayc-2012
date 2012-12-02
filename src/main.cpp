@@ -545,39 +545,31 @@ void fill_travel(Travels *travels, Travels *final_travels, vector<Flight>& fligh
  * \param travel1 The first part of the trip.
  * \param travel2 The second part of the trip.
  */
-void merge_path(Travels *results, Travels *travels1, Travels *travels2, Alliances *alliances)
+void merge_path(Travels *results, Travels *travels1, Travels *travels2,
+		Alliances *alliances, bool final)
 {
-	vector<Travel> temp_result;
-	CostRange min_range;
+	PathMergingOuterLoop pmol(travels1, travels2, alliances, final);
+	parallel_reduce(blocked_range<unsigned int>(0, travels1->size()), pmol);
 
-	unsigned int s1 = travels1->size(), s2;
-	for (unsigned int i = 0; i < s1; i++)
+	if (final)
 	{
-		Travel *t1 = &(travels1->at(i));
-		s2 = travels2->size();
-		for (unsigned j = 0; j < s2; j++)
+		if (pmol.get_cheapest() != NULL)
 		{
-			Travel *t2 = &(travels2->at(j));
-			Flight *last_flight_t1 = &t1->flights.back();
-			Flight *first_flight_t2 = &t2->flights[0];
-			if (last_flight_t1->land_time < first_flight_t2->take_off_time
-					&& t1->min_cost + t2->min_cost < min_range.max)
-			{
-				Travel new_travel = *t1;
-				new_travel.merge_travel(t2, alliances);
-
-				min_range.from_travel(&new_travel);
-				temp_result.push_back(new_travel);
-			}
+			results->push_back(*pmol.get_cheapest());
 		}
+		return;
 	}
-
-	unsigned int s3 = temp_result.size();
-	for (unsigned int i = 0; i < s3; i++)
+	else
 	{
-		if (temp_result[i].min_cost <= min_range.max)
+		Travels *temp_result = pmol.get_results();
+
+		unsigned int s3 = temp_result->size();
+		for (unsigned int i = 0; i < s3; i++)
 		{
-			results->push_back(temp_result[i]);
+			if ((&(temp_result->at(i)))->min_cost <= pmol.min_range.max)
+			{
+				results->push_back(temp_result->at(i));
+			}
 		}
 	}
 }
@@ -636,25 +628,32 @@ time_t timegm(struct tm *tm)
 		concurrent_hash_map<int, time_t>::accessor b;
 		if (times.insert(b, year))
 		{
-			mutex::scoped_lock lk(ol);
-			struct tm time;
-			time.tm_year = tm->tm_year;
-			time.tm_mon = tm->tm_mon;
-			time.tm_mday = 1;
-			time.tm_hour = 0;
-			time.tm_min = 0;
-			time.tm_sec = 0;
+			int years = tm->tm_year > 100 ? tm->tm_year - 70 : tm->tm_year;
+			unsigned long offset = years * 31536000; // = 365 * 24 * 60 * 60
 
-			tz = getenv("TZ");
-			setenv("TZ", "", 1);
-			tzset();
+			for (int y = years; years >= 0; years--)
+			{
+				if (((years + 1970) % 4 == 0) && ((years + 1970) % 100 != 0))
+				{
+					offset += 86400;
+				}
+			}
 
-			month_ts = mktime(&time);
-			b->second = month_ts;
+			// 0 jan, 1 feb, 2 mar, 3 apr, 4 may, 5 jun, 6 jul ...
+			for (int m = 0; m < tm->tm_mon; m++)
+			{
+				bool is_leap_year = (tm->tm_year + 1900 % 4 == 0)
+						&& (tm->tm_year + 1900 % 100 != 0);
 
-			if (tz) setenv("TZ", tz, 1);
-			else unsetenv("TZ");
-			tzset();
+				if (m == 1) offset += (is_leap_year ? 29 : 28) * 86400;
+				else if ((m < 7 && m % 2 == 0) || (m >= 7 && m % 2 == 1)) offset += 31
+						* 86400;
+				else offset += 30 * 86400;
+			}
+
+			if (tm->tm_mon != 1) offset += 86400;
+
+			b->second = offset;
 		}
 		else
 		{
@@ -1006,8 +1005,8 @@ void parse_flights(vector<Flight>& flights, string filename)
 	FlightParser fp(m, &lfs);
 	fp.setFlights(&flights);
 
-	parallel_reduce(blocked_range<int>(1, lfs.size()), fp);
-//	fp(blocked_range<int>(1, lfs.size()));
+//	parallel_reduce(blocked_range<int>(1, lfs.size()), fp);
+	fp(blocked_range<int>(1, lfs.size()));
 
 	// Unmap file from memory and close file handle.
 	munmap(m, stat.st_size);
@@ -1169,7 +1168,7 @@ bool nerver_traveled_to(Travel travel, string city)
  */
 void print_travel(Travel& travel, vector<vector<string> >&alliances, ofstream& output)
 {
-	output << "Price : " << compute_cost(&travel, &alliances) << endl;
+	output << "Price : " << travel.max_cost << endl;
 	print_flights(travel.flights, travel.discounts, output);
 	output << endl;
 }
