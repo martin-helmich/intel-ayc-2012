@@ -265,8 +265,6 @@ void apply_discount(Travel *travel, vector<vector<string> >*alliances)
  */
 float compute_cost(Travel *travel, vector<vector<string> >*alliances)
 {
-	apply_discount(travel, alliances);
-
 	// Parallelism does not make much sense here... Due to various optimizations, most
 	// travels are only 3 to 6 flights in length. Scheduling overhead becomes pretty obvious
 	// here...
@@ -277,12 +275,6 @@ float compute_cost(Travel *travel, vector<vector<string> >*alliances)
 	}
 
 	return travel->total_cost;
-
-	/*CostComputer cc(&travel);
-	 parallel_reduce(blocked_range<unsigned int>(0, travel.flights.size()), cc);
-	 travel.total_cost = cc.costs;*/
-
-//	return cc.costs;
 }
 
 class ParallelPathComputer
@@ -396,63 +388,6 @@ void compute_path(vector<Flight>& flights, string to, vector<Travel> *travels,
 	parallel_do(travels->begin(), travels->end(), ppc);
 
 	return;
-
-	//mutex final_travels_lock, travels_lock;
-	//CostRange min_range = { numeric_limits<float>::max(), numeric_limits<float>::max() };
-	/*
-	 // TODO: Parallele Queue?
-	 while (travels->size() > 0)
-	 {
-	 Travel travel = travels->back();
-	 Flight current_city = travel.flights.back();
-	 travels->pop_back();
-	 //First, if a direct flight exist, it must be in the final travels
-	 if (current_city.to == to)
-	 {
-	 //			if (travel.max_cost < min_range->min)
-	 //			{
-	 min_range->from_travel(&travel);
-	 //			}
-	 final_travels->push_back(travel);
-	 }
-	 else
-	 {
-	 concurrent_hash_map<string, Location>::const_accessor a;
-	 if (!location_map.find(a, current_city.to))
-	 {
-	 cerr << "Fehler: Stadt " << current_city.to << " ist nicht bekannt."
-	 << endl;
-	 exit(100);
-	 }
-
-	 Location from = a->second;
-
-	 for (unsigned int i = 0; i < from.outgoing_flights.size(); i++)
-	 {
-	 Flight flight = from.outgoing_flights[i];
-	 if (flight.take_off_time >= t_min && flight.land_time <= t_max
-	 && (flight.take_off_time > current_city.land_time)
-	 && flight.take_off_time - current_city.land_time
-	 <= parameters.max_layover_time
-	 && nerver_traveled_to(travel, flight.to)
-	 && flight.cost * 0.7 + travel.min_cost <= min_range->max)
-	 {
-	 Travel newTravel = travel;
-	 newTravel.add_flight(flight);
-
-	 if (flight.to == to)
-	 {
-	 final_travels->push_back(newTravel);
-	 min_range->from_travel(&newTravel);
-	 }
-	 else
-	 {
-	 travels->push_back(newTravel);
-	 }
-	 }
-	 }
-	 }
-	 }*/
 }
 
 /**

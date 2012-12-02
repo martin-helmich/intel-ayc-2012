@@ -5,10 +5,8 @@
  *      Author: mhelmich
  */
 
-
 #include "../methods.h"
 #include "loop_bodies.h"
-
 
 void oma::CostComputer::operator()(const blocked_range<unsigned int> range)
 {
