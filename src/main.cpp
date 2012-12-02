@@ -536,6 +536,11 @@ time_t timegm(struct tm *tm)
 	// stored into a concurrent hash map. The actual timestamps are then computed
 	// manually using the "base timestamp" plus the amount of seconds for the
 	// day/hour/minute.
+	// EDIT: Apparently, for larger input files (> 200000 flights), mktime is still
+	// making trouble (by mixing up timezones on occasion). In order to avoid these
+	// problems altogether, we compute the timestamp COMPLETELY manually (yes, this is
+	// pain; luckily we can at least ignore the timezone problem -- it's all UTC,
+	// after all).
 	concurrent_hash_map<int, time_t>::const_accessor a;
 	if (times.find(a, year))
 	{
@@ -548,8 +553,11 @@ time_t timegm(struct tm *tm)
 		if (times.insert(b, year))
 		{
 			int years = tm->tm_year > 100 ? tm->tm_year - 70 : tm->tm_year;
+
+			// Build offset for year (not yet considering leap years).
 			unsigned long offset = years * 31536000; // = 365 * 24 * 60 * 60
 
+			// Add additional days to offset for each passed leap year.
 			for (int y = years; years >= 0; years--)
 			{
 				if (((years + 1970) % 4 == 0) && ((years + 1970) % 100 != 0))
@@ -558,7 +566,8 @@ time_t timegm(struct tm *tm)
 				}
 			}
 
-			// 0 jan, 1 feb, 2 mar, 3 apr, 4 may, 5 jun, 6 jul ...
+			// Add additional days to offset for each passed month. Have to consider
+			// different month lengths and leap years.
 			for (int m = 0; m < tm->tm_mon; m++)
 			{
 				bool is_leap_year = (tm->tm_year + 1900 % 4 == 0)
