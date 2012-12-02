@@ -18,6 +18,7 @@
 #include <vector>
 #include <list>
 #include <limits>
+#include <cmath>
 
 #include "tbb/spin_mutex.h"
 
@@ -86,6 +87,7 @@ public:
 
 	void add_flight(Flight &f, vector<vector<string> > *a);
 	void merge_travel(Travel *t, vector<vector<string> > *a);
+	void print();
 };
 
 // Yes, we are lazy and don't want to type "vector<vector<string> >" too often... ;)
@@ -128,14 +130,14 @@ struct Solution
 
 struct CostRange
 {
-	float min;
-	float max;
+	int min;
+	int max;
 	tbb::spin_mutex lock;
 
 	CostRange()
 	{
-		min = numeric_limits<float>::max();
-		max = numeric_limits<float>::max();
+		min = numeric_limits<int>::max();
+		max = numeric_limits<int>::max();
 	}
 
 	inline void from_travel(Travel *t)
@@ -145,8 +147,8 @@ struct CostRange
 		{
 			// Add a few coins in order to account for float arithmetics uncertainties.
 			// 2 dollars work, 1 dollar however, does not. Haven't really figured out why... :(
-			max = t->max_cost + 2;
-			min = t->min_cost;
+			max = (int) ceil(t->max_cost + 2);
+			min = (int) floor(t->min_cost);
 		}
 		lock.unlock();
 	}
