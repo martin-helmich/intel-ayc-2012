@@ -10,7 +10,10 @@
 #include <iostream>
 #include <limits>
 
+#include "tbb/parallel_reduce.h"
+
 #include "tasks.h"
+#include "loop_bodies.h"
 #include "../methods.h"
 
 using namespace std;
@@ -83,7 +86,7 @@ tbb::task* oma::WorkHardTask::execute()
 	}
 
 	vector<Travel> work_hard;
-	merge_path(&work_hard, home_to_conference, conference_to_home, alliances, true);
+	merge_path(&work_hard, home_to_conference, conference_to_home, alliances);
 
 	solution->work_hard = work_hard[0];
 
@@ -107,18 +110,20 @@ oma::PlayHardTask::PlayHardTask(Travels *htv, Travels *vtc, Travels *cth, Travel
 tbb::task* oma::PlayHardTask::execute()
 {
 	vector<Travel> all_travels, home_to_vacation_to_conference;
+	mutex rlock;
+	task_list merge_paths;
 
-	merge_path(&home_to_vacation_to_conference, home_to_vacation, vacation_to_conference,
-			alliances);
-	merge_path(&all_travels, &home_to_vacation_to_conference, conference_to_home,
-			alliances, true);
+	merge_paths.push_back(
+			*new (task::allocate_child()) PlayHardMergeTripleTask(&all_travels, &rlock,
+					home_to_vacation, vacation_to_conference, conference_to_home,
+					alliances));
+	merge_paths.push_back(
+			*new (task::allocate_child()) PlayHardMergeTripleTask(&all_travels, &rlock,
+					home_to_conference, conference_to_vacation, vacation_to_home,
+					alliances));
 
-	vector<Travel> home_to_conference_to_vacation;
-
-	merge_path(&home_to_conference_to_vacation, home_to_conference,
-			conference_to_vacation, alliances);
-	merge_path(&all_travels, &home_to_conference_to_vacation, vacation_to_home, alliances,
-			true);
+	set_ref_count(3);
+	task::spawn_and_wait_for_all(merge_paths);
 
 	if (all_travels.size() == 0)
 	{
@@ -134,6 +139,32 @@ tbb::task* oma::PlayHardTask::execute()
 		if (all_travels[0].max_cost < all_travels[1].max_cost) solution->add_play_hard(
 				solution_index, all_travels[0]);
 		else solution->add_play_hard(solution_index, all_travels[1]);
+	}
+
+	return NULL;
+}
+
+oma::PlayHardMergeTripleTask::PlayHardMergeTripleTask(Travels *r, tbb::mutex *rl,
+		Travels *t1, Travels *t2, Travels *t3, Alliances *a)
+{
+	results = r;
+	results_lock = rl;
+	travels1 = t1;
+	travels2 = t2;
+	travels3 = t3;
+	alliances = a;
+}
+
+tbb::task* oma::PlayHardMergeTripleTask::execute()
+{
+	PathMergingTripleOuterLoop pmtol(travels1, travels2, travels3, alliances);
+	parallel_reduce(blocked_range<unsigned int>(0, travels1->size()), pmtol);
+
+	if (pmtol.get_cheapest() != NULL)
+	{
+		results_lock->lock();
+		results->push_back(*pmtol.get_cheapest());
+		results_lock->unlock();
 	}
 
 	return NULL;

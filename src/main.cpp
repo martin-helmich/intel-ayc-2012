@@ -481,32 +481,16 @@ void fill_travel(Travels *travels, Travels *final_travels, vector<Flight>& fligh
  * \param travel2 The second part of the trip.
  */
 void merge_path(Travels *results, Travels *travels1, Travels *travels2,
-		Alliances *alliances, bool final)
+		Alliances *alliances)
 {
-	PathMergingOuterLoop pmol(travels1, travels2, alliances, final);
+	PathMergingOuterLoop pmol(travels1, travels2, alliances);
 	parallel_reduce(blocked_range<unsigned int>(0, travels1->size()), pmol);
 
-	if (final)
+	if (pmol.get_cheapest() != NULL)
 	{
-		if (pmol.get_cheapest() != NULL)
-		{
-			results->push_back(*pmol.get_cheapest());
-		}
-		return;
+		results->push_back(*pmol.get_cheapest());
 	}
-	else
-	{
-		Travels *temp_result = pmol.get_results();
-
-		unsigned int s3 = temp_result->size();
-		for (unsigned int i = 0; i < s3; i++)
-		{
-			if ((&(temp_result->at(i)))->min_cost <= pmol.min_range.max)
-			{
-				results->push_back(temp_result->at(i));
-			}
-		}
-	}
+	return;
 }
 
 /**
@@ -1103,7 +1087,7 @@ bool nerver_traveled_to(Travel travel, string city)
  */
 void print_travel(Travel& travel, vector<vector<string> >&alliances, ofstream& output)
 {
-	output << "Price : " << travel.max_cost << endl;
+	output << "Price : " << compute_cost(&travel, &alliances)/*ravel.max_cost*/<< endl;
 	print_flights(travel.flights, travel.discounts, output);
 	output << endl;
 }

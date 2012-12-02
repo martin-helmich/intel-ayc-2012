@@ -88,19 +88,36 @@ public:
 
 class PathMergingOuterLoop
 {
-private:
-	Travels *travels1, *travels2, results;
+protected:
+	Travels *travels1, *travels2;
 	Alliances *alliances;
 	Travel *cheapest;
-	bool final;
 
 public:
 	CostRange min_range;
 
-	PathMergingOuterLoop(Travels *t1, Travels *t2, Alliances *a, bool f=false);
+	PathMergingOuterLoop(Travels *t1, Travels *t2, Alliances *a);
 	PathMergingOuterLoop(PathMergingOuterLoop &pmol, split);
 	void operator()(blocked_range<unsigned int> &range);
 	void join(PathMergingOuterLoop& pmol);
+	Travels* get_results();
+	Travel* get_cheapest();
+};
+
+class PathMergingTripleOuterLoop
+{
+protected:
+	Travels *travels1, *travels2, *travels3;
+	Alliances *alliances;
+	Travel *cheapest;
+
+public:
+	CostRange min_range;
+
+	PathMergingTripleOuterLoop(Travels *t1, Travels *t2, Travels *t3, Alliances *a);
+	PathMergingTripleOuterLoop(PathMergingTripleOuterLoop &pmol, split);
+	void operator()(blocked_range<unsigned int> &range);
+	void join(PathMergingTripleOuterLoop& pmol);
 	Travels* get_results();
 	Travel* get_cheapest();
 };

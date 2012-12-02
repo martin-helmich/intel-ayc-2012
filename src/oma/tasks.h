@@ -12,14 +12,15 @@
 
 #include <vector>
 #include "tbb/task.h"
+#include "tbb/mutex.h"
 
 #include "../types.h"
 #include "../methods.h"
 
+using namespace tbb;
 
 namespace oma
 {
-
 
 /**
  * Task for computing all possible paths between two locations.
@@ -137,8 +138,20 @@ public:
 	task* execute();
 };
 
+class PlayHardMergeTripleTask: public tbb::task
+{
+private:
+	Travels *travels1, *travels2, *travels3;
+	Travels *results;
+	mutex *results_lock;
+	Alliances *alliances;
+
+public:
+	PlayHardMergeTripleTask(Travels *r, tbb::mutex *rl, Travels *t1, Travels *t2,
+			Travels *t3, Alliances *a);
+	task* execute();
+};
 
 }
-
 
 #endif /* TASKS_H_ */
