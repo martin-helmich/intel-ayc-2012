@@ -837,10 +837,10 @@ private:
 	vector<int>* lfs;
 
 public:
-	FlightParser(char* i, vector<int>* l) :
+	FlightParser(char* i, vector<int>* l, vector<Flight> *f) :
 			input(i), lfs(l)
 	{
-		flights = new vector<Flight>;
+		flights = f;
 	}
 	FlightParser(FlightParser &fp, split) :
 			input(fp.input), lfs(fp.lfs)
@@ -879,6 +879,7 @@ public:
 	{
 		// Merge flight lists.
 		flights->insert(flights->end(), fp.flights->begin(), fp.flights->end());
+		delete fp.flights;
 	}
 };
 
@@ -930,11 +931,9 @@ void parse_flights(vector<Flight>& flights, string filename)
 	}
 
 	// Iterate over all found linefeeds and parse each line in parallel.
-	FlightParser fp(m, &lfs);
-	fp.setFlights(&flights);
+	FlightParser fp(m, &lfs, &flights);
 
-//	parallel_reduce(blocked_range<int>(1, lfs.size()), fp);
-	fp(blocked_range<int>(1, lfs.size()));
+	parallel_reduce(blocked_range<int>(1, lfs.size()), fp);
 
 	// Unmap file from memory and close file handle.
 	munmap(m, stat.st_size);
