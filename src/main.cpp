@@ -628,32 +628,25 @@ time_t timegm(struct tm *tm)
 		concurrent_hash_map<int, time_t>::accessor b;
 		if (times.insert(b, year))
 		{
-			int years = tm->tm_year > 100 ? tm->tm_year - 70 : tm->tm_year;
-			unsigned long offset = years * 31536000; // = 365 * 24 * 60 * 60
+			mutex::scoped_lock lk(ol);
+			struct tm time;
+			time.tm_year = tm->tm_year;
+			time.tm_mon = tm->tm_mon;
+			time.tm_mday = 1;
+			time.tm_hour = 0;
+			time.tm_min = 0;
+			time.tm_sec = 0;
 
-			for (int y = years; years >= 0; years--)
-			{
-				if (((years + 1970) % 4 == 0) && ((years + 1970) % 100 != 0))
-				{
-					offset += 86400;
-				}
-			}
+			tz = getenv("TZ");
+			setenv("TZ", "", 1);
+			tzset();
 
-			// 0 jan, 1 feb, 2 mar, 3 apr, 4 may, 5 jun, 6 jul ...
-			for (int m = 0; m < tm->tm_mon; m++)
-			{
-				bool is_leap_year = (tm->tm_year + 1900 % 4 == 0)
-						&& (tm->tm_year + 1900 % 100 != 0);
+			month_ts = mktime(&time);
+			b->second = month_ts;
 
-				if (m == 1) offset += (is_leap_year ? 29 : 28) * 86400;
-				else if ((m < 7 && m % 2 == 0) || (m >= 7 && m % 2 == 1)) offset += 31
-						* 86400;
-				else offset += 30 * 86400;
-			}
-
-			if (tm->tm_mon != 1) offset += 86400;
-
-			b->second = offset;
+			if (tz) setenv("TZ", tz, 1);
+			else unsetenv("TZ");
+			tzset();
 		}
 		else
 		{
