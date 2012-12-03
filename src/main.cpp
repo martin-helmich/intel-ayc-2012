@@ -603,7 +603,7 @@ mutex ol;
  */
 time_t timegm(struct tm *tm)
 {
-	//char *tz;
+	char *tz;
 
 	// Create a simple hash from the year and month.
 	int year = tm->tm_year * 100 + tm->tm_mon;
@@ -631,7 +631,7 @@ time_t timegm(struct tm *tm)
 			int years = tm->tm_year > 100 ? tm->tm_year - 70 : tm->tm_year;
 			unsigned long offset = years * 31536000; // = 365 * 24 * 60 * 60
 
-			for (years; years >= 0; years--)
+			for (int y = years; years >= 0; years--)
 			{
 				if (((years + 1970) % 4 == 0) && ((years + 1970) % 100 != 0))
 				{
