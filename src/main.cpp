@@ -582,6 +582,7 @@ time_t timegm(struct tm *tm)
 			if (tm->tm_mon != 1) offset += 86400;
 
 			b->second = offset;
+			month_ts = offset;
 		}
 		else
 		{
