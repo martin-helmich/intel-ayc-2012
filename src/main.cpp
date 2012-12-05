@@ -437,7 +437,7 @@ void fill_travel(Travels *travels, Travels *final_travels, vector<Flight>& fligh
 	if (!location_map->find(a, starting_point))
 	{
 		cerr << "Location " << starting_point << " is unknown!";
-		exit(120);
+		return;
 	}
 
 	l = &(a->second);
