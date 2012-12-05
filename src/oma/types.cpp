@@ -53,7 +53,7 @@ void Travel::merge_travel(Travel *t, vector<vector<string> > *a)
 	float discount = 1.0;
 
 	l1 = &(flights.back());
-	f2 = &(t->flights[0]);
+	f2 = &(t->flights.front());
 
 	if (l1->company == f2->company)
 	{
@@ -66,6 +66,9 @@ void Travel::merge_travel(Travel *t, vector<vector<string> > *a)
 
 	flights.insert(flights.end(), t->flights.begin(), t->flights.end());
 	discounts.insert(discounts.end(), t->discounts.begin(), t->discounts.end());
+	
+	l1 = &(flights.at(size - 1));
+	f2 = &(flights.at(size));
 
 	min_cost += t->min_cost;
 	max_cost += t->max_cost;
@@ -89,7 +92,7 @@ void Travel::print()
 {
 	for (int i=0; i < flights.size(); i ++)
 	{
-		cout << flights[i].id << " - ";
+		cout << flights[i].id << " (" << flights[i].cost << "@" << discounts[i] << ") - ";
 	}
-	cout << endl;
+	cout << max_cost << endl;
 }
