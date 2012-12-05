@@ -42,8 +42,8 @@ void print_params(Parameters &parameters);
 void print_flight(Flight& flight, float discount, ofstream& output);
 void read_parameters(Parameters& parameters, int argc, char **argv);
 void split_string(vector<string>& result, string line, char separator);
-void parse_flight(vector<Flight>& flights, string& line);
-void parse_flights(vector<Flight>& flights, string filename);
+void parse_flight(vector<Flight> *flights, string& line);
+void parse_flights(vector<Flight> *flights, string filename);
 void parse_alliance(vector<string> &alliance, string line);
 void parse_alliances(vector<vector<string> > &alliances, string filename);
 void apply_discount(Travel *travel, vector<vector<string> >*alliances);
@@ -53,7 +53,7 @@ void print_flights(vector<Flight>& flights, vector<float> discounts, ofstream& o
 void print_travel(Travel& travel, vector<vector<string> >&alliances);
 //Travel work_hard(vector<Flight>& flights, Parameters& parameters,
 //		vector<vector<string> >& alliances);
-Solution play_and_work_hard(vector<Flight>& flights, Parameters& parameters,
+Solution play_and_work_hard(vector<Flight> *flights, Parameters& parameters,
 		vector<vector<string> >& alliances);
 //void output_play_hard(vector<Flight>& flights, Parameters& parameters,
 //		vector<vector<string> >& alliances);
@@ -62,7 +62,7 @@ Solution play_and_work_hard(vector<Flight>& flights, Parameters& parameters,
 time_t timegm(struct tm *tm);
 void print_cities();
 
-concurrent_hash_map<string, Location> location_map;
+concurrent_hash_map<string, Location> *location_map;
 concurrent_hash_map<string, bool> alliance_map;
 
 /*
@@ -139,7 +139,7 @@ public:
  *                   a list of "Play Hard" solutions (one for each vacation
  *                   destination).
  */
-Solution play_and_work_hard(vector<Flight>& flights, Parameters& parameters,
+Solution play_and_work_hard(vector<Flight> *flights, Parameters& parameters,
 		vector<vector<string> >& alliances)
 {
 
@@ -157,13 +157,13 @@ Solution play_and_work_hard(vector<Flight>& flights, Parameters& parameters,
 	// Conference to Home
 	tasks.push_back(
 			*new (task::allocate_root()) FindPathTask(parameters.to, parameters.from,
-					parameters.ar_time_min, parameters.ar_time_max, &parameters, &flights,
+					parameters.ar_time_min, parameters.ar_time_max, &parameters, flights,
 					&conference_to_home, &alliances));
 	// Home to Conference
 	tasks.push_back(
 			*new (task::allocate_root()) FindPathTask(parameters.from, parameters.to,
 					parameters.dep_time_min, parameters.dep_time_max, &parameters,
-					&flights, &home_to_conference, &alliances));
+					flights, &home_to_conference, &alliances));
 
 	for (int i = 0; i < n; i++)
 	{
@@ -175,19 +175,19 @@ Solution play_and_work_hard(vector<Flight>& flights, Parameters& parameters,
 						current_airport_of_interest,
 						parameters.dep_time_min - parameters.vacation_time_max,
 						parameters.dep_time_min - parameters.vacation_time_min,
-						&parameters, &flights, &home_to_vacation[i], &alliances));
+						&parameters, flights, &home_to_vacation[i], &alliances));
 
 		// Vacation[i] to Conference
 		tasks.push_back(
 				*new (task::allocate_root()) FindPathTask(current_airport_of_interest,
 						parameters.to, parameters.dep_time_min, parameters.dep_time_max,
-						&parameters, &flights, &vacation_to_conference[i], &alliances));
+						&parameters, flights, &vacation_to_conference[i], &alliances));
 
 		// Conference to Vacation[i]
 		tasks.push_back(
 				*new (task::allocate_root()) FindPathTask(parameters.to,
 						current_airport_of_interest, parameters.ar_time_min,
-						parameters.ar_time_max, &parameters, &flights,
+						parameters.ar_time_max, &parameters, flights,
 						&conference_to_vacation[i], &alliances));
 
 		// Vacation[i] to Home
@@ -196,7 +196,7 @@ Solution play_and_work_hard(vector<Flight>& flights, Parameters& parameters,
 						parameters.from,
 						parameters.ar_time_max + parameters.vacation_time_min,
 						parameters.ar_time_max + parameters.vacation_time_max,
-						&parameters, &flights, &vacation_to_home[i], &alliances));
+						&parameters, flights, &vacation_to_home[i], &alliances));
 	}
 
 	task::spawn_root_and_wait(tasks);
@@ -318,7 +318,7 @@ public:
 		else
 		{
 			concurrent_hash_map<string, Location>::const_accessor a;
-			if (!location_map.find(a, current_city->to))
+			if (!location_map->find(a, current_city->to))
 			{
 				cerr << "Fehler: Stadt " << current_city->to << " ist nicht bekannt."
 						<< endl;
@@ -434,7 +434,7 @@ void fill_travel(Travels *travels, Travels *final_travels, vector<Flight>& fligh
 	concurrent_hash_map<string, Location>::const_accessor a;
 	Travels temp;
 
-	if (!location_map.find(a, starting_point))
+	if (!location_map->find(a, starting_point))
 	{
 		cerr << "Location " << starting_point << " is unknown!";
 		exit(120);
@@ -798,7 +798,7 @@ void parse_flight(vector<Flight> *flights, string& line)
 		// in a hash map for fast access and all incoming and outgoing flights from
 		// or to these locations in adjacency lists.
 		concurrent_hash_map<string, Location>::accessor a;
-		if (!location_map.insert(a, flight.from))
+		if (!location_map->insert(a, flight.from))
 		{
 			a->second.outgoing_flights.push_back(flight);
 		}
@@ -813,7 +813,7 @@ void parse_flight(vector<Flight> *flights, string& line)
 		a.release();
 
 		concurrent_hash_map<string, Location>::accessor b;
-		if (!location_map.insert(b, flight.to))
+		if (!location_map->insert(b, flight.to))
 		{
 			b->second.incoming_flights.push_back(flight);
 		}
@@ -892,7 +892,7 @@ mutex rfl;
  * \param flights The vector of flights.
  * \param filename The name of the file containing the flights.
  */
-void parse_flights(vector<Flight>& flights, string filename)
+void parse_flights(vector<Flight> *flights, string filename)
 {
 	char *m = NULL;
 	struct stat stat;
@@ -932,7 +932,7 @@ void parse_flights(vector<Flight>& flights, string filename)
 	}
 
 	// Iterate over all found linefeeds and parse each line in parallel.
-	FlightParser fp(m, &lfs, &flights);
+	FlightParser fp(m, &lfs, flights);
 
 	parallel_reduce(blocked_range<int>(1, lfs.size()), fp);
 
@@ -1108,7 +1108,7 @@ void print_travel(Travel& travel, vector<vector<string> >&alliances, ofstream& o
  * \param parameters The parameters.
  * \param alliances The alliances between companies.
  */
-void output_solutions(vector<Flight>& flights, Parameters& parameters,
+void output_solutions(vector<Flight> *flights, Parameters& parameters,
 		vector<vector<string> >& alliances)
 {
 	Solution solution = play_and_work_hard(flights, parameters, alliances);
@@ -1158,7 +1158,7 @@ void print_cities()
 {
 	concurrent_hash_map<string, Location>::iterator i;
 
-	for (i = location_map.begin(); i != location_map.end(); ++i)
+	for (i = location_map->begin(); i != location_map->end(); ++i)
 	{
 		cout << i->second.name << endl;
 
@@ -1189,11 +1189,13 @@ int main(int argc, char **argv)
 
 //	cout<<"Printing parameters..."<<endl;
 //	print_params(parameters);
-	vector<Flight> flights;
+	vector<Flight> *flights = new vector<Flight>;
+	location_map = new concurrent_hash_map<string, Location>;
+
 	parse_flights(flights, parameters.flights_file);
 //	print_cities();
 //	cout<<"Printing flights..."<<endl;
-	cout << "Read " << flights.size() << " flights." << endl;
+	cout << "Read " << flights->size() << " flights." << endl;
 //	print_flights(flights, (ofstream&) cout);
 //	cout<<"flights printed "<<endl;
 	parse_alliances(alliances, parameters.alliances_file);
