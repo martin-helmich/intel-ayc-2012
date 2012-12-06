@@ -311,3 +311,34 @@ void oma::ComputePathOuterLoop::operator()(Travel travel,
 		}
 	}
 }
+
+oma::FilterPathsLoop::FilterPathsLoop(Travels *i, Travels *o, CostRange *r)
+{
+	in = i;
+	out = o;
+	range = r;
+}
+
+oma::FilterPathsLoop::FilterPathsLoop(FilterPathsLoop &fpl, split)
+{
+	in = fpl.in;
+	range = fpl.range;
+	out = new Travels;
+}
+
+void oma::FilterPathsLoop::operator ()(blocked_range<unsigned int> r)
+{
+	for (unsigned int i = r.begin(); i != r.end(); ++i)
+	{
+		if ((&(in->at(i)))->min_cost <= range->max)
+		{
+			out->push_back(in->at(i));
+		}
+	}
+}
+
+void oma::FilterPathsLoop::join(FilterPathsLoop &fpl)
+{
+	out->insert(out->end(), fpl.out->begin(), fpl.out->end());
+	delete fpl.out;
+}

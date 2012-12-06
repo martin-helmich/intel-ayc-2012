@@ -255,6 +255,19 @@ public:
 	void operator()(Travel travel, parallel_do_feeder<Travel>& f) const;
 };
 
+class FilterPathsLoop
+{
+private:
+	Travels *in, *out;
+	CostRange *range;
+
+public:
+	FilterPathsLoop(Travels *i, Travels *o, CostRange *r);
+	FilterPathsLoop(FilterPathsLoop &fpl, split);
+	void operator()(blocked_range<unsigned int> r);
+	void join(FilterPathsLoop &fpl);
+};
+
 }
 
 #endif /* LOOPBODIES_H_ */

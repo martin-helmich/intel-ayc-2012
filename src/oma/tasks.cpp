@@ -37,30 +37,16 @@ tbb::task* oma::FindPathTask::execute()
 	Travels temp_travels, all_paths;
 	CostRange min_range;
 
-	OUT("STRT: " << from << " -> " << to);
-
 	fill_travel(&temp_travels, &all_paths, *flights, from, t_min, t_max, &min_range, to,
 			alliances);
-
-	OUT("INIT: " << from << " -> " << to << " : " << temp_travels.size() << "/" << all_paths.size() << ", "
-			<< min_range.min << "-" << min_range.max);
 
 	compute_path(*flights, to, &temp_travels, t_min, t_max, *parameters, &all_paths,
 			&min_range, alliances);
 
-	OUT("DONE: " << from << " -> " << to << " : " << all_paths.size() << ", "
-			<< min_range.min << "-" << min_range.max);
+	FilterPathsLoop fpl(&all_paths, travels, &min_range);
 
-	unsigned int s = all_paths.size();
-	for (unsigned int i = 0; i < s; i++)
-	{
-		if (all_paths[i].min_cost <= min_range.max)
-		{
-			travels->push_back(all_paths[i]);
-		}
-	}
-
-	OUT("REDC: " << from << " -> " << to << " : " << travels->size());
+	if(all_paths.size() > 500) parallel_reduce(blocked_range<unsigned int>(0, all_paths.size()), fpl);
+	else fpl(blocked_range<unsigned int>(0, all_paths.size()));
 
 	return NULL;
 }

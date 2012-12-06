@@ -269,14 +269,11 @@ void fill_travel(Travels *travels, Travels *final_travels, vector<Flight>& fligh
 		}
 	}
 
-	s = temp.size();
-	for (unsigned int i = 0; i < s; i++)
-	{
-		if (temp[i].min_cost <= min_range->max)
-		{
-			travels->push_back(temp[i]);
-		}
-	}
+	FilterPathsLoop fpl(&temp, travels, min_range);
+
+	if (temp.size() > 500) parallel_reduce(blocked_range<unsigned int>(0, temp.size()),
+			fpl);
+	else fpl(blocked_range<unsigned int>(0, temp.size()));
 }
 
 /**
