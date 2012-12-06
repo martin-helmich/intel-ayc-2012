@@ -215,6 +215,8 @@ void oma::PathMergingTripleOuterLoop::operator()(blocked_range<unsigned int> &ra
 						}
 					}
 				}
+
+				delete t12;
 			}
 		}
 	}
