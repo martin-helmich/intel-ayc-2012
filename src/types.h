@@ -1,8 +1,8 @@
-/*
- * types.h
- *
- *  Created on: 01.11.2012
- *      Author: mhelmich
+/*!
+ * @file types.h
+ * @brief This file contains class declarations for model classes.
+ * @author Martin Helmich <martin.helmich@hs-osnabrueck.de>, University of Applied Sciences Osnabrück
+ * @author Oliver Erxleben <oliver.erxleben@hs-osnabrueck.de>, University of Applied Sciences Osnabrück
  */
 
 #ifndef TYPES_H_
@@ -25,9 +25,7 @@
 using namespace std;
 
 /**
- * \struct Parameters
- * \brief Store the program's parameters.
- * This structure don't need to be modified but feel free to change it if you want.
+ * @brief Store the program's parameters.
  */
 struct Parameters
 {
@@ -49,9 +47,7 @@ struct Parameters
 };
 
 /**
- * \struct Flight
- * \brief Store a single flight data.
- *This structure don't need to be modified but feel free to change it if you want.
+ * @brief Store a single flight data.
  */
 struct Flight
 {
@@ -65,102 +61,133 @@ struct Flight
 	float discout;/*!< The discount applied to the cost. */
 };
 
-/**
- * \struct Travel
- * \brief Store a travel.
- * This structure don't need to be modified but feel free to change it if you want.
- */
+// Yes, we are lazy and don't want to type "vector<vector<string> >" too often... ;)
+typedef vector<vector<string> > Alliances;
+
+/// Models a travel and associated application logic.
 class Travel
 {
 public:
-	vector<Flight> flights;/*!< A travel is just a list of Flight(s). */
+	/// Flights contained in this travel.
+	/** A travel is (not anymore!) just a list of Flight(s). */
+	vector<Flight> flights;
+
+	/// Discounts applied to each flight.
+	/** Discounts applied to each flight. Due to parallel processing,
+	 *  we cannot store the discount directly in the Flight objects. */
 	vector<float> discounts;
-	float total_cost; /* Total costs of this travel (sum of flight costs minus possible discounts). */
+
+	/// Total costs of this travel.
+	/** The total cost of this travel. This is the sum of flight costs
+	 *  minus all possible discounts. The actual total costs of a travel
+	 *  can only be computed, when it is guaranteed that no flights are
+	 *  added any more (otherwise the costs can change due to discounts). */
+	float total_cost;
+
+	/// Minimal costs of this travel.
+	/** The minimal costs is the sum of all travel costs with highest
+	 *  possible discount. */
 	float min_cost;
+
+	/// Maximal costs of this travel.
+	/** The maximal costs is the sum of this travel (i.e. all travel costs
+	 *  with lowest possible discount). */
 	float max_cost;
+
+	/// Helper storing the size of the travel.
 	int size;
 
+	/// Creates a new travel.
 	Travel() :
 			total_cost(0), min_cost(0), max_cost(0), size(0)
 	{
 	}
 
-	void add_flight(Flight &f, vector<vector<string> > *a);
-	void merge_travel(Travel *t, vector<vector<string> > *a);
+	/// Adds a new flight to this travel.
+	/** @param f The flight to be added.
+	 *  @param a A list of allicances. Is needed, because this function takes discouts
+	 *           into account. */
+	void add_flight(Flight &f, Alliances *a);
+
+	/// Merges two travels into one.
+	/** @param t The travel to be merged.
+	 *  @param a The list of allicances. Is needed, because this function takes discouts
+	 *           into account. */
+	void merge_travel(Travel *t, Alliances *a);
+
+	/// Prints a textual representation of this travel to STDOUT.
 	void print();
 };
 
-// Yes, we are lazy and don't want to type "vector<vector<string> >" too often... ;)
 typedef vector<Travel> Travels;
-typedef vector<vector<string> > Alliances;
 
-/**
- * Models a single location (i.e. a possible flight origin or destination).
+/// Models a location and associated application logic.
+/** This class models a single location (i.e. a possible flight origin
+ *  or destination). In our flight graph, the locations are nodes, flights
+ *  are edges.
  *
- * In our flight graph, the locations are nodes, flights are edges.
- */
-struct Location
+ *  Each location stores a list of all incoming and outgoing flights for
+ *  quick access. */
+class Location
 {
+public:
+	/// The location's name.
 	string name;
+
+	/// Outgoing flights.
 	vector<Flight> outgoing_flights;
+
+	/// Incoming flights.
 	vector<Flight> incoming_flights;
 };
 
-struct Solution
+/// Models the program's solution.
+/** This class models the program's solution. It contains one travel as
+ *  solution for the "work hard" problems and a list of n travels as solution
+ *  for the "play hard" problems. */
+class Solution
 {
-	vector<Travel> play_hard;
-	Travel work_hard;
+private:
 	tbb::spin_mutex lock;
+public:
+	/// The "play hard" solutions.
+	Travel *play_hard;
+	/// The "work hard" solutions.
+	Travel work_hard;
 
-	void add_play_hard(unsigned int i, Travel &t)
-	{
-		// Resize the vector if necessary (throws segfaults otherwise).
-		// Typically, both competition and average wait time are expected to be low, so
-		// in theory, a spin lock should do quite well.
-		lock.lock();
-		if (play_hard.size() <= i)
-		{
-			play_hard.resize(i + 1);
-		}
-		lock.unlock();
+	/// Creates a new solution object.
+	/** @param s Number of "play hard" solutions. */
+	Solution(unsigned int s);
 
-		play_hard[i] = t;
-	}
+	/// Adds a new "play hard" solution.
+	/** @param i The index of the "play hard" solution.
+	 *  @param t The travel to be added as the solution. */
+	void add_play_hard(unsigned int i, Travel &t);
 };
 
-struct CostRange
+/// Models a dynamic cost range.
+/** This class models a dynamic cost range. This is necessary due to the
+ *  uncertainty in travel prices originating from possible discounts.
+ *
+ *  This class stores a minimum and a maximum price. */
+class CostRange
 {
-	int min;
-	int max;
+private:
+	/// Spinlock to protect against concurrent access.
 	tbb::spin_mutex lock;
+public:
+	/// Minimum price.
+	int min;
+	/// Maximum price.
+	int max;
 
-	CostRange()
-	{
-		min = numeric_limits<int>::max();
-		max = numeric_limits<int>::max();
-	}
+	/// Creates a new price range.
+	CostRange();
 
-	inline void from_travel(Travel *t)
-	{
-		lock.lock();
-		if (t->max_cost <= min)
-		{
-			// Add a few coins in order to account for float arithmetics uncertainties.
-			// 2 dollars work, 1 dollar however, does not. Haven't really figured out why... :(
-			max = (int) ceil(t->max_cost + 2);
-			min = (int) floor(t->min_cost);
-		}
-		lock.unlock();
-	}
+	/// Sets min and max prices from an existing travel object.
+	/** @param t The travel from which the price range is to be set. */
+	void from_travel(Travel *t);
 
-	inline void cas(CostRange *c)
-	{
-		if (c->max < max)
-		{
-			max = c->max;
-			min = c->min;
-		}
-	}
 };
 
 #endif /* TYPES_H_ */

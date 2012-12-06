@@ -64,9 +64,8 @@ concurrent_hash_map<int, time_t> times;
 Solution play_and_work_hard(vector<Flight> *flights, Parameters& parameters,
 		vector<vector<string> >& alliances)
 {
-
-	Solution solution;
 	int n = parameters.airports_of_interest.size();
+	Solution solution(n);
 	vector<Travel> results, home_to_conference, conference_to_home, home_to_vacation[n],
 			vacation_to_conference[n], conference_to_vacation[n], vacation_to_home[n];
 
@@ -94,8 +93,9 @@ Solution play_and_work_hard(vector<Flight> *flights, Parameters& parameters,
 
 		// Small optimization: If no route from or to vacation location exist, do not
 		// bother to find routes, since it would be impossible to find any, anyhow.
-		if (! location_map->find(a, current_airport_of_interest)
-				|| a->second.outgoing_flights.size() == 0 || a->second.incoming_flights.size() == 0)
+		if (!location_map->find(a, current_airport_of_interest)
+				|| a->second.outgoing_flights.size() == 0
+				|| a->second.incoming_flights.size() == 0)
 		{
 			a.release();
 			continue;
@@ -150,8 +150,9 @@ Solution play_and_work_hard(vector<Flight> *flights, Parameters& parameters,
 
 		// Small optimization: If no route from or to vacation location exist, do not
 		// bother to find routes, since it would be impossible to find any, anyhow.
-		if (! location_map->find(a, current_airport_of_interest)
-				|| a->second.outgoing_flights.size() == 0 || a->second.incoming_flights.size() == 0)
+		if (!location_map->find(a, current_airport_of_interest)
+				|| a->second.outgoing_flights.size() == 0
+				|| a->second.incoming_flights.size() == 0)
 		{
 			Travel t;
 			a.release();
@@ -453,11 +454,10 @@ void print_flight(Flight& flight, float discount, ofstream& output)
 
 }
 
-/**
- * \fn void read_parameters(Parameters& parameters, int argc, char **argv)
- * \brief This function is used to read the parameters
- * \param parameters Represents the structure that will be filled with the parameters.
- */
+/// This function is used to read the parameters
+/** @param parameters Represents the structure that will be filled with the parameters.
+ *  @param argc Count of command line parameters.
+ *  @param argv Command line parameters. */
 void read_parameters(Parameters& parameters, int argc, char **argv)
 {
 	for (int i = 0; i < argc; i++)
@@ -608,12 +608,9 @@ void parse_flight(vector<Flight> *flights, string& line)
 	}
 }
 
-/**
- * \fn void parse_flights(vector<Flight>& flights, string filename)
- * \brief This function parses the flights from a file.
- * \param flights The vector of flights.
- * \param filename The name of the file containing the flights.
- */
+/// This function parses the flights from a file.
+/** @param flights The vector of flights.
+ *  @param filename The name of the file containing the flights. */
 void parse_flights(vector<Flight> *flights, string filename)
 {
 	char *m = NULL;
@@ -703,19 +700,16 @@ void parse_alliances(vector<vector<string> > &alliances, string filename)
 	}
 }
 
-/**
- * Check if 2 companies are in the same alliance.
+/// Check if 2 companies are in the same alliance.
+/** Based on the assumption that there are relatively few possible combinations
+ *  of airlines, this function used a cache based on a "tbb::concurrent_hash_map<string,bool>"
+ *  in which each combination of airlines is stored. Each entry is created with the
+ *  first call with a certain company combination.
  *
- * Based on the assumption that there are relatively few possible combinations
- * of airlines, this function used a cache based on a "tbb::concurrent_hash_map<string,bool>"
- * in which each combination of airlines is stored. Each entry is created with the
- * first call with a certain company combination.
- *
- * @param c1        The first company's name.
- * @param c2        The second company's name.
- * @param alliances A 2D vector representing the alliances. Companies on the
- *                  same line are in the same alliance.
- */
+ *  @param c1        The first company's name.
+ *  @param c2        The second company's name.
+ *  @param alliances A 2D vector representing the alliances. Companies on the
+ *                   same line are in the same alliance. */
 bool company_are_in_a_common_alliance(const string& c1, const string& c2,
 		vector<vector<string> > *alliances)
 {
@@ -790,37 +784,38 @@ void print_alliances(vector<vector<string> > &alliances)
 	}
 }
 
-/**
- * \fn void print_flights(vector<Flight>& flights)
- * \brief Display the flights on the standard output.
- * \param flights The flights.
- */
+/// Display the flights on the standard output.
+/** @param flights The flights.
+ *  @param discounts Discounts for each flight.
+ *  @param output The output stream to be used. */
 void print_flights(vector<Flight>& flights, vector<float> discounts, ofstream& output)
 {
 	for (unsigned int i = 0; i < flights.size(); i++)
+	{
 		print_flight(flights[i], discounts[i], output);
+	}
 }
 
-/**
- * \fn bool nerver_traveled_to(Travel travel, string city)
- * \brief Indicates if the city has already been visited in the travel. This function is used to avoid stupid loops.
- * \param travel The travels.
- * \apram city The city.
- * \return The current travel has never visited the given city.
- */
+/// Indicates if the city has already been visited in the travel. This function is used to avoid stupid loops.
+/** @param travel The travels.
+ *  @param city The city.
+ *  @return The current travel has never visited the given city. */
 bool nerver_traveled_to(Travel travel, string city)
 {
 	for (unsigned int i = 0; i < travel.flights.size(); i++)
-		if (travel.flights[i].from == city || travel.flights[i].to == city) return false;
+	{
+		if (travel.flights[i].from == city || travel.flights[i].to == city)
+		{
+			return false;
+		}
+	}
 	return true;
 }
 
-/**
- * \fn void print_travel(Travel& travel, vector<vector<string> >&alliances)
- * \brief Display a travel on the standard output.
- * \param travel The travel.
- * \param alliances The alliances (used to compute the price).
- */
+/// Display a travel on an arbitrary output stream.
+/** @param travel The travel.
+ *  @param alliances The alliances (used to compute the price).
+ *  @param output The output stream. */
 void print_travel(Travel& travel, vector<vector<string> >&alliances, ofstream& output)
 {
 	output << "Price : " << compute_cost(&travel, &alliances)/*ravel.max_cost*/<< endl;
@@ -828,16 +823,17 @@ void print_travel(Travel& travel, vector<vector<string> >&alliances, ofstream& o
 	output << endl;
 }
 
-/**
- * \fn void output_play_hard(vector<Flight>& flights, Parameters& parameters, vector<vector<string> >& alliances)
- * \brief Display the solution of the "Play Hard" problem by solving it first.
- * \param flights The list of available flights.
- * \param parameters The parameters.
- * \param alliances The alliances between companies.
- */
+/// Outputs solutions of both "work hard" and "play hard" problems.
+/** This method first solves both the "work hard" and all "play hard" problems
+ *  and then writes the solutions into the associated output files.
+ *
+ *  @param flights The list of available flights.
+ *  @param parameters The parameters.
+ *  @param alliances The alliances between companies. */
 void output_solutions(vector<Flight> *flights, Parameters& parameters,
 		vector<vector<string> >& alliances)
 {
+	// Solve everything.
 	Solution solution = play_and_work_hard(flights, parameters, alliances);
 
 	ofstream ph_out, wh_out;
@@ -846,7 +842,7 @@ void output_solutions(vector<Flight> *flights, Parameters& parameters,
 	wh_out.open(parameters.work_hard_file.c_str());
 
 	vector<string> cities = parameters.airports_of_interest;
-	for (unsigned int i = 0; i < solution.play_hard.size(); i++)
+	for (unsigned int i = 0; i < cities.size(); i++)
 	{
 		ph_out << "“Play Hard” Proposition " << (i + 1) << " : " << cities[i] << endl;
 		print_travel(solution.play_hard[i], alliances, ph_out);

@@ -1,8 +1,8 @@
-/*
- * methods.h
- *
- *  Created on: 20.11.2012
- *      Author: oerxlebe
+/*!
+ * @file methods.h
+ * @brief This file contains method declarations from non-oo parts of this program.
+ * @author Martin Helmich <martin.helmich@hs-osnabrueck.de>, University of Applied Sciences Osnabrück
+ * @author Oliver Erxleben <oliver.erxleben@hs-osnabrueck.de>, University of Applied Sciences Osnabrück
  */
 
 #ifndef METHODS_H_

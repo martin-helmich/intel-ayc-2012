@@ -55,36 +55,6 @@ void oma::ParseFlightsLoop::join(ParseFlightsLoop &pfl)
 	delete pfl.flights;
 }
 
-void oma::PathComputingInnerLoop::operator()(blocked_range<unsigned int> &range) const
-{
-	for (unsigned int i = range.begin(); i != range.end(); ++i)
-	{
-		Flight flight = flights->at(i);
-
-		if (flight.take_off_time >= t_min && flight.land_time <= t_max
-				&& (flight.take_off_time > current_city->land_time)
-				&& flight.take_off_time - current_city->land_time
-						<= parameters.max_layover_time
-				&& nerver_traveled_to(*travel, flight.to))
-		{
-			Travel newTravel = *travel;
-			newTravel.flights.push_back(flight);
-			if (flight.to == to)
-			{
-				final_travels_lock->lock();
-				final_travels->push_back(newTravel);
-				final_travels_lock->unlock();
-			}
-			else
-			{
-				travels_lock->lock();
-				travels->push_back(newTravel);
-				travels_lock->unlock();
-			}
-		}
-	}
-}
-
 oma::PathMergingOuterLoop::PathMergingOuterLoop(Travels *t1, Travels *t2, Alliances *a)
 {
 	travels1 = t1;
@@ -249,10 +219,10 @@ oma::ComputePathOuterLoop::ComputePathOuterLoop(vector<Travel> *ft, mutex *ftl,
 	location_map = lm;
 }
 
-void oma::ComputePathOuterLoop::operator()(Travel travel,
+void oma::ComputePathOuterLoop::operator()(Travel t,
 		parallel_do_feeder<Travel>& f) const
 {
-	Flight *current_city = &(travel.flights.back());
+	Flight *current_city = &(t.flights.back());
 
 	// First, if a direct flight exist, it must be in the final travels.
 	// Should not occur, since we already filter these out in fill_travel.
@@ -260,8 +230,8 @@ void oma::ComputePathOuterLoop::operator()(Travel travel,
 	{
 		mutex::scoped_lock l(*final_travels_lock);
 
-		min_range->from_travel(&travel);
-		final_travels->push_back(travel);
+		min_range->from_travel(&t);
+		final_travels->push_back(t);
 	}
 	else
 	{
@@ -274,13 +244,6 @@ void oma::ComputePathOuterLoop::operator()(Travel travel,
 
 		const Location *from = &(a->second);
 
-		/*PathComputingInnerLoop loop(travels, final_travels,
-		 &from.outgoing_flights, &travels_lock, &final_travels_lock,
-		 t_min, t_max, parameters, &current_city, &travel, to, &best);
-		 parallel_for(
-		 blocked_range<unsigned int>(0,
-		 from.outgoing_flights.size()), loop);*/
-
 		unsigned int s = from->outgoing_flights.size();
 		for (unsigned int i = 0; i < s; i++)
 		{
@@ -289,11 +252,11 @@ void oma::ComputePathOuterLoop::operator()(Travel travel,
 					&& (flight->take_off_time > current_city->land_time)
 					&& flight->take_off_time - current_city->land_time
 							<= parameters.max_layover_time
-					&& nerver_traveled_to(travel, flight->to)
-					&& flight->cost * 0.7 + travel.min_cost <= min_range->max)
+					&& nerver_traveled_to(t, flight->to)
+					&& flight->cost * 0.7 + t.min_cost <= min_range->max)
 			{
 
-				Travel new_travel = travel;
+				Travel new_travel = t;
 				new_travel.add_flight(*flight, alliances);
 
 				if (flight->to == to)
