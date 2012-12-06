@@ -1,8 +1,8 @@
-/*
- * CostComparator.cpp
- *
- *  Created on: 13.11.2012
- *      Author: mhelmich
+/*!
+ * @file loop_bodies.cpp
+ * @brief This file contains implementations for various parallel loop bodies.
+ * @author Martin Helmich <martin.helmich@hs-osnabrueck.de>, University of Applied Sciences Osnabrück
+ * @author Oliver Erxleben <oliver.erxleben@hs-osnabrueck.de>, University of Applied Sciences Osnabrück
  */
 
 #include <iostream>
@@ -20,15 +20,10 @@ oma::ParseFlightsLoop::ParseFlightsLoop(char* i, vector<int>* l, vector<Flight> 
 	flights = f;
 }
 
-oma::ParseFlightsLoop::ParseFlightsLoop(ParseFlightsLoop &fp, split) :
-		input(fp.input), lfs(fp.lfs)
+oma::ParseFlightsLoop::ParseFlightsLoop(ParseFlightsLoop &pfl, split) :
+		input(pfl.input), lfs(pfl.lfs)
 {
 	flights = new vector<Flight>;
-}
-
-void oma::ParseFlightsLoop::setFlights(vector<Flight> *f)
-{
-	flights = f;
 }
 
 void oma::ParseFlightsLoop::operator()(const blocked_range<int> range)
@@ -53,11 +48,11 @@ void oma::ParseFlightsLoop::operator()(const blocked_range<int> range)
 	}
 }
 
-void oma::ParseFlightsLoop::join(ParseFlightsLoop &fp)
+void oma::ParseFlightsLoop::join(ParseFlightsLoop &pfl)
 {
 	// Merge flight lists.
-	flights->insert(flights->end(), fp.flights->begin(), fp.flights->end());
-	delete fp.flights;
+	flights->insert(flights->end(), pfl.flights->begin(), pfl.flights->end());
+	delete pfl.flights;
 }
 
 void oma::PathComputingInnerLoop::operator()(blocked_range<unsigned int> &range) const

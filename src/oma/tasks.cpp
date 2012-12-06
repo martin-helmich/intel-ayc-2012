@@ -1,10 +1,8 @@
-/*
- * Method bodies for custom tasks.
- *
- * (C) 2012 Martin Helmich <martin.helmich@hs-osnabrueck.de>
- *          Oliver Erxleben <oliver.erxleben@hs-osnabrueck.de>
- *
- *          University of Applied Sciences Osnabrück
+/*!
+ * @file tasks.cpp
+ * @brief This file contains method bodies for custom tasks.
+ * @author Martin Helmich <martin.helmich@hs-osnabrueck.de>, University of Applied Sciences Osnabrück
+ * @author Oliver Erxleben <oliver.erxleben@hs-osnabrueck.de>, University of Applied Sciences Osnabrück
  */
 
 #include <iostream>
@@ -166,9 +164,8 @@ tbb::task* oma::PlayHardMergeTripleTask::execute()
 
 	if (pmtol.get_cheapest() != NULL)
 	{
-		results_lock->lock();
+		mutex::scoped_lock l(*results_lock);
 		results->push_back(*pmtol.get_cheapest());
-		results_lock->unlock();
 	}
 
 	return NULL;

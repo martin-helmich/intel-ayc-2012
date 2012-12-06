@@ -90,7 +90,7 @@ void Travel::merge_travel(Travel *t, vector<vector<string> > *a)
 
 void Travel::print()
 {
-	for (int i=0; i < flights.size(); i ++)
+	for (unsigned int i=0; i < flights.size(); i ++)
 	{
 		cout << flights[i].id << " (" << flights[i].cost << "@" << discounts[i] << ") - ";
 	}
