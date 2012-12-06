@@ -305,8 +305,6 @@ time_t convert_to_timestamp(int day, int month, int year, int hour, int minute,
  */
 time_t timegm(struct tm *tm)
 {
-	char *tz;
-
 	// Create a simple hash from the year and month.
 	int year = tm->tm_year * 100 + tm->tm_mon;
 	time_t month_ts;
@@ -341,9 +339,9 @@ time_t timegm(struct tm *tm)
 			unsigned long offset = years * 31536000; // = 365 * 24 * 60 * 60
 
 			// Add additional days to offset for each passed leap year.
-			for (int y = years; years >= 0; years--)
+			for (int y = years; y >= 0; y--)
 			{
-				if (((years + 1970) % 4 == 0) && ((years + 1970) % 100 != 0))
+				if (((y + 1970) % 4 == 0) && ((y + 1970) % 100 != 0))
 				{
 					offset += 86400;
 				}
