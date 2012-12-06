@@ -168,6 +168,17 @@ Solution play_and_work_hard(vector<Flight> *flights, Parameters& parameters,
 	for (int i = 0; i < n; i++)
 	{
 		string current_airport_of_interest = parameters.airports_of_interest[i];
+		concurrent_hash_map<string, Location>::const_accessor a;
+
+		// Small optimization: If no route from or to vacation location exist, do not
+		// bother to find routes, since it would be impossible to find any, anyhow.
+		if (! location_map->find(a, current_airport_of_interest)
+				|| a->second.outgoing_flights.size() == 0 || a->second.incoming_flights.size() == 0)
+		{
+			a.release();
+			continue;
+		}
+		a.release();
 
 		// Home to Vacation[i]
 		tasks.push_back(
@@ -212,6 +223,21 @@ Solution play_and_work_hard(vector<Flight> *flights, Parameters& parameters,
 
 	for (unsigned int i = 0; i < parameters.airports_of_interest.size(); i++)
 	{
+		string current_airport_of_interest = parameters.airports_of_interest[i];
+		concurrent_hash_map<string, Location>::const_accessor a;
+
+		// Small optimization: If no route from or to vacation location exist, do not
+		// bother to find routes, since it would be impossible to find any, anyhow.
+		if (! location_map->find(a, current_airport_of_interest)
+				|| a->second.outgoing_flights.size() == 0 || a->second.incoming_flights.size() == 0)
+		{
+			Travel t;
+			a.release();
+			solution.add_play_hard(i, t);
+			continue;
+		}
+		a.release();
+
 		mergereduce_tasks.push_back(
 				*new (task::allocate_root()) PlayHardTask(&home_to_vacation[i],
 						&vacation_to_conference[i], &conference_to_home,
