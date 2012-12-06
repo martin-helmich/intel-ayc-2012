@@ -109,30 +109,32 @@ oma::PathMergingOuterLoop::PathMergingOuterLoop(PathMergingOuterLoop &pmol, spli
 void oma::PathMergingOuterLoop::operator()(blocked_range<unsigned int> &range)
 {
 	unsigned int s2 = travels2->size();
+	Travel *t1, *t2, *tf;
+	Flight *l1, *f2;
 
 	for (unsigned int i = range.begin(); i != range.end(); ++i)
 	{
-		Travel *t1 = &(travels1->at(i));
+		t1 = &(travels1->at(i));
 		for (unsigned j = 0; j < s2; j++)
 		{
-			Travel *t2 = &(travels2->at(j));
-			Flight *last_flight_t1 = &t1->flights.back();
-			Flight *first_flight_t2 = &t2->flights[0];
-			if (last_flight_t1->land_time < first_flight_t2->take_off_time
+			t2 = &(travels2->at(j));
+			l1 = &(t1->flights.back());
+			f2 = &(t2->flights.front());
+			if (l1->land_time < f2->take_off_time
 					&& t1->min_cost + t2->min_cost <= min_range.max)
 			{
-				Travel *new_travel = new Travel(*t1), t2c = *t2;
-				new_travel->merge_travel(&t2c, alliances);
+				tf = new Travel(*t1);
+				tf->merge_travel(t2, alliances);
 
-				min_range.from_travel(new_travel);
+				min_range.from_travel(tf);
 
-				if (cheapest == NULL || new_travel->max_cost < cheapest->max_cost)
+				if (cheapest == NULL || tf->max_cost < cheapest->max_cost)
 				{
-					cheapest = new_travel;
+					cheapest = tf;
 				}
 				else
 				{
-					delete new_travel;
+					delete tf;
 				}
 			}
 		}
@@ -175,33 +177,35 @@ oma::PathMergingTripleOuterLoop::PathMergingTripleOuterLoop(
 void oma::PathMergingTripleOuterLoop::operator()(blocked_range<unsigned int> &range)
 {
 	unsigned int s2 = travels2->size(), s3 = travels3->size();
+	Travel *t1, *t2, *t3, *t12, *tf;
+	Flight *l1, *l2, *f2, *f3;
 
 	for (unsigned int i = range.begin(); i != range.end(); ++i)
 	{
-		Travel *t1 = &(travels1->at(i));
+		t1 = &(travels1->at(i));
 		for (unsigned int j = 0; j < s2; j++)
 		{
-			Travel *t2 = &(travels2->at(j));
+			t2 = &(travels2->at(j));
 
-			Flight *last_flight_t1 = &t1->flights.back();
-			Flight *first_flight_t2 = &t2->flights[0];
+			l1 = &(t1->flights.back());
+			f2 = &(t2->flights.front());
 
-			if (last_flight_t1->land_time < first_flight_t2->take_off_time)
+			if (l1->land_time < f2->take_off_time)
 			{
-				Travel *t12 = new Travel(*t1);
+				t12 = new Travel(*t1);
 				t12->merge_travel(t2, alliances);
 
 				for (unsigned int k = 0; k < s3; k++)
 				{
-					Travel *t3 = &(travels3->at(k));
+					t3 = &(travels3->at(k));
 
-					Flight *last_flight_t2 = &t2->flights.back();
-					Flight *first_flight_t3 = &t3->flights.front();
+					l2 = &(t2->flights.back());
+					f3 = &(t3->flights.front());
 
-					if (last_flight_t2->land_time < first_flight_t3->take_off_time
+					if (l2->land_time < f3->take_off_time
 							&& t12->min_cost + t3->min_cost <= min_range.max)
 					{
-						Travel *tf = new Travel(*t12);
+						tf = new Travel(*t12);
 						tf->merge_travel(t3, alliances);
 						min_range.from_travel(tf);
 
