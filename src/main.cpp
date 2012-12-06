@@ -1009,11 +1009,17 @@ void parse_alliances(vector<vector<string> > &alliances, string filename)
 }
 
 /**
- * \fn bool company_are_in_a_common_alliance(const string& c1, const string& c2, vector<vector<string> >& alliances)
- * \brief Check if 2 companies are in the same alliance.
- * \param c1 The first company's name.
- * \param c2 The second company's name.
- * \param alliances A 2D vector representing the alliances. Companies on the same line are in the same alliance.
+ * Check if 2 companies are in the same alliance.
+ *
+ * Based on the assumption that there are relatively few possible combinations
+ * of airlines, this function used a cache based on a "tbb::concurrent_hash_map<string,bool>"
+ * in which each combination of airlines is stored. Each entry is created with the
+ * first call with a certain company combination.
+ *
+ * @param c1        The first company's name.
+ * @param c2        The second company's name.
+ * @param alliances A 2D vector representing the alliances. Companies on the
+ *                  same line are in the same alliance.
  */
 bool company_are_in_a_common_alliance(const string& c1, const string& c2,
 		vector<vector<string> > *alliances)
