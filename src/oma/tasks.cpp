@@ -86,10 +86,13 @@ tbb::task* oma::WorkHardTask::execute()
 		return NULL;
 	}
 
-	vector<Travel> work_hard;
-	merge_path(&work_hard, home_to_conference, conference_to_home, alliances);
+	PathMergingOuterLoop pmol(home_to_conference, conference_to_home, alliances);
+	parallel_reduce(blocked_range<unsigned int>(0, home_to_conference->size()), pmol);
 
-	solution->work_hard = work_hard[0];
+	if (pmol.get_cheapest() != NULL)
+	{
+		solution->work_hard = *pmol.get_cheapest();
+	}
 
 	return NULL;
 }

@@ -18,6 +18,12 @@ for S in scenarios/scenario{1..12} ; do
 	rm play_hard.txt work_hard.txt
 
 	./script.sh &> /dev/null
+	EXIT=$?
+	if [ $? -ne 0 ] ; then
+		printf "%-20s : " $S
+		echo -e "033[1;31mEXIT: $EXIT\033[0m"
+		continue
+	fi
 
 	printf "%-20s : " $S
 	#echo -n "$S: "

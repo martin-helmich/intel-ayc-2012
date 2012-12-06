@@ -11,6 +11,8 @@
 #include <vector>
 #include "tbb/blocked_range.h"
 #include "tbb/mutex.h"
+#include "tbb/parallel_do.h"
+#include "tbb/concurrent_hash_map.h"
 #include "../types.h"
 
 using namespace std;
@@ -19,36 +21,20 @@ using namespace tbb;
 namespace oma
 {
 
-class CostComputer
+class ParseFlightsLoop
 {
+private:
+	vector<Flight> *flights;
+	char *input;
+	vector<int>* lfs;
+
 public:
-	Travel *travel;
-	float costs;
+	ParseFlightsLoop(char* i, vector<int>* l, vector<Flight> *f);
+	ParseFlightsLoop(ParseFlightsLoop &fp, split);
 
-	CostComputer(Travel *t) :
-			travel(t), costs(0)
-	{
-	}
-	CostComputer(CostComputer &cc, split) :
-			travel(cc.travel), costs(0)
-	{
-	}
-
-	void operator()(const blocked_range<unsigned int> range);
-	void join(CostComputer &cc);
-};
-
-class CostComputingLoop
-{
-public:
-	vector<vector<string> > alliances;
-
-	CostComputingLoop(vector<vector<string> > &a) :
-			alliances(a)
-	{
-	}
-
-	void operator()(const blocked_range<unsigned int> range) const;
+	void setFlights(vector<Flight> *f);
+	void operator()(const blocked_range<int> range);
+	void join(ParseFlightsLoop &fp);
 };
 
 class PathComputingInnerLoop
@@ -66,8 +52,8 @@ private:
 
 public:
 	PathComputingInnerLoop(vector<Travel> *t, vector<Travel> *ft, vector<Flight> *f,
-			mutex *tl, mutex *ftl, unsigned long tmi, unsigned long tma, Parameters &p, Flight *c,
-			Travel *ct, string to)
+			mutex *tl, mutex *ftl, unsigned long tmi, unsigned long tma, Parameters &p,
+			Flight *c, Travel *ct, string to)
 	{
 		travels = t;
 		final_travels = ft;
@@ -120,6 +106,25 @@ public:
 	void join(PathMergingTripleOuterLoop& pmol);
 	Travels* get_results();
 	Travel* get_cheapest();
+};
+
+class ComputePathOuterLoop
+{
+private:
+	vector<Travel> *final_travels;
+	mutex *final_travels_lock;
+	Parameters parameters;
+	string to;
+	unsigned long t_min, t_max;
+	CostRange *min_range;
+	Alliances *alliances;
+	concurrent_hash_map<string, Location> *location_map;
+
+public:
+	ComputePathOuterLoop(vector<Travel> *ft, mutex *ftl, Parameters &p, string t,
+			unsigned long tmi, unsigned long tma, CostRange *r, Alliances *a,
+			concurrent_hash_map<string, Location> *lm);
+	void operator()(Travel travel, parallel_do_feeder<Travel>& f) const;
 };
 
 }

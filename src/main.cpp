@@ -5,15 +5,12 @@
 #include <iostream>
 #include <cstdlib>
 #include <string>
-#include <list>
 #include <vector>
 #include <fstream>
 #include <time.h>
-#include <cstdio>
 #include <sys/stat.h>
 #include <sys/mman.h>
 #include <fcntl.h>
-#include <limits>
 
 #define DEBUG 1
 
@@ -35,84 +32,9 @@ using namespace std;
 using namespace tbb;
 using namespace oma;
 
-time_t convert_to_timestamp(int day, int month, int year, int hour, int minute,
-		int seconde);
-time_t convert_string_to_timestamp(string s);
-void print_params(Parameters &parameters);
-void print_flight(Flight& flight, float discount, ofstream& output);
-void read_parameters(Parameters& parameters, int argc, char **argv);
-void split_string(vector<string>& result, string line, char separator);
-void parse_flight(vector<Flight> *flights, string& line);
-void parse_flights(vector<Flight> *flights, string filename);
-void parse_alliance(vector<string> &alliance, string line);
-void parse_alliances(vector<vector<string> > &alliances, string filename);
-void apply_discount(Travel *travel, vector<vector<string> >*alliances);
-float compute_cost(Travel *travel, vector<vector<string> >*alliances);
-void print_alliances(vector<vector<string> > &alliances);
-void print_flights(vector<Flight>& flights, vector<float> discounts, ofstream& output);
-void print_travel(Travel& travel, vector<vector<string> >&alliances);
-//Travel work_hard(vector<Flight>& flights, Parameters& parameters,
-//		vector<vector<string> >& alliances);
-Solution play_and_work_hard(vector<Flight> *flights, Parameters& parameters,
-		vector<vector<string> >& alliances);
-//void output_play_hard(vector<Flight>& flights, Parameters& parameters,
-//		vector<vector<string> >& alliances);
-//void output_work_hard(vector<Flight>& flights, Parameters& parameters,
-//		vector<vector<string> >& alliances);
-time_t timegm(struct tm *tm);
-void print_cities();
-
 concurrent_hash_map<string, Location> *location_map;
 concurrent_hash_map<string, bool> alliance_map;
-
-/*
- *  TravelComparator Class
- */
-class TravelComparator
-{
-public:
-	Travel *cheapest_travel;
-	float cheapest_cost;
-	vector<Travel> *travels;
-	vector<vector<string> > *alliances;
-
-	TravelComparator(vector<Travel> *t, vector<vector<string> > *a)
-	{
-		cheapest_travel = NULL;
-		cheapest_cost = -1;
-		travels = t;
-		alliances = a;
-	}
-
-	TravelComparator(TravelComparator &cc, split) :
-			cheapest_cost(cc.cheapest_cost), travels(cc.travels), alliances(cc.alliances)
-	{
-		cheapest_travel = NULL;
-	}
-
-	void operator()(blocked_range<unsigned int> range)
-	{
-		float c;
-		for (unsigned int i = range.begin(); i != range.end(); ++i)
-		{
-			c = compute_cost(&travels->at(i), alliances);
-			if (cheapest_cost == -1 || c < cheapest_cost)
-			{
-				cheapest_cost = c;
-				cheapest_travel = &travels->at(i);
-			}
-		}
-	}
-
-	void join(TravelComparator &tc)
-	{
-		if (tc.cheapest_cost != -1 && tc.cheapest_cost < cheapest_cost)
-		{
-			cheapest_cost = tc.cheapest_cost;
-			cheapest_travel = tc.cheapest_travel;
-		}
-	}
-};
+concurrent_hash_map<int, time_t> times;
 
 /**
  * Solves BOTH the "Work Hard" AND the "Play Hard" problem.
@@ -255,35 +177,6 @@ Solution play_and_work_hard(vector<Flight> *flights, Parameters& parameters,
 }
 
 /**
- * \fn void apply_discount(Travel & travel, vector<vector<string> >&alliances)
- * \brief Apply a discount when possible to the flights of a travel.
- * \param travel A travel (it will be modified to apply the discounts).
- * \param alliances The alliances.
- */
-void apply_discount(Travel *travel, vector<vector<string> >*alliances)
-{
-	if (travel->flights.size() > 1)
-	{
-		for (unsigned int i = 1; i < travel->flights.size(); i++)
-		{
-			Flight *flight_before = &travel->flights[i - 1];
-			Flight *current_flight = &travel->flights[i];
-			if (has_just_traveled_with_company(flight_before, current_flight))
-			{
-				travel->discounts[i] = 0.7;
-				travel->discounts[i - 1] = 0.7;
-			}
-			else if (has_just_traveled_with_alliance(flight_before, current_flight,
-					alliances))
-			{
-				if (travel->discounts[i - 1] > 0.8) travel->discounts[i - 1] = 0.8;
-				travel->discounts[i] = 0.8;
-			}
-		}
-	}
-}
-
-/**
  * \fn float compute_cost(Travel & travel, vector<vector<string> >&alliances)
  * \brief Compute the cost of a travel and uses the discounts when possible.
  * \param travel The travel.
@@ -303,95 +196,6 @@ float compute_cost(Travel *travel, vector<vector<string> >*alliances)
 	return travel->total_cost;
 }
 
-class ParallelPathComputer
-{
-private:
-	vector<Travel> *final_travels;
-	mutex *final_travels_lock;
-	Parameters parameters;
-	string to;
-	unsigned long t_min, t_max;
-	CostRange *min_range;
-	Alliances *alliances;
-
-public:
-	ParallelPathComputer(vector<Travel> *ft, mutex *ftl, Parameters &p, string t,
-			unsigned long tmi, unsigned long tma, CostRange *r, Alliances *a)
-	{
-		final_travels = ft;
-		final_travels_lock = ftl;
-		parameters = p;
-		t_min = tmi;
-		t_max = tma;
-		to = t;
-		min_range = r;
-		alliances = a;
-	}
-
-	void operator()(Travel travel, parallel_do_feeder<Travel>& f) const
-	{
-		Flight *current_city = &(travel.flights.back());
-
-		// First, if a direct flight exist, it must be in the final travels.
-		// Should not occur, since we already filter these out in fill_travel.
-		if (current_city->to == to)
-		{
-			mutex::scoped_lock l(*final_travels_lock);
-
-			min_range->from_travel(&travel);
-			final_travels->push_back(travel);
-		}
-		else
-		{
-			concurrent_hash_map<string, Location>::const_accessor a;
-			if (!location_map->find(a, current_city->to))
-			{
-				cerr << "Fehler: Stadt " << current_city->to << " ist nicht bekannt."
-						<< endl;
-				exit(100);
-			}
-
-			const Location *from = &(a->second);
-
-			/*PathComputingInnerLoop loop(travels, final_travels,
-			 &from.outgoing_flights, &travels_lock, &final_travels_lock,
-			 t_min, t_max, parameters, &current_city, &travel, to, &best);
-			 parallel_for(
-			 blocked_range<unsigned int>(0,
-			 from.outgoing_flights.size()), loop);*/
-
-			unsigned int s = from->outgoing_flights.size();
-			for (unsigned int i = 0; i < s; i++)
-			{
-				Flight *flight = (Flight*) &(from->outgoing_flights[i]);
-				if (flight->take_off_time >= t_min && flight->land_time <= t_max
-						&& (flight->take_off_time > current_city->land_time)
-						&& flight->take_off_time - current_city->land_time
-								<= parameters.max_layover_time
-						&& nerver_traveled_to(travel, flight->to)
-						&& flight->cost * 0.7 + travel.min_cost <= min_range->max)
-				{
-
-					Travel new_travel = travel;
-					new_travel.add_flight(*flight, alliances);
-
-					if (flight->to == to)
-					{
-						mutex::scoped_lock lock(*final_travels_lock);
-
-						final_travels->push_back(new_travel);
-						min_range->from_travel(&new_travel);
-					}
-					else
-					{
-						f.add(new_travel);
-					}
-				}
-			}
-		}
-	}
-};
-
 /**
  * \fn void compute_path(vector<Flight>& flights, string to, vector<Travel>& travels, unsigned long t_min, unsigned long t_max, Parameters parameters)
  * \brief Computes a path from a point A to a point B. The flights must be scheduled between t_min and t_max. It is also important to take the layover in consideration.
@@ -408,37 +212,12 @@ void compute_path(vector<Flight>& flights, string to, vector<Travel> *travels,
 		vector<Travel> *final_travels, CostRange *min_range, Alliances *alliances)
 {
 	mutex final_travels_lock;
-	ParallelPathComputer ppc(final_travels, &final_travels_lock, parameters, to, t_min,
-			t_max, min_range, alliances);
+	ComputePathOuterLoop cpol(final_travels, &final_travels_lock, parameters, to, t_min,
+			t_max, min_range, alliances, location_map);
 
-	parallel_do(travels->begin(), travels->end(), ppc);
+	parallel_do(travels->begin(), travels->end(), cpol);
 
 	return;
-}
-
-/**
- * \fn Travel find_cheapest(vector<Travel>& travels, vector<vector<string> >&alliances)
- * \brief Finds the cheapest travel amongst the travels's vector.
- * \param travels A vector of acceptable travels
- * \param alliances The alliances
- * \return The cheapest travel found.
- */
-Travel find_cheapest(Travels *travels, Alliances *alliances)
-{
-	int s0 = travels->size();
-
-	OUT("Find cheapest of " << s0 << " travels.");
-
-	if (s0 == 0)
-	{
-		cerr << "Travel list is empty!" << endl;
-		exit(110);
-	}
-
-	TravelComparator tc(travels, alliances);
-	parallel_reduce(blocked_range<unsigned int>(0, travels->size()), tc);
-
-	return *tc.cheapest_travel;
 }
 
 /**
@@ -501,25 +280,6 @@ void fill_travel(Travels *travels, Travels *final_travels, vector<Flight>& fligh
 }
 
 /**
- * \fn void merge_path(vector<Travel>& travel1, vector<Travel>& travel2)
- * \brief Merge the travel1 with the travel2 and put the result in the travel1.
- * \param travel1 The first part of the trip.
- * \param travel2 The second part of the trip.
- */
-void merge_path(Travels *results, Travels *travels1, Travels *travels2,
-		Alliances *alliances)
-{
-	PathMergingOuterLoop pmol(travels1, travels2, alliances);
-	parallel_reduce(blocked_range<unsigned int>(0, travels1->size()), pmol);
-
-	if (pmol.get_cheapest() != NULL)
-	{
-		results->push_back(*pmol.get_cheapest());
-	}
-	return;
-}
-
-/**
  * \fn time_t convert_to_timestamp(int day, int month, int year, int hour, int minute, int seconde)
  * \brief Convert a date to timestamp
  * Parameter's names are self-sufficient. You shouldn't modify this part of the code unless you know what you are doing.
@@ -537,9 +297,6 @@ time_t convert_to_timestamp(int day, int month, int year, int hour, int minute,
 	time.tm_sec = seconde;
 	return timegm(&time);
 }
-
-concurrent_hash_map<int, time_t> times;
-mutex ol;
 
 /**
  * \fn time_t timegm(struct tm *tm)
@@ -673,9 +430,9 @@ void print_params(Parameters &parameters)
 	cout << "alliances_file : " << parameters.alliances_file << endl;
 	cout << "work_hard_file : " << parameters.work_hard_file << endl;
 	cout << "play_hard_file : " << parameters.play_hard_file << endl;
-//	list<string>::iterator it = parameters.airports_of_interest.begin();
-//	for (; it != parameters.airports_of_interest.end(); it++)
-//		cout << "airports_of_interest : " << *it << endl;
+	vector<string>::iterator it = parameters.airports_of_interest.begin();
+	for (; it != parameters.airports_of_interest.end(); it++)
+		cout << "airports_of_interest : " << *it << endl;
 	cout << "flights : " << parameters.flights_file << endl;
 	cout << "alliances : " << parameters.alliances_file << endl;
 	cout << "nb_threads : " << parameters.nb_threads << endl;
@@ -856,62 +613,6 @@ void parse_flight(vector<Flight> *flights, string& line)
 	}
 }
 
-class FlightParser
-{
-private:
-	vector<Flight> *flights;
-	char *input;
-	vector<int>* lfs;
-
-public:
-	FlightParser(char* i, vector<int>* l, vector<Flight> *f) :
-			input(i), lfs(l)
-	{
-		flights = f;
-	}
-	FlightParser(FlightParser &fp, split) :
-			input(fp.input), lfs(fp.lfs)
-	{
-		flights = new vector<Flight>;
-	}
-
-	void setFlights(vector<Flight> *f)
-	{
-		flights = f;
-	}
-
-	void operator()(const blocked_range<int> range)
-	{
-		for (int i = range.begin(); i != range.end(); ++i)
-		{
-			// Determine the length of the line by computing the difference between the
-			// current LF character and the previous (does always work, since the first element
-			// in the "lfs" vector is a "-1").
-			// Then, allocate an appropriate amount of memory (plus 1 byte for the trailing 0-byte).
-			char* b = (char*) malloc(lfs->at(i) - lfs->at(i - 1) + 1);
-
-			// Copy the line into the previously allocated line buffer.
-			strncpy(b, (input + lfs->at(i - 1) + 1), lfs->at(i) - lfs->at(i - 1) - 1);
-
-			// Add 0-byte to mark string end.
-			b[lfs->at(i) - lfs->at(i - 1) - 1] = 0x00;
-
-			// Create string from character array and parse line.
-			string s(b);
-			parse_flight(flights, s);
-		}
-	}
-
-	void join(FlightParser &fp)
-	{
-		// Merge flight lists.
-		flights->insert(flights->end(), fp.flights->begin(), fp.flights->end());
-		delete fp.flights;
-	}
-};
-
-mutex rfl;
-
 /**
  * \fn void parse_flights(vector<Flight>& flights, string filename)
  * \brief This function parses the flights from a file.
@@ -958,9 +659,8 @@ void parse_flights(vector<Flight> *flights, string filename)
 	}
 
 	// Iterate over all found linefeeds and parse each line in parallel.
-	FlightParser fp(m, &lfs, flights);
-
-	parallel_reduce(blocked_range<int>(1, lfs.size()), fp);
+	ParseFlightsLoop pfl(m, &lfs, flights);
+	parallel_reduce(blocked_range<int>(1, lfs.size()), pfl);
 
 	// Unmap file from memory and close file handle.
 	munmap(m, stat.st_size);
@@ -1165,23 +865,6 @@ void output_solutions(vector<Flight> *flights, Parameters& parameters,
 }
 
 /**
- * \fn void output_work_hard(vector<Flight>& flights, Parameters& parameters, vector<vector<string> >& alliances)
- * \brief Display the solution of the "Work Hard" problem by solving it first.
- * \param flights The list of available flights.
- * \param parameters The parameters.
- * \param alliances The alliances between companies.
- */
-//void output_work_hard(vector<Flight>& flights, Parameters& parameters,
-//		vector<vector<string> >& alliances)
-//{
-//	ofstream output;
-//	output.open(parameters.work_hard_file.c_str());
-//	Travel travel = work_hard(flights, parameters, alliances);
-//	output << "“Work Hard” Proposition :" << endl;
-//	print_travel(travel, alliances, output);
-//	output.close();
-//}
-/**
  * Dumps the flight graph.
  *
  * This function dumps the entire flight graph, grouped by cities.
@@ -1219,28 +902,20 @@ int main(int argc, char **argv)
 
 	task_scheduler_init init(parameters.nb_threads);
 
-//	cout<<"Printing parameters..."<<endl;
-//	print_params(parameters);
 	vector<Flight> *flights = new vector<Flight>;
 	location_map = new concurrent_hash_map<string, Location>;
 
 	parse_flights(flights, parameters.flights_file);
-//	print_cities();
-//	cout<<"Printing flights..."<<endl;
 	cout << "Read " << flights->size() << " flights." << endl;
-//	print_flights(flights, (ofstream&) cout);
-//	cout<<"flights printed "<<endl;
 	parse_alliances(alliances, parameters.alliances_file);
 	cout << "Read " << alliances.size() << " alliances." << endl;
-//	cout<<"Printing alliances..."<<endl;
-//	print_alliances(alliances);
 	tick_count t0 = tick_count::now();
 
 	output_solutions(flights, parameters, alliances);
 
 	tick_count t1 = tick_count::now();
 
-	cout << "Dauer: " << (t1 - t0).seconds() * 1000 << endl;
+	cout << "Duration: " << (t1 - t0).seconds() * 1000 << endl;
 }
 
 //./run -from Paris -to Los\ Angeles -departure_time_min 11152012000000 -departure_time_max 11172012000000 -arrival_time_min 11222012000000 -arrival_time_max 11252012000000 -max_layover 100000 -vacation_time_min 432000 -vacation_time_max 604800 -vacation_airports Rio London Chicago -flights flights.txt -alliances alliances.txt
