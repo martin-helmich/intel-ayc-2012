@@ -20,13 +20,13 @@ oma::ParseFlightsLoop::ParseFlightsLoop(char* i, vector<int>* l, vector<Flight> 
 	flights = f;
 }
 
-oma::ParseFlightsLoop::ParseFlightsLoop(ParseFlightsLoop &pfl, split) :
-		input(pfl.input), lfs(pfl.lfs)
-{
-	flights = new vector<Flight>;
-}
+//oma::ParseFlightsLoop::ParseFlightsLoop(ParseFlightsLoop &pfl, split) :
+//		input(pfl.input), lfs(pfl.lfs)
+//{
+//	flights = new vector<Flight>;
+//}
 
-void oma::ParseFlightsLoop::operator()(const blocked_range<int> range)
+void oma::ParseFlightsLoop::operator()(const blocked_range<int> range) const
 {
 	for (int i = range.begin(); i != range.end(); ++i)
 	{
@@ -44,16 +44,16 @@ void oma::ParseFlightsLoop::operator()(const blocked_range<int> range)
 
 		// Create string from character array and parse line.
 		string s(b);
-		parse_flight(flights, s);
+		parse_flight(flights, &s);
 	}
 }
 
-void oma::ParseFlightsLoop::join(ParseFlightsLoop &pfl)
-{
-	// Merge flight lists.
-	flights->insert(flights->end(), pfl.flights->begin(), pfl.flights->end());
-	delete pfl.flights;
-}
+//void oma::ParseFlightsLoop::join(ParseFlightsLoop &pfl)
+//{
+//	// Merge flight lists.
+//	flights->insert(flights->end(), pfl.flights->begin(), pfl.flights->end());
+//	delete pfl.flights;
+//}
 
 oma::PathMergingOuterLoop::PathMergingOuterLoop(Travels *t1, Travels *t2, Alliances *a)
 {

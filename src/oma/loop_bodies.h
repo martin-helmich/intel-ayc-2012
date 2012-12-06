@@ -43,15 +43,15 @@ public:
 
 	/// Split constructor.
 	/** @param pfl Parent loop. */
-	ParseFlightsLoop(ParseFlightsLoop &pfl, split);
+//	ParseFlightsLoop(ParseFlightsLoop &pfl, split);
 
 	/// Actual loop body.
 	/** @param range Range to be iterated over. */
-	void operator()(const blocked_range<int> range);
+	void operator()(const blocked_range<int> range) const;
 
 	/// Joins two loop results into one.
 	/** @param pfl Another loop body. */
-	void join(ParseFlightsLoop &pfl);
+//	void join(ParseFlightsLoop &pfl);
 };
 
 /// Loop body for merging two seperate sets of routes into one set of routes.

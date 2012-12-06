@@ -29,7 +29,7 @@ void print_params(Parameters &parameters);
 void print_flight(Flight& flight, float discount, ofstream& output);
 void read_parameters(Parameters& parameters, int argc, char **argv);
 void split_string(vector<string>& result, string line, char separator);
-void parse_flight(vector<Flight> *flights, string& line);
+void parse_flight(vector<Flight> *flights, string *line);
 void parse_flights(vector<Flight> *flights, string filename);
 void parse_alliance(vector<string> &alliance, string line);
 void parse_alliances(vector<vector<string> > &alliances, string filename);

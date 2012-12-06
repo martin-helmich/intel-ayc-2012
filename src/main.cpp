@@ -391,18 +391,18 @@ time_t convert_string_to_timestamp(string s)
 {
 	if (s.size() != 14)
 	{
-		cerr << "The given string is not a valid timestamp" << endl;
+		cerr << "The given string '" << s << "' is not a valid timestamp" << endl;
 		exit(0);
 	}
 	else
 	{
 		int day, month, year, hour, minute, seconde;
-		day = atoi(s.substr(2, 2).c_str());
-		month = atoi(s.substr(0, 2).c_str());
-		year = atoi(s.substr(4, 4).c_str());
-		hour = atoi(s.substr(8, 2).c_str());
-		minute = atoi(s.substr(10, 2).c_str());
-		seconde = atoi(s.substr(12, 2).c_str());
+		day = ((int)(s[2]-48)*10) + ((int)s[3]-48);
+		month = ((int)(s[0]-48)*10) + ((int)s[1]-48);
+		year = ((int)(s[4]-48)*1000) + ((int)(s[5]-48)*100) + ((int)(s[6]-48)*10) + ((int)(s[7]-48));
+		hour = ((int)(s[8]-48)*10) + ((int)s[9]-48);
+		minute = ((int)(s[10]-48)*10) + ((int)s[11]-48);
+		seconde = ((int)(s[12]-48)*10) + ((int)s[13]-48);
 		return convert_to_timestamp(day, month, year, hour, minute, seconde);
 	}
 }
@@ -554,58 +554,70 @@ void split_string(vector<string>& result, string line, char separator)
  * \param flights The vector of flights.
  * \param line The line that must be parsed.
  */
-void parse_flight(vector<Flight> *flights, string& line)
+void parse_flight(vector<Flight> *flights, string *line)
 {
-	vector<string> splittedLine;
-	split_string(splittedLine, line, ';');
-	if (splittedLine.size() == 7)
+	char *l = (char*) line->c_str();
+	size_t n = line->length();
+	unsigned int p[7];
+
+	int j=0;
+	for (int i=0; i < n; i ++)
 	{
-		Flight flight;
-		flight.id = splittedLine[0];
-		flight.from = splittedLine[1];
-		flight.take_off_time = convert_string_to_timestamp(splittedLine[2].c_str());
-		flight.to = splittedLine[3];
-		flight.land_time = convert_string_to_timestamp(splittedLine[4].c_str());
-		flight.cost = atof(splittedLine[5].c_str());
-		flight.company = splittedLine[6];
-		flight.discout = 1.0;
-		flights->push_back(flight);
+		if (l[i] == ';') {
+			if (j >= 6) return;
+			p[j] = i;
+			l[i] = 0x00;
 
-		// Build a big graph from all locations and the flights connecting them.
-		// We store all known locations (i.e. targets and origins of our flights)
-		// in a hash map for fast access and all incoming and outgoing flights from
-		// or to these locations in adjacency lists.
-		concurrent_hash_map<string, Location>::accessor a;
-		if (!location_map->insert(a, flight.from))
-		{
-			a->second.outgoing_flights.push_back(flight);
+			if (j == 1 || j == 3) i += 13;
+			j++;
 		}
-		else
-		{
-			Location new_loc;
-
-			new_loc.name = flight.from;
-			new_loc.outgoing_flights.push_back(flight);
-			a->second = new_loc;
-		}
-		a.release();
-
-		concurrent_hash_map<string, Location>::accessor b;
-		if (!location_map->insert(b, flight.to))
-		{
-			b->second.incoming_flights.push_back(flight);
-		}
-		else
-		{
-			Location new_loc;
-
-			new_loc.name = flight.to;
-			new_loc.incoming_flights.push_back(flight);
-
-			b->second = new_loc;
-		}
-		b.release();
 	}
+	if (j < 6) return;
+
+	Flight flight;
+	flight.id = string((const char*)&(l[0]));
+	flight.from = string((const char*)&(l[p[0]+1]));
+	flight.take_off_time = convert_string_to_timestamp((const char*)&(l[p[1]+1]));
+	flight.to = string((const char*)&(l[p[2]+1]));
+	flight.land_time = convert_string_to_timestamp((const char*)&(l[p[3]+1]));
+	flight.cost = atof((const char*)&(l[p[4]+1]));
+	flight.company = string((const char*)&(l[p[5]+1]));
+	flight.discout = 1.0;
+
+	// Build a big graph from all locations and the flights connecting them.
+	// We store all known locations (i.e. targets and origins of our flights)
+	// in a hash map for fast access and all incoming and outgoing flights from
+	// or to these locations in adjacency lists.
+	concurrent_hash_map<string, Location>::accessor a;
+	if (!location_map->insert(a, flight.from))
+	{
+		a->second.outgoing_flights.push_back(flight);
+	}
+	else
+	{
+		Location new_loc;
+
+		new_loc.name = flight.from;
+		new_loc.outgoing_flights.push_back(flight);
+		a->second = new_loc;
+	}
+	a.release();
+
+	concurrent_hash_map<string, Location>::accessor b;
+	if (!location_map->insert(b, flight.to))
+	{
+		b->second.incoming_flights.push_back(flight);
+	}
+	else
+	{
+		Location new_loc;
+
+		new_loc.name = flight.to;
+		new_loc.incoming_flights.push_back(flight);
+
+		b->second = new_loc;
+	}
+	b.release();
 }
 
 /// This function parses the flights from a file.
@@ -651,8 +663,11 @@ void parse_flights(vector<Flight> *flights, string filename)
 	}
 
 	// Iterate over all found linefeeds and parse each line in parallel.
+	tick_count t0 = tick_count::now();
 	ParseFlightsLoop pfl(m, &lfs, flights);
-	parallel_reduce(blocked_range<int>(1, lfs.size()), pfl);
+//	parallel_reduce(blocked_range<int>(1, lfs.size()), pfl);
+	parallel_for(blocked_range<int>(1, lfs.size()), pfl);
+	cout << "Read input file in " << (tick_count::now() - t0).seconds() * 1000  << endl;
 
 	// Unmap file from memory and close file handle.
 	munmap(m, stat.st_size);
