@@ -1025,7 +1025,7 @@ bool company_are_in_a_common_alliance(const string& c1, const string& c2,
 		vector<vector<string> > *alliances)
 {
 	concurrent_hash_map<string, bool>::accessor a;
-	if (alliance_map.insert(a, c1 + c2))
+	if (alliance_map.insert(a, c1 < c2 ? c1 + c2 : c2 + c1))
 	{
 		for (unsigned int i = 0; i < alliances->size(); i++)
 		{
