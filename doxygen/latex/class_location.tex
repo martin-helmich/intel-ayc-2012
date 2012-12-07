@@ -1,0 +1,73 @@
+\hypertarget{class_location}{\section{Location Class Reference}
+\label{class_location}\index{Location@{Location}}
+}
+
+
+Models a location and associated application logic.  
+
+
+
+
+{\ttfamily \#include $<$types.\-h$>$}
+
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+string \hyperlink{class_location_a0ae46c7127ec349e484ed075c91ba258}{name}
+\begin{DoxyCompactList}\small\item\em The location's name. \end{DoxyCompactList}\item 
+vector$<$ \hyperlink{struct_flight}{Flight} $>$ \hyperlink{class_location_ace927068b1af49e5519844c15668e789}{outgoing\-\_\-flights}
+\begin{DoxyCompactList}\small\item\em Outgoing flights. \end{DoxyCompactList}\item 
+vector$<$ \hyperlink{struct_flight}{Flight} $>$ \hyperlink{class_location_ac43a0eca7e83b95962344c04b43494ab}{incoming\-\_\-flights}
+\begin{DoxyCompactList}\small\item\em Incoming flights. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Models a location and associated application logic. 
+
+This class models a single location (i.\-e. a possible flight origin or destination). In our flight graph, the locations are nodes, flights are edges.
+
+Each location stores a list of all incoming and outgoing flights for quick access. 
+
+Definition at line 131 of file types.\-h.
+
+
+
+\subsection{Member Data Documentation}
+\hypertarget{class_location_ac43a0eca7e83b95962344c04b43494ab}{\index{Location@{Location}!incoming\-\_\-flights@{incoming\-\_\-flights}}
+\index{incoming\-\_\-flights@{incoming\-\_\-flights}!Location@{Location}}
+\subsubsection[{incoming\-\_\-flights}]{\setlength{\rightskip}{0pt plus 5cm}vector$<${\bf Flight}$>$ Location\-::incoming\-\_\-flights}}\label{class_location_ac43a0eca7e83b95962344c04b43494ab}
+
+
+Incoming flights. 
+
+
+
+Definition at line 141 of file types.\-h.
+
+\hypertarget{class_location_a0ae46c7127ec349e484ed075c91ba258}{\index{Location@{Location}!name@{name}}
+\index{name@{name}!Location@{Location}}
+\subsubsection[{name}]{\setlength{\rightskip}{0pt plus 5cm}string Location\-::name}}\label{class_location_a0ae46c7127ec349e484ed075c91ba258}
+
+
+The location's name. 
+
+
+
+Definition at line 135 of file types.\-h.
+
+\hypertarget{class_location_ace927068b1af49e5519844c15668e789}{\index{Location@{Location}!outgoing\-\_\-flights@{outgoing\-\_\-flights}}
+\index{outgoing\-\_\-flights@{outgoing\-\_\-flights}!Location@{Location}}
+\subsubsection[{outgoing\-\_\-flights}]{\setlength{\rightskip}{0pt plus 5cm}vector$<${\bf Flight}$>$ Location\-::outgoing\-\_\-flights}}\label{class_location_ace927068b1af49e5519844c15668e789}
+
+
+Outgoing flights. 
+
+
+
+Definition at line 138 of file types.\-h.
+
+
+
+The documentation for this class was generated from the following file\-:\begin{DoxyCompactItemize}
+\item 
+src/\hyperlink{types_8h}{types.\-h}\end{DoxyCompactItemize}

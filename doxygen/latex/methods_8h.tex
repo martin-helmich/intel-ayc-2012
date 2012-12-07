@@ -1,0 +1,649 @@
+\hypertarget{methods_8h}{\section{src/methods.h File Reference}
+\label{methods_8h}\index{src/methods.\-h@{src/methods.\-h}}
+}
+
+
+This file contains method declarations from non-\/oo parts of this program.  
+
+
+{\ttfamily \#include \char`\"{}types.\-h\char`\"{}}\\*
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+bool \hyperlink{methods_8h_a8b4aa5b76e327b30ed84f5d04b99c14b}{nerver\-\_\-traveled\-\_\-to} (\hyperlink{class_travel}{Travel} travel, string city)
+\begin{DoxyCompactList}\small\item\em Indicates if the city has already been visited in the travel. \end{DoxyCompactList}\item 
+void \hyperlink{methods_8h_a90d1306bfb6998f07c635bc8aee3648c}{fill\-\_\-travel} (\hyperlink{types_8h_aef021ba284c03a12dddcfa082468e831}{Travels} $\ast$travels, \hyperlink{types_8h_aef021ba284c03a12dddcfa082468e831}{Travels} $\ast$final\-\_\-travels, string starting\-\_\-point, unsigned long t\-\_\-min, unsigned long t\-\_\-max, \hyperlink{class_cost_range}{Cost\-Range} $\ast$min\-\_\-range, string destination\-\_\-point, \hyperlink{types_8h_a942cbcc40778424afe78605ae5c364c0}{Alliances} $\ast$alliances)
+\item 
+void \hyperlink{methods_8h_ae2e38a19c3c07e06825b7ec6e6877e9e}{compute\-\_\-path} (string to, vector$<$ \hyperlink{class_travel}{Travel} $>$ $\ast$travels, unsigned long t\-\_\-min, unsigned long t\-\_\-max, \hyperlink{struct_parameters}{Parameters} parameters, vector$<$ \hyperlink{class_travel}{Travel} $>$ $\ast$final\-\_\-travels, \hyperlink{class_cost_range}{Cost\-Range} $\ast$min\-\_\-range, \hyperlink{types_8h_a942cbcc40778424afe78605ae5c364c0}{Alliances} $\ast$alliances)
+\begin{DoxyCompactList}\small\item\em Computes a path from a point A to a point B. \end{DoxyCompactList}\item 
+bool \hyperlink{methods_8h_ac0dca72b5907b859273c97bd3c247663}{company\-\_\-are\-\_\-in\-\_\-a\-\_\-common\-\_\-alliance} (const string \&c1, const string \&c2, \hyperlink{types_8h_a942cbcc40778424afe78605ae5c364c0}{Alliances} $\ast$alliances)
+\begin{DoxyCompactList}\small\item\em Check if 2 companies are in the same alliance. \end{DoxyCompactList}\item 
+bool \hyperlink{methods_8h_a8a9dea9cf1aec3c1bbb6533248d6c19b}{has\-\_\-just\-\_\-traveled\-\_\-with\-\_\-company} (\hyperlink{struct_flight}{Flight} $\ast$flight\-\_\-before, \hyperlink{struct_flight}{Flight} $\ast$current\-\_\-flight)
+\begin{DoxyCompactList}\small\item\em The 2 last flights are with the same company. \end{DoxyCompactList}\item 
+bool \hyperlink{methods_8h_a92c6d4c19cb49fdabe4ae8de8e5c838b}{has\-\_\-just\-\_\-traveled\-\_\-with\-\_\-alliance} (\hyperlink{struct_flight}{Flight} $\ast$flight\-\_\-before, \hyperlink{struct_flight}{Flight} $\ast$current\-\_\-flight, \hyperlink{types_8h_a942cbcc40778424afe78605ae5c364c0}{Alliances} $\ast$alliances)
+\begin{DoxyCompactList}\small\item\em The 2 last flights are with the same alliance. \end{DoxyCompactList}\item 
+time\-\_\-t \hyperlink{methods_8h_a3b7257e3b6a0c7ea4992bd352035bbd6}{convert\-\_\-to\-\_\-timestamp} (int day, int month, int year, int hour, int minute, int seconde)
+\begin{DoxyCompactList}\small\item\em Convert a date to timestamp. \end{DoxyCompactList}\item 
+time\-\_\-t \hyperlink{methods_8h_a993f6d131603adf516d43e48526cd4ab}{convert\-\_\-string\-\_\-to\-\_\-timestamp} (char $\ast$s)
+\begin{DoxyCompactList}\small\item\em Parses the string s and returns a timestamp (epoch) \end{DoxyCompactList}\item 
+void \hyperlink{methods_8h_a43e4100f8418f19bcb8f50f60c6dc645}{print\-\_\-params} (\hyperlink{struct_parameters}{Parameters} \&parameters)
+\begin{DoxyCompactList}\small\item\em You can use this function to display the parameters. \end{DoxyCompactList}\item 
+void \hyperlink{methods_8h_a24692053d4537178787e91213ac42e57}{print\-\_\-flight} (\hyperlink{struct_flight}{Flight} \&flight, float discount, ofstream \&output)
+\begin{DoxyCompactList}\small\item\em You can use this function to display a flight. \end{DoxyCompactList}\item 
+void \hyperlink{methods_8h_a33e6d81ca9f0bfadce42cabdeea5dd4b}{read\-\_\-parameters} (\hyperlink{struct_parameters}{Parameters} \&parameters, int argc, char $\ast$$\ast$argv)
+\begin{DoxyCompactList}\small\item\em This function is used to read the parameters. \end{DoxyCompactList}\item 
+void \hyperlink{methods_8h_a65f9c63de7a916669a1ccfb4ece7fa45}{split\-\_\-string} (vector$<$ string $>$ \&result, string line, char separator)
+\begin{DoxyCompactList}\small\item\em This function split a string into a vector of strings regarding the separator. \end{DoxyCompactList}\item 
+void \hyperlink{methods_8h_a53952d005ab48fa7f03345787ad913dd}{parse\-\_\-flight} (char $\ast$line, \hyperlink{struct_parameters}{Parameters} $\ast$p)
+\begin{DoxyCompactList}\small\item\em Parses a line containing a flight description. \end{DoxyCompactList}\item 
+void \hyperlink{methods_8h_aa083ee49399943b6267753466d9b105e}{parse\-\_\-flights} (string filename, \hyperlink{struct_parameters}{Parameters} $\ast$parameters)
+\begin{DoxyCompactList}\small\item\em This function parses the flights from a file. \end{DoxyCompactList}\item 
+void \hyperlink{methods_8h_acac2b9c3c856b63bd121d47f68f36daa}{parse\-\_\-alliance} (vector$<$ string $>$ \&alliance, string line)
+\begin{DoxyCompactList}\small\item\em This function parses a line containing alliances between companies. \end{DoxyCompactList}\item 
+void \hyperlink{methods_8h_af3baabb54a4d5a3f9369578a721bfe3d}{parse\-\_\-alliances} (\hyperlink{types_8h_a942cbcc40778424afe78605ae5c364c0}{Alliances} $\ast$alliances, string filename)
+\begin{DoxyCompactList}\small\item\em This function parses a line containing alliances between companies. \end{DoxyCompactList}\item 
+float \hyperlink{methods_8h_a7109364cc150e37a0e366bcc55250fba}{compute\-\_\-cost} (\hyperlink{class_travel}{Travel} $\ast$travel, \hyperlink{types_8h_a942cbcc40778424afe78605ae5c364c0}{Alliances} $\ast$alliances)
+\begin{DoxyCompactList}\small\item\em Compute the cost of a travel and uses the discounts when possible. \end{DoxyCompactList}\item 
+void \hyperlink{methods_8h_abd9fcd29a24889e471932b644154b428}{print\-\_\-alliances} (\hyperlink{types_8h_a942cbcc40778424afe78605ae5c364c0}{Alliances} \&alliances)
+\begin{DoxyCompactList}\small\item\em Display the alliances on the standard output. \end{DoxyCompactList}\item 
+void \hyperlink{methods_8h_a0fe3925ee9fe26c10f3e3d50679f9e2b}{print\-\_\-flights} (vector$<$ \hyperlink{struct_flight}{Flight} $>$ \&flights, vector$<$ float $>$ discounts, ofstream \&output)
+\begin{DoxyCompactList}\small\item\em Display the flights on the standard output. \end{DoxyCompactList}\item 
+void \hyperlink{methods_8h_a7a65c97b361d4f2ec9a5ea10843accc3}{print\-\_\-travel} (\hyperlink{class_travel}{Travel} \&travel, \hyperlink{types_8h_a942cbcc40778424afe78605ae5c364c0}{Alliances} $\ast$alliances)
+\item 
+\hyperlink{class_solution}{Solution} \hyperlink{methods_8h_a2d8eb930791b3e444c09bc4a5b95bcbd}{play\-\_\-and\-\_\-work\-\_\-hard} (\hyperlink{struct_parameters}{Parameters} \&parameters, \hyperlink{types_8h_a942cbcc40778424afe78605ae5c364c0}{Alliances} $\ast$alliances)
+\begin{DoxyCompactList}\small\item\em Solves B\-O\-T\-H the \char`\"{}\-Work Hard\char`\"{} A\-N\-D the \char`\"{}\-Play Hard\char`\"{} problem. \end{DoxyCompactList}\item 
+time\-\_\-t \hyperlink{methods_8h_a4fd5240e99b2a9bf19bc0fe39f6ffc07}{timegm} (struct tm $\ast$tm)
+\begin{DoxyCompactList}\small\item\em Convert a tm structure into a timestamp. \end{DoxyCompactList}\item 
+void \hyperlink{methods_8h_a5766b89bdfed4c22edb559487cebdc40}{print\-\_\-cities} ()
+\begin{DoxyCompactList}\small\item\em Dumps the flight graph. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+This file contains method declarations from non-\/oo parts of this program. \begin{DoxyAuthor}{Author}
+Martin Helmich \href{mailto:martin.helmich@hs-osnabrueck.de}{\tt martin.\-helmich@hs-\/osnabrueck.\-de}, University of Applied Sciences Osnabrück 
+
+Oliver Erxleben \href{mailto:oliver.erxleben@hs-osnabrueck.de}{\tt oliver.\-erxleben@hs-\/osnabrueck.\-de}, University of Applied Sciences Osnabrück 
+\end{DoxyAuthor}
+
+
+Definition in file \hyperlink{methods_8h_source}{methods.\-h}.
+
+
+
+\subsection{Function Documentation}
+\hypertarget{methods_8h_ac0dca72b5907b859273c97bd3c247663}{\index{methods.\-h@{methods.\-h}!company\-\_\-are\-\_\-in\-\_\-a\-\_\-common\-\_\-alliance@{company\-\_\-are\-\_\-in\-\_\-a\-\_\-common\-\_\-alliance}}
+\index{company\-\_\-are\-\_\-in\-\_\-a\-\_\-common\-\_\-alliance@{company\-\_\-are\-\_\-in\-\_\-a\-\_\-common\-\_\-alliance}!methods.h@{methods.\-h}}
+\subsubsection[{company\-\_\-are\-\_\-in\-\_\-a\-\_\-common\-\_\-alliance}]{\setlength{\rightskip}{0pt plus 5cm}bool company\-\_\-are\-\_\-in\-\_\-a\-\_\-common\-\_\-alliance (
+\begin{DoxyParamCaption}
+\item[{const string \&}]{c1, }
+\item[{const string \&}]{c2, }
+\item[{{\bf Alliances} $\ast$}]{alliances}
+\end{DoxyParamCaption}
+)}}\label{methods_8h_ac0dca72b5907b859273c97bd3c247663}
+
+
+Check if 2 companies are in the same alliance. 
+
+Based on the assumption that there are relatively few possible combinations of airlines, this function used a cache based on a \char`\"{}tbb\-::concurrent\-\_\-hash\-\_\-map$<$string,bool$>$\char`\"{} in which each combination of airlines is stored. Each entry is created with the first call with a certain company combination.
+
+
+\begin{DoxyParams}{Parameters}
+{\em c1} & The first company's name. \\
+\hline
+{\em c2} & The second company's name. \\
+\hline
+{\em alliances} & A 2\-D vector representing the alliances. Companies on the same line are in the same alliance. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 726 of file main.\-cpp.
+
+\hypertarget{methods_8h_a7109364cc150e37a0e366bcc55250fba}{\index{methods.\-h@{methods.\-h}!compute\-\_\-cost@{compute\-\_\-cost}}
+\index{compute\-\_\-cost@{compute\-\_\-cost}!methods.h@{methods.\-h}}
+\subsubsection[{compute\-\_\-cost}]{\setlength{\rightskip}{0pt plus 5cm}float compute\-\_\-cost (
+\begin{DoxyParamCaption}
+\item[{{\bf Travel} $\ast$}]{travel, }
+\item[{{\bf Alliances} $\ast$}]{alliances}
+\end{DoxyParamCaption}
+)}}\label{methods_8h_a7109364cc150e37a0e366bcc55250fba}
+
+
+Compute the cost of a travel and uses the discounts when possible. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em travel} & The travel. \\
+\hline
+{\em alliances} & The alliances. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 181 of file main.\-cpp.
+
+\hypertarget{methods_8h_ae2e38a19c3c07e06825b7ec6e6877e9e}{\index{methods.\-h@{methods.\-h}!compute\-\_\-path@{compute\-\_\-path}}
+\index{compute\-\_\-path@{compute\-\_\-path}!methods.h@{methods.\-h}}
+\subsubsection[{compute\-\_\-path}]{\setlength{\rightskip}{0pt plus 5cm}void compute\-\_\-path (
+\begin{DoxyParamCaption}
+\item[{string}]{to, }
+\item[{vector$<$ {\bf Travel} $>$ $\ast$}]{travels, }
+\item[{unsigned long}]{t\-\_\-min, }
+\item[{unsigned long}]{t\-\_\-max, }
+\item[{{\bf Parameters}}]{parameters, }
+\item[{vector$<$ {\bf Travel} $>$ $\ast$}]{final\-\_\-travels, }
+\item[{{\bf Cost\-Range} $\ast$}]{min\-\_\-range, }
+\item[{{\bf Alliances} $\ast$}]{alliances}
+\end{DoxyParamCaption}
+)}}\label{methods_8h_ae2e38a19c3c07e06825b7ec6e6877e9e}
+
+
+Computes a path from a point A to a point B. 
+
+The flights must be scheduled between t\-\_\-min and t\-\_\-max. It is also important to take the layover in consideration.
+
+
+\begin{DoxyParams}{Parameters}
+{\em to} & The destination. \\
+\hline
+{\em travels} & The list of possible travels that we are building. \\
+\hline
+{\em t\-\_\-min} & You must not be in a plane before this value (epoch) \\
+\hline
+{\em t\-\_\-max} & You must not be in a plane after this value (epoch) \\
+\hline
+{\em parameters} & The program parameters \\
+\hline
+{\em final\-\_\-travels} & The output vector. \\
+\hline
+{\em min\-\_\-range} & The minimum price range in which all found routes must fit. \\
+\hline
+{\em alliances} & The global alliance vector. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 207 of file main.\-cpp.
+
+\hypertarget{methods_8h_a993f6d131603adf516d43e48526cd4ab}{\index{methods.\-h@{methods.\-h}!convert\-\_\-string\-\_\-to\-\_\-timestamp@{convert\-\_\-string\-\_\-to\-\_\-timestamp}}
+\index{convert\-\_\-string\-\_\-to\-\_\-timestamp@{convert\-\_\-string\-\_\-to\-\_\-timestamp}!methods.h@{methods.\-h}}
+\subsubsection[{convert\-\_\-string\-\_\-to\-\_\-timestamp}]{\setlength{\rightskip}{0pt plus 5cm}time\-\_\-t convert\-\_\-string\-\_\-to\-\_\-timestamp (
+\begin{DoxyParamCaption}
+\item[{char $\ast$}]{s}
+\end{DoxyParamCaption}
+)}}\label{methods_8h_a993f6d131603adf516d43e48526cd4ab}
+
+
+Parses the string s and returns a timestamp (epoch) 
+
+
+\begin{DoxyParams}{Parameters}
+{\em s} & A string that represents a date with the following format M\-M\-D\-D\-Y\-Y\-Y\-Yhhmmss with M = Month number D = Day number Y = Year number h = hour number m = minute number s = second number \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+a timestamp (epoch) corresponding to the given parameters.
+\end{DoxyReturn}
+You shouldn't modify this part of the code unless you know what you are doing. (Yep, I'm not really sure I know what I'm doing, but it works nonetheless).
+
+This function was completely rewritten in favour of a more performant approach. Instead of working with substrings and numerous \char`\"{}atoi\char`\"{} calls, we perform the \char`\"{}string -\/$>$ integer\char`\"{} conversion manually. 
+
+Definition at line 391 of file main.\-cpp.
+
+\hypertarget{methods_8h_a3b7257e3b6a0c7ea4992bd352035bbd6}{\index{methods.\-h@{methods.\-h}!convert\-\_\-to\-\_\-timestamp@{convert\-\_\-to\-\_\-timestamp}}
+\index{convert\-\_\-to\-\_\-timestamp@{convert\-\_\-to\-\_\-timestamp}!methods.h@{methods.\-h}}
+\subsubsection[{convert\-\_\-to\-\_\-timestamp}]{\setlength{\rightskip}{0pt plus 5cm}time\-\_\-t convert\-\_\-to\-\_\-timestamp (
+\begin{DoxyParamCaption}
+\item[{int}]{day, }
+\item[{int}]{month, }
+\item[{int}]{year, }
+\item[{int}]{hour, }
+\item[{int}]{minute, }
+\item[{int}]{seconde}
+\end{DoxyParamCaption}
+)}}\label{methods_8h_a3b7257e3b6a0c7ea4992bd352035bbd6}
+
+
+Convert a date to timestamp. 
+
+\begin{DoxyReturn}{Returns}
+a timestamp (epoch) corresponding to the given parameters. 
+\end{DoxyReturn}
+
+
+Definition at line 278 of file main.\-cpp.
+
+\hypertarget{methods_8h_a90d1306bfb6998f07c635bc8aee3648c}{\index{methods.\-h@{methods.\-h}!fill\-\_\-travel@{fill\-\_\-travel}}
+\index{fill\-\_\-travel@{fill\-\_\-travel}!methods.h@{methods.\-h}}
+\subsubsection[{fill\-\_\-travel}]{\setlength{\rightskip}{0pt plus 5cm}void fill\-\_\-travel (
+\begin{DoxyParamCaption}
+\item[{{\bf Travels} $\ast$}]{travels, }
+\item[{{\bf Travels} $\ast$}]{final\-\_\-travels, }
+\item[{string}]{starting\-\_\-point, }
+\item[{unsigned long}]{t\-\_\-min, }
+\item[{unsigned long}]{t\-\_\-max, }
+\item[{{\bf Cost\-Range} $\ast$}]{min\-\_\-range, }
+\item[{string}]{destination\-\_\-point, }
+\item[{{\bf Alliances} $\ast$}]{alliances}
+\end{DoxyParamCaption}
+)}}\label{methods_8h_a90d1306bfb6998f07c635bc8aee3648c}
+\hypertarget{methods_8h_a92c6d4c19cb49fdabe4ae8de8e5c838b}{\index{methods.\-h@{methods.\-h}!has\-\_\-just\-\_\-traveled\-\_\-with\-\_\-alliance@{has\-\_\-just\-\_\-traveled\-\_\-with\-\_\-alliance}}
+\index{has\-\_\-just\-\_\-traveled\-\_\-with\-\_\-alliance@{has\-\_\-just\-\_\-traveled\-\_\-with\-\_\-alliance}!methods.h@{methods.\-h}}
+\subsubsection[{has\-\_\-just\-\_\-traveled\-\_\-with\-\_\-alliance}]{\setlength{\rightskip}{0pt plus 5cm}bool has\-\_\-just\-\_\-traveled\-\_\-with\-\_\-alliance (
+\begin{DoxyParamCaption}
+\item[{{\bf Flight} $\ast$}]{flight\-\_\-before, }
+\item[{{\bf Flight} $\ast$}]{current\-\_\-flight, }
+\item[{{\bf Alliances} $\ast$}]{alliances}
+\end{DoxyParamCaption}
+)}}\label{methods_8h_a92c6d4c19cb49fdabe4ae8de8e5c838b}
+
+
+The 2 last flights are with the same alliance. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em flight\-\_\-before} & The first flight. \\
+\hline
+{\em current\-\_\-flight} & The second flight. \\
+\hline
+{\em alliances} & The alliances. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The 2 flights are with the same alliance. 
+\end{DoxyReturn}
+
+
+Definition at line 769 of file main.\-cpp.
+
+\hypertarget{methods_8h_a8a9dea9cf1aec3c1bbb6533248d6c19b}{\index{methods.\-h@{methods.\-h}!has\-\_\-just\-\_\-traveled\-\_\-with\-\_\-company@{has\-\_\-just\-\_\-traveled\-\_\-with\-\_\-company}}
+\index{has\-\_\-just\-\_\-traveled\-\_\-with\-\_\-company@{has\-\_\-just\-\_\-traveled\-\_\-with\-\_\-company}!methods.h@{methods.\-h}}
+\subsubsection[{has\-\_\-just\-\_\-traveled\-\_\-with\-\_\-company}]{\setlength{\rightskip}{0pt plus 5cm}bool has\-\_\-just\-\_\-traveled\-\_\-with\-\_\-company (
+\begin{DoxyParamCaption}
+\item[{{\bf Flight} $\ast$}]{flight\-\_\-before, }
+\item[{{\bf Flight} $\ast$}]{current\-\_\-flight}
+\end{DoxyParamCaption}
+)}}\label{methods_8h_a8a9dea9cf1aec3c1bbb6533248d6c19b}
+
+
+The 2 last flights are with the same company. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em flight\-\_\-before} & The first flight. \\
+\hline
+{\em current\-\_\-flight} & The second flight. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The 2 flights are with the same company. 
+\end{DoxyReturn}
+
+
+Definition at line 759 of file main.\-cpp.
+
+\hypertarget{methods_8h_a8b4aa5b76e327b30ed84f5d04b99c14b}{\index{methods.\-h@{methods.\-h}!nerver\-\_\-traveled\-\_\-to@{nerver\-\_\-traveled\-\_\-to}}
+\index{nerver\-\_\-traveled\-\_\-to@{nerver\-\_\-traveled\-\_\-to}!methods.h@{methods.\-h}}
+\subsubsection[{nerver\-\_\-traveled\-\_\-to}]{\setlength{\rightskip}{0pt plus 5cm}bool nerver\-\_\-traveled\-\_\-to (
+\begin{DoxyParamCaption}
+\item[{{\bf Travel}}]{travel, }
+\item[{string}]{city}
+\end{DoxyParamCaption}
+)}}\label{methods_8h_a8b4aa5b76e327b30ed84f5d04b99c14b}
+
+
+Indicates if the city has already been visited in the travel. 
+
+This function is used to avoid stupid loops.
+
+
+\begin{DoxyParams}{Parameters}
+{\em travel} & The travels. \\
+\hline
+{\em city} & The city. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The current travel has never visited the given city. 
+\end{DoxyReturn}
+
+
+Definition at line 809 of file main.\-cpp.
+
+\hypertarget{methods_8h_acac2b9c3c856b63bd121d47f68f36daa}{\index{methods.\-h@{methods.\-h}!parse\-\_\-alliance@{parse\-\_\-alliance}}
+\index{parse\-\_\-alliance@{parse\-\_\-alliance}!methods.h@{methods.\-h}}
+\subsubsection[{parse\-\_\-alliance}]{\setlength{\rightskip}{0pt plus 5cm}void parse\-\_\-alliance (
+\begin{DoxyParamCaption}
+\item[{vector$<$ string $>$ \&}]{alliance, }
+\item[{string}]{line}
+\end{DoxyParamCaption}
+)}}\label{methods_8h_acac2b9c3c856b63bd121d47f68f36daa}
+
+
+This function parses a line containing alliances between companies. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em alliance} & A vector of companies sharing a same alliance. \\
+\hline
+{\em line} & A line that contains the name of companies in the same alliance. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 682 of file main.\-cpp.
+
+\hypertarget{methods_8h_af3baabb54a4d5a3f9369578a721bfe3d}{\index{methods.\-h@{methods.\-h}!parse\-\_\-alliances@{parse\-\_\-alliances}}
+\index{parse\-\_\-alliances@{parse\-\_\-alliances}!methods.h@{methods.\-h}}
+\subsubsection[{parse\-\_\-alliances}]{\setlength{\rightskip}{0pt plus 5cm}void parse\-\_\-alliances (
+\begin{DoxyParamCaption}
+\item[{{\bf Alliances} $\ast$}]{alliances, }
+\item[{string}]{filename}
+\end{DoxyParamCaption}
+)}}\label{methods_8h_af3baabb54a4d5a3f9369578a721bfe3d}
+
+
+This function parses a line containing alliances between companies. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em alliances} & A 2\-D vector representing the alliances. Companies on the same line are in the same alliance. \\
+\hline
+{\em filename} & The name of the file containing the alliances description. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 696 of file main.\-cpp.
+
+\hypertarget{methods_8h_a53952d005ab48fa7f03345787ad913dd}{\index{methods.\-h@{methods.\-h}!parse\-\_\-flight@{parse\-\_\-flight}}
+\index{parse\-\_\-flight@{parse\-\_\-flight}!methods.h@{methods.\-h}}
+\subsubsection[{parse\-\_\-flight}]{\setlength{\rightskip}{0pt plus 5cm}void parse\-\_\-flight (
+\begin{DoxyParamCaption}
+\item[{char $\ast$}]{l, }
+\item[{{\bf Parameters} $\ast$}]{param}
+\end{DoxyParamCaption}
+)}}\label{methods_8h_a53952d005ab48fa7f03345787ad913dd}
+
+
+Parses a line containing a flight description. 
+
+This function parses a string containing a flight description.
+
+It implements the following optimizations\-:
+
+
+\begin{DoxyItemize}
+\item (char$\ast$) instead of std\-::string saves unnecessary copying.
+\item Flights that are clearly outside the specified time window are completely ignored, reducing the amount of data to be processed later.
+\item A flight graph is constructed while parsing flights, allowing quick (and O(1)) access to outgoing and incoming flights from or to certain locations.
+\end{DoxyItemize}
+
+
+\begin{DoxyParams}{Parameters}
+{\em l} & The line that must be parsed. \\
+\hline
+{\em param} & A pointer to the input parameter object. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 555 of file main.\-cpp.
+
+\hypertarget{methods_8h_aa083ee49399943b6267753466d9b105e}{\index{methods.\-h@{methods.\-h}!parse\-\_\-flights@{parse\-\_\-flights}}
+\index{parse\-\_\-flights@{parse\-\_\-flights}!methods.h@{methods.\-h}}
+\subsubsection[{parse\-\_\-flights}]{\setlength{\rightskip}{0pt plus 5cm}void parse\-\_\-flights (
+\begin{DoxyParamCaption}
+\item[{string}]{filename, }
+\item[{{\bf Parameters} $\ast$}]{parameters}
+\end{DoxyParamCaption}
+)}}\label{methods_8h_aa083ee49399943b6267753466d9b105e}
+
+
+This function parses the flights from a file. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em filename} & The name of the file containing the flights. \\
+\hline
+{\em parameters} & Input parameters. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 631 of file main.\-cpp.
+
+\hypertarget{methods_8h_a2d8eb930791b3e444c09bc4a5b95bcbd}{\index{methods.\-h@{methods.\-h}!play\-\_\-and\-\_\-work\-\_\-hard@{play\-\_\-and\-\_\-work\-\_\-hard}}
+\index{play\-\_\-and\-\_\-work\-\_\-hard@{play\-\_\-and\-\_\-work\-\_\-hard}!methods.h@{methods.\-h}}
+\subsubsection[{play\-\_\-and\-\_\-work\-\_\-hard}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Solution} play\-\_\-and\-\_\-work\-\_\-hard (
+\begin{DoxyParamCaption}
+\item[{{\bf Parameters} \&}]{parameters, }
+\item[{{\bf Alliances} $\ast$}]{alliances}
+\end{DoxyParamCaption}
+)}}\label{methods_8h_a2d8eb930791b3e444c09bc4a5b95bcbd}
+
+
+Solves B\-O\-T\-H the \char`\"{}\-Work Hard\char`\"{} A\-N\-D the \char`\"{}\-Play Hard\char`\"{} problem. 
+
+This function solves both the \char`\"{}work hard\char`\"{} A\-N\-D the \char`\"{}play hard\char`\"{} problem. It works in two phases\-:
+
+
+\begin{DoxyEnumerate}
+\item In the first phase, all partial routes (i.\-e. all intermediary routes with just one origin and destination -- e.\-g \char`\"{}home to vacation\char`\"{}, \char`\"{}home to
+   conference\char`\"{}, etc). All these partial routes are computed in parallel using task parallelism.
+
+Especially the \char`\"{}conference to home\char`\"{} and \char`\"{}home to conference\char`\"{} routes are needed to solve both the \char`\"{}work hard\char`\"{} and \char`\"{}play hard\char`\"{} problems. However, since these routes are completely independent from any vacation target, they need to be computed O\-N\-L\-Y O\-N\-C\-E.
+\end{DoxyEnumerate}
+
+
+\begin{DoxyEnumerate}
+\item In the second phase, all routes from the first phase are merged into possible solutions for the \char`\"{}work hard\char`\"{} and each of the \char`\"{}play hard\char`\"{} solutions. Then the cheapest of each set of possible solutions is computed. Just like in the first phase, this is parallelized using tasks.
+\end{DoxyEnumerate}
+
+
+\begin{DoxyParams}{Parameters}
+{\em parameters} & The parameters. \\
+\hline
+{\em alliances} & The alliances between companies. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+A solution object containing the \char`\"{}\-Work Hard\char`\"{} solution and a list of \char`\"{}\-Play Hard\char`\"{} solutions (one for each vacation destination). 
+\end{DoxyReturn}
+
+
+Definition at line 63 of file main.\-cpp.
+
+\hypertarget{methods_8h_abd9fcd29a24889e471932b644154b428}{\index{methods.\-h@{methods.\-h}!print\-\_\-alliances@{print\-\_\-alliances}}
+\index{print\-\_\-alliances@{print\-\_\-alliances}!methods.h@{methods.\-h}}
+\subsubsection[{print\-\_\-alliances}]{\setlength{\rightskip}{0pt plus 5cm}void print\-\_\-alliances (
+\begin{DoxyParamCaption}
+\item[{{\bf Alliances} \&}]{alliances}
+\end{DoxyParamCaption}
+)}}\label{methods_8h_abd9fcd29a24889e471932b644154b428}
+
+
+Display the alliances on the standard output. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em alliances} & The alliances. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 778 of file main.\-cpp.
+
+\hypertarget{methods_8h_a5766b89bdfed4c22edb559487cebdc40}{\index{methods.\-h@{methods.\-h}!print\-\_\-cities@{print\-\_\-cities}}
+\index{print\-\_\-cities@{print\-\_\-cities}!methods.h@{methods.\-h}}
+\subsubsection[{print\-\_\-cities}]{\setlength{\rightskip}{0pt plus 5cm}void print\-\_\-cities (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{methods_8h_a5766b89bdfed4c22edb559487cebdc40}
+
+
+Dumps the flight graph. 
+
+This function dumps the entire flight graph, grouped by cities. 
+
+Definition at line 868 of file main.\-cpp.
+
+\hypertarget{methods_8h_a24692053d4537178787e91213ac42e57}{\index{methods.\-h@{methods.\-h}!print\-\_\-flight@{print\-\_\-flight}}
+\index{print\-\_\-flight@{print\-\_\-flight}!methods.h@{methods.\-h}}
+\subsubsection[{print\-\_\-flight}]{\setlength{\rightskip}{0pt plus 5cm}void print\-\_\-flight (
+\begin{DoxyParamCaption}
+\item[{{\bf Flight} \&}]{flight, }
+\item[{float}]{discount, }
+\item[{ofstream \&}]{output}
+\end{DoxyParamCaption}
+)}}\label{methods_8h_a24692053d4537178787e91213ac42e57}
+
+
+You can use this function to display a flight. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em flight} & The flight. \\
+\hline
+{\em discount} & The discount. \\
+\hline
+{\em output} & The output stream. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 433 of file main.\-cpp.
+
+\hypertarget{methods_8h_a0fe3925ee9fe26c10f3e3d50679f9e2b}{\index{methods.\-h@{methods.\-h}!print\-\_\-flights@{print\-\_\-flights}}
+\index{print\-\_\-flights@{print\-\_\-flights}!methods.h@{methods.\-h}}
+\subsubsection[{print\-\_\-flights}]{\setlength{\rightskip}{0pt plus 5cm}void print\-\_\-flights (
+\begin{DoxyParamCaption}
+\item[{vector$<$ {\bf Flight} $>$ \&}]{flights, }
+\item[{vector$<$ float $>$}]{discounts, }
+\item[{ofstream \&}]{output}
+\end{DoxyParamCaption}
+)}}\label{methods_8h_a0fe3925ee9fe26c10f3e3d50679f9e2b}
+
+
+Display the flights on the standard output. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em flights} & The flights. \\
+\hline
+{\em discounts} & Discounts for each flight. \\
+\hline
+{\em output} & The output stream to be used. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 795 of file main.\-cpp.
+
+\hypertarget{methods_8h_a43e4100f8418f19bcb8f50f60c6dc645}{\index{methods.\-h@{methods.\-h}!print\-\_\-params@{print\-\_\-params}}
+\index{print\-\_\-params@{print\-\_\-params}!methods.h@{methods.\-h}}
+\subsubsection[{print\-\_\-params}]{\setlength{\rightskip}{0pt plus 5cm}void print\-\_\-params (
+\begin{DoxyParamCaption}
+\item[{{\bf Parameters} \&}]{parameters}
+\end{DoxyParamCaption}
+)}}\label{methods_8h_a43e4100f8418f19bcb8f50f60c6dc645}
+
+
+You can use this function to display the parameters. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em parameters} & The parameter object. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 406 of file main.\-cpp.
+
+\hypertarget{methods_8h_a7a65c97b361d4f2ec9a5ea10843accc3}{\index{methods.\-h@{methods.\-h}!print\-\_\-travel@{print\-\_\-travel}}
+\index{print\-\_\-travel@{print\-\_\-travel}!methods.h@{methods.\-h}}
+\subsubsection[{print\-\_\-travel}]{\setlength{\rightskip}{0pt plus 5cm}void print\-\_\-travel (
+\begin{DoxyParamCaption}
+\item[{{\bf Travel} \&}]{travel, }
+\item[{{\bf Alliances} $\ast$}]{alliances}
+\end{DoxyParamCaption}
+)}}\label{methods_8h_a7a65c97b361d4f2ec9a5ea10843accc3}
+\hypertarget{methods_8h_a33e6d81ca9f0bfadce42cabdeea5dd4b}{\index{methods.\-h@{methods.\-h}!read\-\_\-parameters@{read\-\_\-parameters}}
+\index{read\-\_\-parameters@{read\-\_\-parameters}!methods.h@{methods.\-h}}
+\subsubsection[{read\-\_\-parameters}]{\setlength{\rightskip}{0pt plus 5cm}void read\-\_\-parameters (
+\begin{DoxyParamCaption}
+\item[{{\bf Parameters} \&}]{parameters, }
+\item[{int}]{argc, }
+\item[{char $\ast$$\ast$}]{argv}
+\end{DoxyParamCaption}
+)}}\label{methods_8h_a33e6d81ca9f0bfadce42cabdeea5dd4b}
+
+
+This function is used to read the parameters. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em parameters} & Represents the structure that will be filled with the parameters. \\
+\hline
+{\em argc} & Count of command line parameters. \\
+\hline
+{\em argv} & Command line parameters. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 453 of file main.\-cpp.
+
+\hypertarget{methods_8h_a65f9c63de7a916669a1ccfb4ece7fa45}{\index{methods.\-h@{methods.\-h}!split\-\_\-string@{split\-\_\-string}}
+\index{split\-\_\-string@{split\-\_\-string}!methods.h@{methods.\-h}}
+\subsubsection[{split\-\_\-string}]{\setlength{\rightskip}{0pt plus 5cm}void split\-\_\-string (
+\begin{DoxyParamCaption}
+\item[{vector$<$ string $>$ \&}]{result, }
+\item[{string}]{line, }
+\item[{char}]{separator}
+\end{DoxyParamCaption}
+)}}\label{methods_8h_a65f9c63de7a916669a1ccfb4ece7fa45}
+
+
+This function split a string into a vector of strings regarding the separator. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em result} & The vector of separated strings \\
+\hline
+{\em line} & The line that must be split. \\
+\hline
+{\em separator} & The separator character. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 529 of file main.\-cpp.
+
+\hypertarget{methods_8h_a4fd5240e99b2a9bf19bc0fe39f6ffc07}{\index{methods.\-h@{methods.\-h}!timegm@{timegm}}
+\index{timegm@{timegm}!methods.h@{methods.\-h}}
+\subsubsection[{timegm}]{\setlength{\rightskip}{0pt plus 5cm}time\-\_\-t timegm (
+\begin{DoxyParamCaption}
+\item[{struct tm $\ast$}]{tm}
+\end{DoxyParamCaption}
+)}}\label{methods_8h_a4fd5240e99b2a9bf19bc0fe39f6ffc07}
+
+
+Convert a tm structure into a timestamp. 
+
+This function was completely rewritten in favor of a more performant and scalable implementation.
+
+On Linux, mktime() apparently requires exclusive access to some system resource that is ensured by using futex locks. This makes it very hard to parallelize.
+
+In order to minimize the amount of these expensive mktime() calls, we only compute \char`\"{}base dates\char`\"{} for each month/year combination which are subsequently stored into a concurrent hash map. The actual timestamps are then computed manually using the \char`\"{}base timestamp\char`\"{} plus the amount of seconds for the day/hour/minute.
+
+E\-D\-I\-T\-: Apparently, for larger input files ($>$ 200000 flights), mktime is still making trouble (by mixing up timezones on occasion). In order to avoid these problems altogether, we compute the timestamp C\-O\-M\-P\-L\-E\-T\-E\-L\-Y manually (yes, this is pain; luckily we can at least ignore the timezone problem -- it's all U\-T\-C, after all).
+
+\begin{DoxyReturn}{Returns}
+a timestamp (epoch) corresponding to the given parameter. 
+\end{DoxyReturn}
+
+
+Definition at line 312 of file main.\-cpp.
+

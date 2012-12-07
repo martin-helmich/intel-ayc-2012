@@ -1,0 +1,208 @@
+\hypertarget{class_travel}{\section{Travel Class Reference}
+\label{class_travel}\index{Travel@{Travel}}
+}
+
+
+Models a travel and associated application logic.  
+
+
+
+
+{\ttfamily \#include $<$types.\-h$>$}
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{class_travel_acc3bc73b916e588699d18ba7d4bb25c2}{Travel} ()
+\begin{DoxyCompactList}\small\item\em Creates a new travel. \end{DoxyCompactList}\item 
+void \hyperlink{class_travel_a3931da21a87c37cc604e3700c8557d1f}{add\-\_\-flight} (\hyperlink{struct_flight}{Flight} \&f, \hyperlink{types_8h_a942cbcc40778424afe78605ae5c364c0}{Alliances} $\ast$a)
+\begin{DoxyCompactList}\small\item\em Adds a new flight to this travel. \end{DoxyCompactList}\item 
+void \hyperlink{class_travel_a4240b6040357dc4b02c4be93a246c785}{merge\-\_\-travel} (\hyperlink{class_travel}{Travel} $\ast$t, \hyperlink{types_8h_a942cbcc40778424afe78605ae5c364c0}{Alliances} $\ast$a)
+\begin{DoxyCompactList}\small\item\em Merges two travels into one. \end{DoxyCompactList}\item 
+void \hyperlink{class_travel_a011123097200d9468d1fe08b300052f8}{print} ()
+\begin{DoxyCompactList}\small\item\em Prints a textual representation of this travel to S\-T\-D\-O\-U\-T. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+vector$<$ \hyperlink{struct_flight}{Flight} $>$ \hyperlink{class_travel_ad6f9e84e91a48ffcf60b7de21f01b0b5}{flights}
+\begin{DoxyCompactList}\small\item\em Flights contained in this travel. \end{DoxyCompactList}\item 
+vector$<$ float $>$ \hyperlink{class_travel_a153257830f638fa10e69f6c83a92e1fe}{discounts}
+\begin{DoxyCompactList}\small\item\em Discounts applied to each flight. \end{DoxyCompactList}\item 
+float \hyperlink{class_travel_a8493b95322d534e6ddff9e003b591ec5}{total\-\_\-cost}
+\begin{DoxyCompactList}\small\item\em Total costs of this travel. \end{DoxyCompactList}\item 
+float \hyperlink{class_travel_a29e09bf718386754dc5cf85bee4305f5}{min\-\_\-cost}
+\begin{DoxyCompactList}\small\item\em Minimal costs of this travel. \end{DoxyCompactList}\item 
+float \hyperlink{class_travel_a9bd372e0cfad472282e23aa6273a5faa}{max\-\_\-cost}
+\begin{DoxyCompactList}\small\item\em Maximal costs of this travel. \end{DoxyCompactList}\item 
+int \hyperlink{class_travel_a6ba08aa2208a879b9bc1612133e0b2bf}{size}
+\begin{DoxyCompactList}\small\item\em Helper storing the size of the travel. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Models a travel and associated application logic. 
+
+Definition at line 68 of file types.\-h.
+
+
+
+\subsection{Constructor \& Destructor Documentation}
+\hypertarget{class_travel_acc3bc73b916e588699d18ba7d4bb25c2}{\index{Travel@{Travel}!Travel@{Travel}}
+\index{Travel@{Travel}!Travel@{Travel}}
+\subsubsection[{Travel}]{\setlength{\rightskip}{0pt plus 5cm}Travel\-::\-Travel (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_travel_acc3bc73b916e588699d18ba7d4bb25c2}
+
+
+Creates a new travel. 
+
+
+
+Definition at line 101 of file types.\-h.
+
+
+
+\subsection{Member Function Documentation}
+\hypertarget{class_travel_a3931da21a87c37cc604e3700c8557d1f}{\index{Travel@{Travel}!add\-\_\-flight@{add\-\_\-flight}}
+\index{add\-\_\-flight@{add\-\_\-flight}!Travel@{Travel}}
+\subsubsection[{add\-\_\-flight}]{\setlength{\rightskip}{0pt plus 5cm}void Travel\-::add\-\_\-flight (
+\begin{DoxyParamCaption}
+\item[{{\bf Flight} \&}]{f, }
+\item[{{\bf Alliances} $\ast$}]{a}
+\end{DoxyParamCaption}
+)}}\label{class_travel_a3931da21a87c37cc604e3700c8557d1f}
+
+
+Adds a new flight to this travel. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em f} & The flight to be added. \\
+\hline
+{\em a} & A list of allicances. Is needed, because this function takes discouts into account.\\
+\hline
+\end{DoxyParams}
+This method adds a new flight to this travel. It also ensures that the minimal and maximal costs are updated\-:
+
+
+\begin{DoxyItemize}
+\item The minimal costs are always updated with the flight's costs and the highest possible discount (i.\-e. 30\%).
+\item The maximal costs are updated with the flight's costs and the lowest possible discount (usually 0\%, except a discount applies due to a previous flight). 
+\end{DoxyItemize}
+
+Definition at line 25 of file types.\-cpp.
+
+\hypertarget{class_travel_a4240b6040357dc4b02c4be93a246c785}{\index{Travel@{Travel}!merge\-\_\-travel@{merge\-\_\-travel}}
+\index{merge\-\_\-travel@{merge\-\_\-travel}!Travel@{Travel}}
+\subsubsection[{merge\-\_\-travel}]{\setlength{\rightskip}{0pt plus 5cm}void Travel\-::merge\-\_\-travel (
+\begin{DoxyParamCaption}
+\item[{{\bf Travel} $\ast$}]{t, }
+\item[{{\bf Alliances} $\ast$}]{a}
+\end{DoxyParamCaption}
+)}}\label{class_travel_a4240b6040357dc4b02c4be93a246c785}
+
+
+Merges two travels into one. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em t} & The travel to be merged. \\
+\hline
+{\em a} & The list of allicances. Is needed, because this function takes discouts into account. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 60 of file types.\-cpp.
+
+\hypertarget{class_travel_a011123097200d9468d1fe08b300052f8}{\index{Travel@{Travel}!print@{print}}
+\index{print@{print}!Travel@{Travel}}
+\subsubsection[{print}]{\setlength{\rightskip}{0pt plus 5cm}void Travel\-::print (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{class_travel_a011123097200d9468d1fe08b300052f8}
+
+
+Prints a textual representation of this travel to S\-T\-D\-O\-U\-T. 
+
+
+
+Definition at line 103 of file types.\-cpp.
+
+
+
+\subsection{Member Data Documentation}
+\hypertarget{class_travel_a153257830f638fa10e69f6c83a92e1fe}{\index{Travel@{Travel}!discounts@{discounts}}
+\index{discounts@{discounts}!Travel@{Travel}}
+\subsubsection[{discounts}]{\setlength{\rightskip}{0pt plus 5cm}vector$<$float$>$ Travel\-::discounts}}\label{class_travel_a153257830f638fa10e69f6c83a92e1fe}
+
+
+Discounts applied to each flight. 
+
+Discounts applied to each flight. Due to parallel processing, we cannot store the discount directly in the \hyperlink{struct_flight}{Flight} objects. 
+
+Definition at line 78 of file types.\-h.
+
+\hypertarget{class_travel_ad6f9e84e91a48ffcf60b7de21f01b0b5}{\index{Travel@{Travel}!flights@{flights}}
+\index{flights@{flights}!Travel@{Travel}}
+\subsubsection[{flights}]{\setlength{\rightskip}{0pt plus 5cm}vector$<${\bf Flight}$>$ Travel\-::flights}}\label{class_travel_ad6f9e84e91a48ffcf60b7de21f01b0b5}
+
+
+Flights contained in this travel. 
+
+A travel is (not anymore!) just a list of Flight(s). 
+
+Definition at line 73 of file types.\-h.
+
+\hypertarget{class_travel_a9bd372e0cfad472282e23aa6273a5faa}{\index{Travel@{Travel}!max\-\_\-cost@{max\-\_\-cost}}
+\index{max\-\_\-cost@{max\-\_\-cost}!Travel@{Travel}}
+\subsubsection[{max\-\_\-cost}]{\setlength{\rightskip}{0pt plus 5cm}float Travel\-::max\-\_\-cost}}\label{class_travel_a9bd372e0cfad472282e23aa6273a5faa}
+
+
+Maximal costs of this travel. 
+
+The maximal costs is the sum of this travel (i.\-e. all travel costs with lowest possible discount). 
+
+Definition at line 95 of file types.\-h.
+
+\hypertarget{class_travel_a29e09bf718386754dc5cf85bee4305f5}{\index{Travel@{Travel}!min\-\_\-cost@{min\-\_\-cost}}
+\index{min\-\_\-cost@{min\-\_\-cost}!Travel@{Travel}}
+\subsubsection[{min\-\_\-cost}]{\setlength{\rightskip}{0pt plus 5cm}float Travel\-::min\-\_\-cost}}\label{class_travel_a29e09bf718386754dc5cf85bee4305f5}
+
+
+Minimal costs of this travel. 
+
+The minimal costs is the sum of all travel costs with highest possible discount. 
+
+Definition at line 90 of file types.\-h.
+
+\hypertarget{class_travel_a6ba08aa2208a879b9bc1612133e0b2bf}{\index{Travel@{Travel}!size@{size}}
+\index{size@{size}!Travel@{Travel}}
+\subsubsection[{size}]{\setlength{\rightskip}{0pt plus 5cm}int Travel\-::size}}\label{class_travel_a6ba08aa2208a879b9bc1612133e0b2bf}
+
+
+Helper storing the size of the travel. 
+
+
+
+Definition at line 98 of file types.\-h.
+
+\hypertarget{class_travel_a8493b95322d534e6ddff9e003b591ec5}{\index{Travel@{Travel}!total\-\_\-cost@{total\-\_\-cost}}
+\index{total\-\_\-cost@{total\-\_\-cost}!Travel@{Travel}}
+\subsubsection[{total\-\_\-cost}]{\setlength{\rightskip}{0pt plus 5cm}float Travel\-::total\-\_\-cost}}\label{class_travel_a8493b95322d534e6ddff9e003b591ec5}
+
+
+Total costs of this travel. 
+
+The total cost of this travel. This is the sum of flight costs minus all possible discounts. The actual total costs of a travel can only be computed, when it is guaranteed that no flights are added any more (otherwise the costs can change due to discounts). 
+
+Definition at line 85 of file types.\-h.
+
+
+
+The documentation for this class was generated from the following files\-:\begin{DoxyCompactItemize}
+\item 
+src/\hyperlink{types_8h}{types.\-h}\item 
+src/oma/\hyperlink{types_8cpp}{types.\-cpp}\end{DoxyCompactItemize}

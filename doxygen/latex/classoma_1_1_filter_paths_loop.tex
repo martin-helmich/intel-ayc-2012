@@ -1,0 +1,131 @@
+\hypertarget{classoma_1_1_filter_paths_loop}{\section{oma\-:\-:Filter\-Paths\-Loop Class Reference}
+\label{classoma_1_1_filter_paths_loop}\index{oma\-::\-Filter\-Paths\-Loop@{oma\-::\-Filter\-Paths\-Loop}}
+}
+
+
+Loop body for filtering travels by minimal costs.  
+
+
+
+
+{\ttfamily \#include $<$loop\-\_\-bodies.\-h$>$}
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{classoma_1_1_filter_paths_loop_ab5fd9762c48c2332e3711cec64bb0333}{Filter\-Paths\-Loop} (\hyperlink{types_8h_aef021ba284c03a12dddcfa082468e831}{Travels} $\ast$i, \hyperlink{types_8h_aef021ba284c03a12dddcfa082468e831}{Travels} $\ast$o, \hyperlink{class_cost_range}{Cost\-Range} $\ast$r)
+\begin{DoxyCompactList}\small\item\em Initial constructor. \end{DoxyCompactList}\item 
+\hyperlink{classoma_1_1_filter_paths_loop_a0d44a59b8aa54215b164dff19cfdd5ad}{Filter\-Paths\-Loop} (\hyperlink{classoma_1_1_filter_paths_loop}{Filter\-Paths\-Loop} \&fpl, split)
+\begin{DoxyCompactList}\small\item\em Split constructor. \end{DoxyCompactList}\item 
+void \hyperlink{classoma_1_1_filter_paths_loop_a0ed77288c258f6f3680f36a463fceb91}{operator()} (blocked\-\_\-range$<$ unsigned int $>$ r)
+\begin{DoxyCompactList}\small\item\em Loop body. \end{DoxyCompactList}\item 
+void \hyperlink{classoma_1_1_filter_paths_loop_af7fad40771cf7b556e087de9a66fb22b}{join} (\hyperlink{classoma_1_1_filter_paths_loop}{Filter\-Paths\-Loop} \&fpl)
+\begin{DoxyCompactList}\small\item\em Reduce/\-Join-\/\-Function. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Loop body for filtering travels by minimal costs. 
+
+This loop body filters a set of travels by a predefined minimal cost. It takes an input vector \char`\"{}in\char`\"{} and a \char`\"{}\-Cost\-Range\char`\"{} object pointer as arguments and fills its output vector \char`\"{}out\char`\"{} with all travels from \char`\"{}in\char`\"{} that are possibly cheaper than defined by the cost range. 
+
+Definition at line 175 of file loop\-\_\-bodies.\-h.
+
+
+
+\subsection{Constructor \& Destructor Documentation}
+\hypertarget{classoma_1_1_filter_paths_loop_ab5fd9762c48c2332e3711cec64bb0333}{\index{oma\-::\-Filter\-Paths\-Loop@{oma\-::\-Filter\-Paths\-Loop}!Filter\-Paths\-Loop@{Filter\-Paths\-Loop}}
+\index{Filter\-Paths\-Loop@{Filter\-Paths\-Loop}!oma::FilterPathsLoop@{oma\-::\-Filter\-Paths\-Loop}}
+\subsubsection[{Filter\-Paths\-Loop}]{\setlength{\rightskip}{0pt plus 5cm}oma\-::\-Filter\-Paths\-Loop\-::\-Filter\-Paths\-Loop (
+\begin{DoxyParamCaption}
+\item[{{\bf Travels} $\ast$}]{i, }
+\item[{{\bf Travels} $\ast$}]{o, }
+\item[{{\bf Cost\-Range} $\ast$}]{r}
+\end{DoxyParamCaption}
+)}}\label{classoma_1_1_filter_paths_loop_ab5fd9762c48c2332e3711cec64bb0333}
+
+
+Initial constructor. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em i} & Input vector. \\
+\hline
+{\em o} & Output vector. \\
+\hline
+{\em r} & Comparison cost range. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 265 of file loop\-\_\-bodies.\-cpp.
+
+\hypertarget{classoma_1_1_filter_paths_loop_a0d44a59b8aa54215b164dff19cfdd5ad}{\index{oma\-::\-Filter\-Paths\-Loop@{oma\-::\-Filter\-Paths\-Loop}!Filter\-Paths\-Loop@{Filter\-Paths\-Loop}}
+\index{Filter\-Paths\-Loop@{Filter\-Paths\-Loop}!oma::FilterPathsLoop@{oma\-::\-Filter\-Paths\-Loop}}
+\subsubsection[{Filter\-Paths\-Loop}]{\setlength{\rightskip}{0pt plus 5cm}oma\-::\-Filter\-Paths\-Loop\-::\-Filter\-Paths\-Loop (
+\begin{DoxyParamCaption}
+\item[{{\bf Filter\-Paths\-Loop} \&}]{fpl, }
+\item[{split}]{}
+\end{DoxyParamCaption}
+)}}\label{classoma_1_1_filter_paths_loop_a0d44a59b8aa54215b164dff19cfdd5ad}
+
+
+Split constructor. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em fpl} & Parent loop body. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 272 of file loop\-\_\-bodies.\-cpp.
+
+
+
+\subsection{Member Function Documentation}
+\hypertarget{classoma_1_1_filter_paths_loop_af7fad40771cf7b556e087de9a66fb22b}{\index{oma\-::\-Filter\-Paths\-Loop@{oma\-::\-Filter\-Paths\-Loop}!join@{join}}
+\index{join@{join}!oma::FilterPathsLoop@{oma\-::\-Filter\-Paths\-Loop}}
+\subsubsection[{join}]{\setlength{\rightskip}{0pt plus 5cm}void oma\-::\-Filter\-Paths\-Loop\-::join (
+\begin{DoxyParamCaption}
+\item[{{\bf Filter\-Paths\-Loop} \&}]{fpl}
+\end{DoxyParamCaption}
+)}}\label{classoma_1_1_filter_paths_loop_af7fad40771cf7b556e087de9a66fb22b}
+
+
+Reduce/\-Join-\/\-Function. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em fpl} & Loop body to be joined. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 290 of file loop\-\_\-bodies.\-cpp.
+
+\hypertarget{classoma_1_1_filter_paths_loop_a0ed77288c258f6f3680f36a463fceb91}{\index{oma\-::\-Filter\-Paths\-Loop@{oma\-::\-Filter\-Paths\-Loop}!operator()@{operator()}}
+\index{operator()@{operator()}!oma::FilterPathsLoop@{oma\-::\-Filter\-Paths\-Loop}}
+\subsubsection[{operator()}]{\setlength{\rightskip}{0pt plus 5cm}void oma\-::\-Filter\-Paths\-Loop\-::operator() (
+\begin{DoxyParamCaption}
+\item[{blocked\-\_\-range$<$ unsigned int $>$}]{r}
+\end{DoxyParamCaption}
+)}}\label{classoma_1_1_filter_paths_loop_a0ed77288c258f6f3680f36a463fceb91}
+
+
+Loop body. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em r} & Range to be iterated over. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 279 of file loop\-\_\-bodies.\-cpp.
+
+
+
+The documentation for this class was generated from the following files\-:\begin{DoxyCompactItemize}
+\item 
+src/oma/\hyperlink{loop__bodies_8h}{loop\-\_\-bodies.\-h}\item 
+src/oma/\hyperlink{loop__bodies_8cpp}{loop\-\_\-bodies.\-cpp}\end{DoxyCompactItemize}

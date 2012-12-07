@@ -1,0 +1,84 @@
+\hypertarget{types_8h}{\section{src/types.h File Reference}
+\label{types_8h}\index{src/types.\-h@{src/types.\-h}}
+}
+
+
+This file contains class declarations for model classes.  
+
+
+{\ttfamily \#include $<$string$>$}\\*
+{\ttfamily \#include $<$vector$>$}\\*
+{\ttfamily \#include $<$list$>$}\\*
+{\ttfamily \#include $<$limits$>$}\\*
+{\ttfamily \#include $<$cmath$>$}\\*
+{\ttfamily \#include \char`\"{}tbb/spin\-\_\-mutex.\-h\char`\"{}}\\*
+\subsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+struct \hyperlink{struct_parameters}{Parameters}
+\begin{DoxyCompactList}\small\item\em Store the program's parameters. \end{DoxyCompactList}\item 
+struct \hyperlink{struct_flight}{Flight}
+\begin{DoxyCompactList}\small\item\em Store a single flight data. \end{DoxyCompactList}\item 
+class \hyperlink{class_travel}{Travel}
+\begin{DoxyCompactList}\small\item\em Models a travel and associated application logic. \end{DoxyCompactList}\item 
+class \hyperlink{class_location}{Location}
+\begin{DoxyCompactList}\small\item\em Models a location and associated application logic. \end{DoxyCompactList}\item 
+class \hyperlink{class_solution}{Solution}
+\begin{DoxyCompactList}\small\item\em Models the program's solution. \end{DoxyCompactList}\item 
+class \hyperlink{class_cost_range}{Cost\-Range}
+\begin{DoxyCompactList}\small\item\em Models a dynamic cost range. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\#define \hyperlink{types_8h_a2d91e5f7d9700424996796bf44d97f0f}{O\-U\-T}(a)
+\end{DoxyCompactItemize}
+\subsection*{Typedefs}
+\begin{DoxyCompactItemize}
+\item 
+typedef vector$<$ vector$<$ string $>$ $>$ \hyperlink{types_8h_a942cbcc40778424afe78605ae5c364c0}{Alliances}
+\item 
+typedef vector$<$ \hyperlink{class_travel}{Travel} $>$ \hyperlink{types_8h_aef021ba284c03a12dddcfa082468e831}{Travels}
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+This file contains class declarations for model classes. \begin{DoxyAuthor}{Author}
+Martin Helmich \href{mailto:martin.helmich@hs-osnabrueck.de}{\tt martin.\-helmich@hs-\/osnabrueck.\-de}, University of Applied Sciences Osnabrück 
+
+Oliver Erxleben \href{mailto:oliver.erxleben@hs-osnabrueck.de}{\tt oliver.\-erxleben@hs-\/osnabrueck.\-de}, University of Applied Sciences Osnabrück 
+\end{DoxyAuthor}
+
+
+Definition in file \hyperlink{types_8h_source}{types.\-h}.
+
+
+
+\subsection{Macro Definition Documentation}
+\hypertarget{types_8h_a2d91e5f7d9700424996796bf44d97f0f}{\index{types.\-h@{types.\-h}!O\-U\-T@{O\-U\-T}}
+\index{O\-U\-T@{O\-U\-T}!types.h@{types.\-h}}
+\subsubsection[{O\-U\-T}]{\setlength{\rightskip}{0pt plus 5cm}\#define O\-U\-T(
+\begin{DoxyParamCaption}
+\item[{}]{a}
+\end{DoxyParamCaption}
+)}}\label{types_8h_a2d91e5f7d9700424996796bf44d97f0f}
+
+
+Definition at line 14 of file types.\-h.
+
+
+
+\subsection{Typedef Documentation}
+\hypertarget{types_8h_a942cbcc40778424afe78605ae5c364c0}{\index{types.\-h@{types.\-h}!Alliances@{Alliances}}
+\index{Alliances@{Alliances}!types.h@{types.\-h}}
+\subsubsection[{Alliances}]{\setlength{\rightskip}{0pt plus 5cm}typedef vector$<$vector$<$string$>$ $>$ {\bf Alliances}}}\label{types_8h_a942cbcc40778424afe78605ae5c364c0}
+
+
+Definition at line 65 of file types.\-h.
+
+\hypertarget{types_8h_aef021ba284c03a12dddcfa082468e831}{\index{types.\-h@{types.\-h}!Travels@{Travels}}
+\index{Travels@{Travels}!types.h@{types.\-h}}
+\subsubsection[{Travels}]{\setlength{\rightskip}{0pt plus 5cm}typedef vector$<${\bf Travel}$>$ {\bf Travels}}}\label{types_8h_aef021ba284c03a12dddcfa082468e831}
+
+
+Definition at line 122 of file types.\-h.
+

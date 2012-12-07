@@ -12,8 +12,6 @@
 #include <sys/mman.h>
 #include <fcntl.h>
 
-#define DEBUG 1
-
 #include "types.h"
 #include "methods.h"
 
@@ -22,11 +20,12 @@
 #include "tbb/parallel_reduce.h"
 #include "tbb/tick_count.h"
 #include "tbb/mutex.h"
-#include "oma/loop_bodies.h"
-#include "oma/tasks.h"
 #include "tbb/concurrent_hash_map.h"
 #include "tbb/task_scheduler_init.h"
 #include "tbb/parallel_do.h"
+
+#include "oma/loop_bodies.h"
+#include "oma/tasks.h"
 
 using namespace std;
 using namespace tbb;

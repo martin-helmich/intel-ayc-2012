@@ -1,0 +1,96 @@
+\hypertarget{classoma_1_1_work_hard_task}{\section{oma\-:\-:Work\-Hard\-Task Class Reference}
+\label{classoma_1_1_work_hard_task}\index{oma\-::\-Work\-Hard\-Task@{oma\-::\-Work\-Hard\-Task}}
+}
+
+
+Solves the \char`\"{}work hard\char`\"{} problem.  
+
+
+
+
+{\ttfamily \#include $<$tasks.\-h$>$}
+
+Inheritance diagram for oma\-:\-:Work\-Hard\-Task\-:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{classoma_1_1_work_hard_task}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{classoma_1_1_work_hard_task_a3218415965120cba77c3f22ef74aa403}{Work\-Hard\-Task} (\hyperlink{types_8h_aef021ba284c03a12dddcfa082468e831}{Travels} $\ast$htc, \hyperlink{types_8h_aef021ba284c03a12dddcfa082468e831}{Travels} $\ast$cth, \hyperlink{class_solution}{Solution} $\ast$s, \hyperlink{types_8h_a942cbcc40778424afe78605ae5c364c0}{Alliances} $\ast$a)
+\begin{DoxyCompactList}\small\item\em Creates a new \char`\"{}work hard\char`\"{} task. \end{DoxyCompactList}\item 
+task $\ast$ \hyperlink{classoma_1_1_work_hard_task_a4e325df674e8ec83ceb1533846143a3b}{execute} ()
+\begin{DoxyCompactList}\small\item\em Executes the \char`\"{}work hard\char`\"{} task. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Solves the \char`\"{}work hard\char`\"{} problem. 
+
+This task accepts sets of possible paths from \char`\"{}home to conference\char`\"{} and vice versa as input parameters and then
+
+
+\begin{DoxyEnumerate}
+\item merges these paths to possible solutions for the \char`\"{}work hard\char`\"{} problem, A\-N\-D
+\item finds the cheapest of these solutions. 
+\end{DoxyEnumerate}
+
+Definition at line 63 of file tasks.\-h.
+
+
+
+\subsection{Constructor \& Destructor Documentation}
+\hypertarget{classoma_1_1_work_hard_task_a3218415965120cba77c3f22ef74aa403}{\index{oma\-::\-Work\-Hard\-Task@{oma\-::\-Work\-Hard\-Task}!Work\-Hard\-Task@{Work\-Hard\-Task}}
+\index{Work\-Hard\-Task@{Work\-Hard\-Task}!oma::WorkHardTask@{oma\-::\-Work\-Hard\-Task}}
+\subsubsection[{Work\-Hard\-Task}]{\setlength{\rightskip}{0pt plus 5cm}oma\-::\-Work\-Hard\-Task\-::\-Work\-Hard\-Task (
+\begin{DoxyParamCaption}
+\item[{{\bf Travels} $\ast$}]{htc, }
+\item[{{\bf Travels} $\ast$}]{cth, }
+\item[{{\bf Solution} $\ast$}]{s, }
+\item[{{\bf Alliances} $\ast$}]{a}
+\end{DoxyParamCaption}
+)}}\label{classoma_1_1_work_hard_task_a3218415965120cba77c3f22ef74aa403}
+
+
+Creates a new \char`\"{}work hard\char`\"{} task. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em htc} & All possible \char`\"{}home to conference\char`\"{} routes. \\
+\hline
+{\em cth} & All possible \char`\"{}conference to home\char`\"{} routes. \\
+\hline
+{\em s} & A pointer to the solution object. When done, the best route is written to \char`\"{}s-\/$>$work\-\_\-hard\char`\"{}. \\
+\hline
+{\em a} & A pointer to the alliances vector. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 53 of file tasks.\-cpp.
+
+
+
+\subsection{Member Function Documentation}
+\hypertarget{classoma_1_1_work_hard_task_a4e325df674e8ec83ceb1533846143a3b}{\index{oma\-::\-Work\-Hard\-Task@{oma\-::\-Work\-Hard\-Task}!execute@{execute}}
+\index{execute@{execute}!oma::WorkHardTask@{oma\-::\-Work\-Hard\-Task}}
+\subsubsection[{execute}]{\setlength{\rightskip}{0pt plus 5cm}tbb\-::task $\ast$ oma\-::\-Work\-Hard\-Task\-::execute (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{classoma_1_1_work_hard_task_a4e325df674e8ec83ceb1533846143a3b}
+
+
+Executes the \char`\"{}work hard\char`\"{} task. 
+
+Merges the two sets of input routes (by building the carthesian product and selecting all items where arrival time of the last flight of set A is less then departure time of the first flight of set B) and finds the cheapest of the possible routes. 
+
+Definition at line 61 of file tasks.\-cpp.
+
+
+
+The documentation for this class was generated from the following files\-:\begin{DoxyCompactItemize}
+\item 
+src/oma/\hyperlink{tasks_8h}{tasks.\-h}\item 
+src/oma/\hyperlink{tasks_8cpp}{tasks.\-cpp}\end{DoxyCompactItemize}

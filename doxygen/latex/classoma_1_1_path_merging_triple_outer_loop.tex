@@ -1,0 +1,213 @@
+\hypertarget{classoma_1_1_path_merging_triple_outer_loop}{\section{oma\-:\-:Path\-Merging\-Triple\-Outer\-Loop Class Reference}
+\label{classoma_1_1_path_merging_triple_outer_loop}\index{oma\-::\-Path\-Merging\-Triple\-Outer\-Loop@{oma\-::\-Path\-Merging\-Triple\-Outer\-Loop}}
+}
+
+
+Loop body for merging T\-H\-R\-E\-E seperate sets of routes into one set of routes.  
+
+
+
+
+{\ttfamily \#include $<$loop\-\_\-bodies.\-h$>$}
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{classoma_1_1_path_merging_triple_outer_loop_ae0e2135ae638def58874c13fa213cc7c}{Path\-Merging\-Triple\-Outer\-Loop} (\hyperlink{types_8h_aef021ba284c03a12dddcfa082468e831}{Travels} $\ast$t1, \hyperlink{types_8h_aef021ba284c03a12dddcfa082468e831}{Travels} $\ast$t2, \hyperlink{types_8h_aef021ba284c03a12dddcfa082468e831}{Travels} $\ast$t3, \hyperlink{types_8h_a942cbcc40778424afe78605ae5c364c0}{Alliances} $\ast$a)
+\begin{DoxyCompactList}\small\item\em Initial constructor. \end{DoxyCompactList}\item 
+\hyperlink{classoma_1_1_path_merging_triple_outer_loop_a89f7155d02bd7a3eb031aa3eae79a32f}{Path\-Merging\-Triple\-Outer\-Loop} (\hyperlink{classoma_1_1_path_merging_triple_outer_loop}{Path\-Merging\-Triple\-Outer\-Loop} \&pmol, split)
+\begin{DoxyCompactList}\small\item\em Split constructor. \end{DoxyCompactList}\item 
+void \hyperlink{classoma_1_1_path_merging_triple_outer_loop_afa23a4978c76070770d4da939a12f673}{operator()} (blocked\-\_\-range$<$ unsigned int $>$ \&range)
+\begin{DoxyCompactList}\small\item\em Actual loop body. \end{DoxyCompactList}\item 
+void \hyperlink{classoma_1_1_path_merging_triple_outer_loop_a487382f940283b62f82b10f87f290d86}{join} (\hyperlink{classoma_1_1_path_merging_triple_outer_loop}{Path\-Merging\-Triple\-Outer\-Loop} \&pmol)
+\begin{DoxyCompactList}\small\item\em Joins two loop results into one. \end{DoxyCompactList}\item 
+\hyperlink{class_travel}{Travel} $\ast$ \hyperlink{classoma_1_1_path_merging_triple_outer_loop_a98c5fc77dd1080927d366d68b044cb47}{get\-\_\-cheapest} ()
+\begin{DoxyCompactList}\small\item\em Gets the cheapest combination of input travels. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Protected Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{types_8h_aef021ba284c03a12dddcfa082468e831}{Travels} $\ast$ \hyperlink{classoma_1_1_path_merging_triple_outer_loop_a0720980b36610f250de8344bd24e0df1}{travels1}
+\item 
+\hyperlink{types_8h_aef021ba284c03a12dddcfa082468e831}{Travels} $\ast$ \hyperlink{classoma_1_1_path_merging_triple_outer_loop_a5df3c60b5e2bae045e6e91bf5bbaa26f}{travels2}
+\item 
+\hyperlink{types_8h_aef021ba284c03a12dddcfa082468e831}{Travels} $\ast$ \hyperlink{classoma_1_1_path_merging_triple_outer_loop_a0c7c5e666337c432267d668172bc2e1b}{travels3}
+\item 
+\hyperlink{types_8h_a942cbcc40778424afe78605ae5c364c0}{Alliances} $\ast$ \hyperlink{classoma_1_1_path_merging_triple_outer_loop_a4e3f9fd341284f12e5df2d63ada79f36}{alliances}
+\item 
+\hyperlink{class_travel}{Travel} $\ast$ \hyperlink{classoma_1_1_path_merging_triple_outer_loop_a963284c20dbc179aac8be227de3b736b}{cheapest}
+\item 
+\hyperlink{class_cost_range}{Cost\-Range} \hyperlink{classoma_1_1_path_merging_triple_outer_loop_aebc3758ded80d3a61500b8a80c963061}{min\-\_\-range}
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Loop body for merging T\-H\-R\-E\-E seperate sets of routes into one set of routes. 
+
+This loop body merges T\-H\-R\-E\-E vectors of routes (i.\-e. vector$<$\-Travel$>$) into one vector of routes. This is done by building all possible combinations of travels in vector a, b and c (assuming the landing time of the last flight in \{a,b\} and the takeoff time of the first flight in \{b,c\} match).
+
+This loop also determines the cheapest route on-\/the-\/fly. 
+
+Definition at line 95 of file loop\-\_\-bodies.\-h.
+
+
+
+\subsection{Constructor \& Destructor Documentation}
+\hypertarget{classoma_1_1_path_merging_triple_outer_loop_ae0e2135ae638def58874c13fa213cc7c}{\index{oma\-::\-Path\-Merging\-Triple\-Outer\-Loop@{oma\-::\-Path\-Merging\-Triple\-Outer\-Loop}!Path\-Merging\-Triple\-Outer\-Loop@{Path\-Merging\-Triple\-Outer\-Loop}}
+\index{Path\-Merging\-Triple\-Outer\-Loop@{Path\-Merging\-Triple\-Outer\-Loop}!oma::PathMergingTripleOuterLoop@{oma\-::\-Path\-Merging\-Triple\-Outer\-Loop}}
+\subsubsection[{Path\-Merging\-Triple\-Outer\-Loop}]{\setlength{\rightskip}{0pt plus 5cm}oma\-::\-Path\-Merging\-Triple\-Outer\-Loop\-::\-Path\-Merging\-Triple\-Outer\-Loop (
+\begin{DoxyParamCaption}
+\item[{{\bf Travels} $\ast$}]{t1, }
+\item[{{\bf Travels} $\ast$}]{t2, }
+\item[{{\bf Travels} $\ast$}]{t3, }
+\item[{{\bf Alliances} $\ast$}]{a}
+\end{DoxyParamCaption}
+)}}\label{classoma_1_1_path_merging_triple_outer_loop_ae0e2135ae638def58874c13fa213cc7c}
+
+
+Initial constructor. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em t1} & First travel vector. \\
+\hline
+{\em t2} & Second travel vector. \\
+\hline
+{\em t3} & Third travel vector. \\
+\hline
+{\em a} & Alliance list. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 109 of file loop\-\_\-bodies.\-cpp.
+
+\hypertarget{classoma_1_1_path_merging_triple_outer_loop_a89f7155d02bd7a3eb031aa3eae79a32f}{\index{oma\-::\-Path\-Merging\-Triple\-Outer\-Loop@{oma\-::\-Path\-Merging\-Triple\-Outer\-Loop}!Path\-Merging\-Triple\-Outer\-Loop@{Path\-Merging\-Triple\-Outer\-Loop}}
+\index{Path\-Merging\-Triple\-Outer\-Loop@{Path\-Merging\-Triple\-Outer\-Loop}!oma::PathMergingTripleOuterLoop@{oma\-::\-Path\-Merging\-Triple\-Outer\-Loop}}
+\subsubsection[{Path\-Merging\-Triple\-Outer\-Loop}]{\setlength{\rightskip}{0pt plus 5cm}oma\-::\-Path\-Merging\-Triple\-Outer\-Loop\-::\-Path\-Merging\-Triple\-Outer\-Loop (
+\begin{DoxyParamCaption}
+\item[{{\bf Path\-Merging\-Triple\-Outer\-Loop} \&}]{pmol, }
+\item[{split}]{}
+\end{DoxyParamCaption}
+)}}\label{classoma_1_1_path_merging_triple_outer_loop_a89f7155d02bd7a3eb031aa3eae79a32f}
+
+
+Split constructor. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em pmol} & Parent loop. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 119 of file loop\-\_\-bodies.\-cpp.
+
+
+
+\subsection{Member Function Documentation}
+\hypertarget{classoma_1_1_path_merging_triple_outer_loop_a98c5fc77dd1080927d366d68b044cb47}{\index{oma\-::\-Path\-Merging\-Triple\-Outer\-Loop@{oma\-::\-Path\-Merging\-Triple\-Outer\-Loop}!get\-\_\-cheapest@{get\-\_\-cheapest}}
+\index{get\-\_\-cheapest@{get\-\_\-cheapest}!oma::PathMergingTripleOuterLoop@{oma\-::\-Path\-Merging\-Triple\-Outer\-Loop}}
+\subsubsection[{get\-\_\-cheapest}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Travel} $\ast$ oma\-::\-Path\-Merging\-Triple\-Outer\-Loop\-::get\-\_\-cheapest (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{classoma_1_1_path_merging_triple_outer_loop_a98c5fc77dd1080927d366d68b044cb47}
+
+
+Gets the cheapest combination of input travels. 
+
+
+
+Definition at line 189 of file loop\-\_\-bodies.\-cpp.
+
+\hypertarget{classoma_1_1_path_merging_triple_outer_loop_a487382f940283b62f82b10f87f290d86}{\index{oma\-::\-Path\-Merging\-Triple\-Outer\-Loop@{oma\-::\-Path\-Merging\-Triple\-Outer\-Loop}!join@{join}}
+\index{join@{join}!oma::PathMergingTripleOuterLoop@{oma\-::\-Path\-Merging\-Triple\-Outer\-Loop}}
+\subsubsection[{join}]{\setlength{\rightskip}{0pt plus 5cm}void oma\-::\-Path\-Merging\-Triple\-Outer\-Loop\-::join (
+\begin{DoxyParamCaption}
+\item[{{\bf Path\-Merging\-Triple\-Outer\-Loop} \&}]{pmol}
+\end{DoxyParamCaption}
+)}}\label{classoma_1_1_path_merging_triple_outer_loop_a487382f940283b62f82b10f87f290d86}
+
+
+Joins two loop results into one. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em pmol} & Another loop body. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 181 of file loop\-\_\-bodies.\-cpp.
+
+\hypertarget{classoma_1_1_path_merging_triple_outer_loop_afa23a4978c76070770d4da939a12f673}{\index{oma\-::\-Path\-Merging\-Triple\-Outer\-Loop@{oma\-::\-Path\-Merging\-Triple\-Outer\-Loop}!operator()@{operator()}}
+\index{operator()@{operator()}!oma::PathMergingTripleOuterLoop@{oma\-::\-Path\-Merging\-Triple\-Outer\-Loop}}
+\subsubsection[{operator()}]{\setlength{\rightskip}{0pt plus 5cm}void oma\-::\-Path\-Merging\-Triple\-Outer\-Loop\-::operator() (
+\begin{DoxyParamCaption}
+\item[{blocked\-\_\-range$<$ unsigned int $>$ \&}]{range}
+\end{DoxyParamCaption}
+)}}\label{classoma_1_1_path_merging_triple_outer_loop_afa23a4978c76070770d4da939a12f673}
+
+
+Actual loop body. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em range} & Range to be iterated over. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 129 of file loop\-\_\-bodies.\-cpp.
+
+
+
+\subsection{Member Data Documentation}
+\hypertarget{classoma_1_1_path_merging_triple_outer_loop_a4e3f9fd341284f12e5df2d63ada79f36}{\index{oma\-::\-Path\-Merging\-Triple\-Outer\-Loop@{oma\-::\-Path\-Merging\-Triple\-Outer\-Loop}!alliances@{alliances}}
+\index{alliances@{alliances}!oma::PathMergingTripleOuterLoop@{oma\-::\-Path\-Merging\-Triple\-Outer\-Loop}}
+\subsubsection[{alliances}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Alliances}$\ast$ oma\-::\-Path\-Merging\-Triple\-Outer\-Loop\-::alliances\hspace{0.3cm}{\ttfamily [protected]}}}\label{classoma_1_1_path_merging_triple_outer_loop_a4e3f9fd341284f12e5df2d63ada79f36}
+
+
+Definition at line 99 of file loop\-\_\-bodies.\-h.
+
+\hypertarget{classoma_1_1_path_merging_triple_outer_loop_a963284c20dbc179aac8be227de3b736b}{\index{oma\-::\-Path\-Merging\-Triple\-Outer\-Loop@{oma\-::\-Path\-Merging\-Triple\-Outer\-Loop}!cheapest@{cheapest}}
+\index{cheapest@{cheapest}!oma::PathMergingTripleOuterLoop@{oma\-::\-Path\-Merging\-Triple\-Outer\-Loop}}
+\subsubsection[{cheapest}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Travel}$\ast$ oma\-::\-Path\-Merging\-Triple\-Outer\-Loop\-::cheapest\hspace{0.3cm}{\ttfamily [protected]}}}\label{classoma_1_1_path_merging_triple_outer_loop_a963284c20dbc179aac8be227de3b736b}
+
+
+Definition at line 100 of file loop\-\_\-bodies.\-h.
+
+\hypertarget{classoma_1_1_path_merging_triple_outer_loop_aebc3758ded80d3a61500b8a80c963061}{\index{oma\-::\-Path\-Merging\-Triple\-Outer\-Loop@{oma\-::\-Path\-Merging\-Triple\-Outer\-Loop}!min\-\_\-range@{min\-\_\-range}}
+\index{min\-\_\-range@{min\-\_\-range}!oma::PathMergingTripleOuterLoop@{oma\-::\-Path\-Merging\-Triple\-Outer\-Loop}}
+\subsubsection[{min\-\_\-range}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Cost\-Range} oma\-::\-Path\-Merging\-Triple\-Outer\-Loop\-::min\-\_\-range\hspace{0.3cm}{\ttfamily [protected]}}}\label{classoma_1_1_path_merging_triple_outer_loop_aebc3758ded80d3a61500b8a80c963061}
+
+
+Definition at line 101 of file loop\-\_\-bodies.\-h.
+
+\hypertarget{classoma_1_1_path_merging_triple_outer_loop_a0720980b36610f250de8344bd24e0df1}{\index{oma\-::\-Path\-Merging\-Triple\-Outer\-Loop@{oma\-::\-Path\-Merging\-Triple\-Outer\-Loop}!travels1@{travels1}}
+\index{travels1@{travels1}!oma::PathMergingTripleOuterLoop@{oma\-::\-Path\-Merging\-Triple\-Outer\-Loop}}
+\subsubsection[{travels1}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Travels}$\ast$ oma\-::\-Path\-Merging\-Triple\-Outer\-Loop\-::travels1\hspace{0.3cm}{\ttfamily [protected]}}}\label{classoma_1_1_path_merging_triple_outer_loop_a0720980b36610f250de8344bd24e0df1}
+
+
+Definition at line 98 of file loop\-\_\-bodies.\-h.
+
+\hypertarget{classoma_1_1_path_merging_triple_outer_loop_a5df3c60b5e2bae045e6e91bf5bbaa26f}{\index{oma\-::\-Path\-Merging\-Triple\-Outer\-Loop@{oma\-::\-Path\-Merging\-Triple\-Outer\-Loop}!travels2@{travels2}}
+\index{travels2@{travels2}!oma::PathMergingTripleOuterLoop@{oma\-::\-Path\-Merging\-Triple\-Outer\-Loop}}
+\subsubsection[{travels2}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Travels} $\ast$ oma\-::\-Path\-Merging\-Triple\-Outer\-Loop\-::travels2\hspace{0.3cm}{\ttfamily [protected]}}}\label{classoma_1_1_path_merging_triple_outer_loop_a5df3c60b5e2bae045e6e91bf5bbaa26f}
+
+
+Definition at line 98 of file loop\-\_\-bodies.\-h.
+
+\hypertarget{classoma_1_1_path_merging_triple_outer_loop_a0c7c5e666337c432267d668172bc2e1b}{\index{oma\-::\-Path\-Merging\-Triple\-Outer\-Loop@{oma\-::\-Path\-Merging\-Triple\-Outer\-Loop}!travels3@{travels3}}
+\index{travels3@{travels3}!oma::PathMergingTripleOuterLoop@{oma\-::\-Path\-Merging\-Triple\-Outer\-Loop}}
+\subsubsection[{travels3}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Travels} $\ast$ oma\-::\-Path\-Merging\-Triple\-Outer\-Loop\-::travels3\hspace{0.3cm}{\ttfamily [protected]}}}\label{classoma_1_1_path_merging_triple_outer_loop_a0c7c5e666337c432267d668172bc2e1b}
+
+
+Definition at line 98 of file loop\-\_\-bodies.\-h.
+
+
+
+The documentation for this class was generated from the following files\-:\begin{DoxyCompactItemize}
+\item 
+src/oma/\hyperlink{loop__bodies_8h}{loop\-\_\-bodies.\-h}\item 
+src/oma/\hyperlink{loop__bodies_8cpp}{loop\-\_\-bodies.\-cpp}\end{DoxyCompactItemize}

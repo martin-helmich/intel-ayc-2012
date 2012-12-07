@@ -1,0 +1,117 @@
+\hypertarget{class_solution}{\section{Solution Class Reference}
+\label{class_solution}\index{Solution@{Solution}}
+}
+
+
+Models the program's solution.  
+
+
+
+
+{\ttfamily \#include $<$types.\-h$>$}
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{class_solution_ae355b59b0c5da290ec0be4b23fa709bd}{Solution} (unsigned int s)
+\begin{DoxyCompactList}\small\item\em Creates a new solution object. \end{DoxyCompactList}\item 
+void \hyperlink{class_solution_a1d10fedbb1083da04f5c72c17a25b914}{add\-\_\-play\-\_\-hard} (unsigned int i, \hyperlink{class_travel}{Travel} \&t)
+\begin{DoxyCompactList}\small\item\em Adds a new \char`\"{}play hard\char`\"{} solution. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{class_travel}{Travel} $\ast$ \hyperlink{class_solution_a44f701ebb75bb81bdbce55e3b993a8ed}{play\-\_\-hard}
+\begin{DoxyCompactList}\small\item\em The \char`\"{}play hard\char`\"{} solutions. \end{DoxyCompactList}\item 
+\hyperlink{class_travel}{Travel} \hyperlink{class_solution_aa01e223ab1abc7d44183834d542ecc6b}{work\-\_\-hard}
+\begin{DoxyCompactList}\small\item\em The \char`\"{}work hard\char`\"{} solutions. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Models the program's solution. 
+
+This class models the program's solution. It contains one travel as solution for the \char`\"{}work hard\char`\"{} problems and a list of n travels as solution for the \char`\"{}play hard\char`\"{} problems. 
+
+Definition at line 148 of file types.\-h.
+
+
+
+\subsection{Constructor \& Destructor Documentation}
+\hypertarget{class_solution_ae355b59b0c5da290ec0be4b23fa709bd}{\index{Solution@{Solution}!Solution@{Solution}}
+\index{Solution@{Solution}!Solution@{Solution}}
+\subsubsection[{Solution}]{\setlength{\rightskip}{0pt plus 5cm}Solution\-::\-Solution (
+\begin{DoxyParamCaption}
+\item[{unsigned int}]{s}
+\end{DoxyParamCaption}
+)}}\label{class_solution_ae355b59b0c5da290ec0be4b23fa709bd}
+
+
+Creates a new solution object. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em s} & Number of \char`\"{}play hard\char`\"{} solutions.\\
+\hline
+\end{DoxyParams}
+This constructor creates a new solution object and allocates memory for {\itshape n} play hard solutions. 
+
+Definition at line 116 of file types.\-cpp.
+
+
+
+\subsection{Member Function Documentation}
+\hypertarget{class_solution_a1d10fedbb1083da04f5c72c17a25b914}{\index{Solution@{Solution}!add\-\_\-play\-\_\-hard@{add\-\_\-play\-\_\-hard}}
+\index{add\-\_\-play\-\_\-hard@{add\-\_\-play\-\_\-hard}!Solution@{Solution}}
+\subsubsection[{add\-\_\-play\-\_\-hard}]{\setlength{\rightskip}{0pt plus 5cm}void Solution\-::add\-\_\-play\-\_\-hard (
+\begin{DoxyParamCaption}
+\item[{unsigned int}]{i, }
+\item[{{\bf Travel} \&}]{t}
+\end{DoxyParamCaption}
+)}}\label{class_solution_a1d10fedbb1083da04f5c72c17a25b914}
+
+
+Adds a new \char`\"{}play hard\char`\"{} solution. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em i} & The index of the \char`\"{}play hard\char`\"{} solution. \\
+\hline
+{\em t} & The travel to be added as the solution.\\
+\hline
+\end{DoxyParams}
+This method adds a new travel as a \char`\"{}play hard\char`\"{} solution.
+
+Concurrent access is generally possible, but should not be a problem as long as every actor accesses a different index of the \char`\"{}play hard\char`\"{} array. 
+
+Definition at line 127 of file types.\-cpp.
+
+
+
+\subsection{Member Data Documentation}
+\hypertarget{class_solution_a44f701ebb75bb81bdbce55e3b993a8ed}{\index{Solution@{Solution}!play\-\_\-hard@{play\-\_\-hard}}
+\index{play\-\_\-hard@{play\-\_\-hard}!Solution@{Solution}}
+\subsubsection[{play\-\_\-hard}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Travel}$\ast$ Solution\-::play\-\_\-hard}}\label{class_solution_a44f701ebb75bb81bdbce55e3b993a8ed}
+
+
+The \char`\"{}play hard\char`\"{} solutions. 
+
+
+
+Definition at line 154 of file types.\-h.
+
+\hypertarget{class_solution_aa01e223ab1abc7d44183834d542ecc6b}{\index{Solution@{Solution}!work\-\_\-hard@{work\-\_\-hard}}
+\index{work\-\_\-hard@{work\-\_\-hard}!Solution@{Solution}}
+\subsubsection[{work\-\_\-hard}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Travel} Solution\-::work\-\_\-hard}}\label{class_solution_aa01e223ab1abc7d44183834d542ecc6b}
+
+
+The \char`\"{}work hard\char`\"{} solutions. 
+
+
+
+Definition at line 156 of file types.\-h.
+
+
+
+The documentation for this class was generated from the following files\-:\begin{DoxyCompactItemize}
+\item 
+src/\hyperlink{types_8h}{types.\-h}\item 
+src/oma/\hyperlink{types_8cpp}{types.\-cpp}\end{DoxyCompactItemize}

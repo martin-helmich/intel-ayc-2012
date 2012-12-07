@@ -1,0 +1,111 @@
+\hypertarget{class_cost_range}{\section{Cost\-Range Class Reference}
+\label{class_cost_range}\index{Cost\-Range@{Cost\-Range}}
+}
+
+
+Models a dynamic cost range.  
+
+
+
+
+{\ttfamily \#include $<$types.\-h$>$}
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{class_cost_range_a8b92d9b254a7184e694245de8f910089}{Cost\-Range} ()
+\begin{DoxyCompactList}\small\item\em Creates a new price range. \end{DoxyCompactList}\item 
+void \hyperlink{class_cost_range_ab7cf34051a0d4a757b4fc38f972d455b}{from\-\_\-travel} (\hyperlink{class_travel}{Travel} $\ast$t)
+\begin{DoxyCompactList}\small\item\em Sets min and max prices from an existing travel object. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+int \hyperlink{class_cost_range_ab9e6b517daae3ef23654e90f243b4f8d}{min}
+\begin{DoxyCompactList}\small\item\em Minimum price. \end{DoxyCompactList}\item 
+int \hyperlink{class_cost_range_a1f758d95074553812b9af90a57eee99d}{max}
+\begin{DoxyCompactList}\small\item\em Maximum price. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Models a dynamic cost range. 
+
+This class models a dynamic cost range. This is necessary due to the uncertainty in travel prices originating from possible discounts.
+
+This class stores a minimum and a maximum price. 
+
+Definition at line 173 of file types.\-h.
+
+
+
+\subsection{Constructor \& Destructor Documentation}
+\hypertarget{class_cost_range_a8b92d9b254a7184e694245de8f910089}{\index{Cost\-Range@{Cost\-Range}!Cost\-Range@{Cost\-Range}}
+\index{Cost\-Range@{Cost\-Range}!CostRange@{Cost\-Range}}
+\subsubsection[{Cost\-Range}]{\setlength{\rightskip}{0pt plus 5cm}Cost\-Range\-::\-Cost\-Range (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{class_cost_range_a8b92d9b254a7184e694245de8f910089}
+
+
+Creates a new price range. 
+
+Initializes min and max prices with very high default values. 
+
+Definition at line 135 of file types.\-cpp.
+
+
+
+\subsection{Member Function Documentation}
+\hypertarget{class_cost_range_ab7cf34051a0d4a757b4fc38f972d455b}{\index{Cost\-Range@{Cost\-Range}!from\-\_\-travel@{from\-\_\-travel}}
+\index{from\-\_\-travel@{from\-\_\-travel}!CostRange@{Cost\-Range}}
+\subsubsection[{from\-\_\-travel}]{\setlength{\rightskip}{0pt plus 5cm}void Cost\-Range\-::from\-\_\-travel (
+\begin{DoxyParamCaption}
+\item[{{\bf Travel} $\ast$}]{t}
+\end{DoxyParamCaption}
+)}}\label{class_cost_range_ab7cf34051a0d4a757b4fc38f972d455b}
+
+
+Sets min and max prices from an existing travel object. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em t} & The travel from which the price range is to be set.\\
+\hline
+\end{DoxyParams}
+This method reads min and max prices from an existing travel object.
+
+Access to this method is protected using a spinlock. 
+
+Definition at line 146 of file types.\-cpp.
+
+
+
+\subsection{Member Data Documentation}
+\hypertarget{class_cost_range_a1f758d95074553812b9af90a57eee99d}{\index{Cost\-Range@{Cost\-Range}!max@{max}}
+\index{max@{max}!CostRange@{Cost\-Range}}
+\subsubsection[{max}]{\setlength{\rightskip}{0pt plus 5cm}int Cost\-Range\-::max}}\label{class_cost_range_a1f758d95074553812b9af90a57eee99d}
+
+
+Maximum price. 
+
+
+
+Definition at line 182 of file types.\-h.
+
+\hypertarget{class_cost_range_ab9e6b517daae3ef23654e90f243b4f8d}{\index{Cost\-Range@{Cost\-Range}!min@{min}}
+\index{min@{min}!CostRange@{Cost\-Range}}
+\subsubsection[{min}]{\setlength{\rightskip}{0pt plus 5cm}int Cost\-Range\-::min}}\label{class_cost_range_ab9e6b517daae3ef23654e90f243b4f8d}
+
+
+Minimum price. 
+
+
+
+Definition at line 180 of file types.\-h.
+
+
+
+The documentation for this class was generated from the following files\-:\begin{DoxyCompactItemize}
+\item 
+src/\hyperlink{types_8h}{types.\-h}\item 
+src/oma/\hyperlink{types_8cpp}{types.\-cpp}\end{DoxyCompactItemize}

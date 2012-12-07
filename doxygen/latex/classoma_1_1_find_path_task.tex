@@ -1,0 +1,99 @@
+\hypertarget{classoma_1_1_find_path_task}{\section{oma\-:\-:Find\-Path\-Task Class Reference}
+\label{classoma_1_1_find_path_task}\index{oma\-::\-Find\-Path\-Task@{oma\-::\-Find\-Path\-Task}}
+}
+
+
+Computes all possible paths between two locations.  
+
+
+
+
+{\ttfamily \#include $<$tasks.\-h$>$}
+
+Inheritance diagram for oma\-:\-:Find\-Path\-Task\-:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{classoma_1_1_find_path_task}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{classoma_1_1_find_path_task_aac7c21433d1db181402f88c5e6701fbf}{Find\-Path\-Task} (string f, string t, int tmi, int tma, \hyperlink{struct_parameters}{Parameters} $\ast$p, \hyperlink{types_8h_aef021ba284c03a12dddcfa082468e831}{Travels} $\ast$tr, \hyperlink{types_8h_a942cbcc40778424afe78605ae5c364c0}{Alliances} $\ast$a)
+\begin{DoxyCompactList}\small\item\em Creates a new task. \end{DoxyCompactList}\item 
+task $\ast$ \hyperlink{classoma_1_1_find_path_task_a74af3710e7c56d27a2e65d50bbaaea49}{execute} ()
+\begin{DoxyCompactList}\small\item\em Executes the \char`\"{}find path\char`\"{} task. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Computes all possible paths between two locations. 
+
+This task computes all possible paths between two locations. This is done by performing a breadth-\/first-\/search on the flight graph. Routes to the destination point are only accepted in the candidate list if they are potentially cheaper than the cheapest known solution (there is a small window if uncertainty because the flight discounts are not completely known in advance, so instead of fixed costs we use \char`\"{}cost ranges\char`\"{} consisting of the minimum and maximum possible costs of a route). 
+
+Definition at line 31 of file tasks.\-h.
+
+
+
+\subsection{Constructor \& Destructor Documentation}
+\hypertarget{classoma_1_1_find_path_task_aac7c21433d1db181402f88c5e6701fbf}{\index{oma\-::\-Find\-Path\-Task@{oma\-::\-Find\-Path\-Task}!Find\-Path\-Task@{Find\-Path\-Task}}
+\index{Find\-Path\-Task@{Find\-Path\-Task}!oma::FindPathTask@{oma\-::\-Find\-Path\-Task}}
+\subsubsection[{Find\-Path\-Task}]{\setlength{\rightskip}{0pt plus 5cm}oma\-::\-Find\-Path\-Task\-::\-Find\-Path\-Task (
+\begin{DoxyParamCaption}
+\item[{string}]{f, }
+\item[{string}]{t, }
+\item[{int}]{tmi, }
+\item[{int}]{tma, }
+\item[{{\bf Parameters} $\ast$}]{p, }
+\item[{{\bf Travels} $\ast$}]{tr, }
+\item[{{\bf Alliances} $\ast$}]{a}
+\end{DoxyParamCaption}
+)}}\label{classoma_1_1_find_path_task_aac7c21433d1db181402f88c5e6701fbf}
+
+
+Creates a new task. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em f} & Starting point. \\
+\hline
+{\em t} & Destination point. \\
+\hline
+{\em tmi} & Minimum departure time. \\
+\hline
+{\em tma} & Maximum departure time. \\
+\hline
+{\em p} & Input parameters. \\
+\hline
+{\em tr} & Output travel vector. \\
+\hline
+{\em a} & All alliances. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 20 of file tasks.\-cpp.
+
+
+
+\subsection{Member Function Documentation}
+\hypertarget{classoma_1_1_find_path_task_a74af3710e7c56d27a2e65d50bbaaea49}{\index{oma\-::\-Find\-Path\-Task@{oma\-::\-Find\-Path\-Task}!execute@{execute}}
+\index{execute@{execute}!oma::FindPathTask@{oma\-::\-Find\-Path\-Task}}
+\subsubsection[{execute}]{\setlength{\rightskip}{0pt plus 5cm}tbb\-::task $\ast$ oma\-::\-Find\-Path\-Task\-::execute (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{classoma_1_1_find_path_task_a74af3710e7c56d27a2e65d50bbaaea49}
+
+
+Executes the \char`\"{}find path\char`\"{} task. 
+
+
+
+Definition at line 34 of file tasks.\-cpp.
+
+
+
+The documentation for this class was generated from the following files\-:\begin{DoxyCompactItemize}
+\item 
+src/oma/\hyperlink{tasks_8h}{tasks.\-h}\item 
+src/oma/\hyperlink{tasks_8cpp}{tasks.\-cpp}\end{DoxyCompactItemize}

@@ -1,0 +1,109 @@
+\hypertarget{classoma_1_1_compute_path_outer_loop}{\section{oma\-:\-:Compute\-Path\-Outer\-Loop Class Reference}
+\label{classoma_1_1_compute_path_outer_loop}\index{oma\-::\-Compute\-Path\-Outer\-Loop@{oma\-::\-Compute\-Path\-Outer\-Loop}}
+}
+
+
+Loop body for computing all possible paths between two locations.  
+
+
+
+
+{\ttfamily \#include $<$loop\-\_\-bodies.\-h$>$}
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{classoma_1_1_compute_path_outer_loop_afb133a3010cfc76f164ee067f1811c9b}{Compute\-Path\-Outer\-Loop} (vector$<$ \hyperlink{class_travel}{Travel} $>$ $\ast$ft, mutex $\ast$ftl, \hyperlink{struct_parameters}{Parameters} \&p, string t, unsigned long tmi, unsigned long tma, \hyperlink{class_cost_range}{Cost\-Range} $\ast$r, \hyperlink{types_8h_a942cbcc40778424afe78605ae5c364c0}{Alliances} $\ast$a, concurrent\-\_\-hash\-\_\-map$<$ string, \hyperlink{class_location}{Location} $>$ $\ast$lm)
+\begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
+void \hyperlink{classoma_1_1_compute_path_outer_loop_a2164d6ded1a950a24d5b8a264ecc2ccf}{operator()} (\hyperlink{class_travel}{Travel} t, parallel\-\_\-do\-\_\-feeder$<$ \hyperlink{class_travel}{Travel} $>$ \&f) const 
+\begin{DoxyCompactList}\small\item\em Actual loop body. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Loop body for computing all possible paths between two locations. 
+
+This loop body computes all possible paths between two locations. It is intended to be used with a parallel\-\_\-do call.
+
+In comparison to the reference implementation, this algorithms performs a breadth-\/first-\/search (instead of a depth-\/first-\/search). This is more efficient, since the optimal route is probably rather short and should be found quicker using B\-F\-S. 
+
+Definition at line 136 of file loop\-\_\-bodies.\-h.
+
+
+
+\subsection{Constructor \& Destructor Documentation}
+\hypertarget{classoma_1_1_compute_path_outer_loop_afb133a3010cfc76f164ee067f1811c9b}{\index{oma\-::\-Compute\-Path\-Outer\-Loop@{oma\-::\-Compute\-Path\-Outer\-Loop}!Compute\-Path\-Outer\-Loop@{Compute\-Path\-Outer\-Loop}}
+\index{Compute\-Path\-Outer\-Loop@{Compute\-Path\-Outer\-Loop}!oma::ComputePathOuterLoop@{oma\-::\-Compute\-Path\-Outer\-Loop}}
+\subsubsection[{Compute\-Path\-Outer\-Loop}]{\setlength{\rightskip}{0pt plus 5cm}oma\-::\-Compute\-Path\-Outer\-Loop\-::\-Compute\-Path\-Outer\-Loop (
+\begin{DoxyParamCaption}
+\item[{vector$<$ {\bf Travel} $>$ $\ast$}]{ft, }
+\item[{mutex $\ast$}]{ftl, }
+\item[{{\bf Parameters} \&}]{p, }
+\item[{string}]{t, }
+\item[{unsigned long}]{tmi, }
+\item[{unsigned long}]{tma, }
+\item[{{\bf Cost\-Range} $\ast$}]{r, }
+\item[{{\bf Alliances} $\ast$}]{a, }
+\item[{concurrent\-\_\-hash\-\_\-map$<$ string, {\bf Location} $>$ $\ast$}]{lm}
+\end{DoxyParamCaption}
+)}}\label{classoma_1_1_compute_path_outer_loop_afb133a3010cfc76f164ee067f1811c9b}
+
+
+Constructor. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em ft} & Vector containing found routes to destination. \\
+\hline
+{\em ftl} & Mutex for synchronizing access on \char`\"{}ft\char`\"{}. \\
+\hline
+{\em p} & Input parameters. \\
+\hline
+{\em t} & Destination \\
+\hline
+{\em tmi} & Minimum departure time. \\
+\hline
+{\em tma} & Maximum departure time. \\
+\hline
+{\em r} & Global cost-\/range object. \\
+\hline
+{\em a} & Alliance vector. \\
+\hline
+{\em lm} & Global location map. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 194 of file loop\-\_\-bodies.\-cpp.
+
+
+
+\subsection{Member Function Documentation}
+\hypertarget{classoma_1_1_compute_path_outer_loop_a2164d6ded1a950a24d5b8a264ecc2ccf}{\index{oma\-::\-Compute\-Path\-Outer\-Loop@{oma\-::\-Compute\-Path\-Outer\-Loop}!operator()@{operator()}}
+\index{operator()@{operator()}!oma::ComputePathOuterLoop@{oma\-::\-Compute\-Path\-Outer\-Loop}}
+\subsubsection[{operator()}]{\setlength{\rightskip}{0pt plus 5cm}void oma\-::\-Compute\-Path\-Outer\-Loop\-::operator() (
+\begin{DoxyParamCaption}
+\item[{{\bf Travel}}]{t, }
+\item[{parallel\-\_\-do\-\_\-feeder$<$ {\bf Travel} $>$ \&}]{f}
+\end{DoxyParamCaption}
+) const}}\label{classoma_1_1_compute_path_outer_loop_a2164d6ded1a950a24d5b8a264ecc2ccf}
+
+
+Actual loop body. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em t} & \hyperlink{class_travel}{Travel} object to be worked on. \\
+\hline
+{\em f} & Queue in order to add more items to be processed into the parallel\-\_\-do queue. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 209 of file loop\-\_\-bodies.\-cpp.
+
+
+
+The documentation for this class was generated from the following files\-:\begin{DoxyCompactItemize}
+\item 
+src/oma/\hyperlink{loop__bodies_8h}{loop\-\_\-bodies.\-h}\item 
+src/oma/\hyperlink{loop__bodies_8cpp}{loop\-\_\-bodies.\-cpp}\end{DoxyCompactItemize}

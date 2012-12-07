@@ -1,0 +1,86 @@
+\hypertarget{classoma_1_1_parse_flights_loop}{\section{oma\-:\-:Parse\-Flights\-Loop Class Reference}
+\label{classoma_1_1_parse_flights_loop}\index{oma\-::\-Parse\-Flights\-Loop@{oma\-::\-Parse\-Flights\-Loop}}
+}
+
+
+Loop body for parsing flights from an input file.  
+
+
+
+
+{\ttfamily \#include $<$loop\-\_\-bodies.\-h$>$}
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{classoma_1_1_parse_flights_loop_a920ed611f2613cf4926da79c6c4d65f2}{Parse\-Flights\-Loop} (char $\ast$i, vector$<$ int $>$ $\ast$l, \hyperlink{struct_parameters}{Parameters} $\ast$p)
+\begin{DoxyCompactList}\small\item\em Initial constructor. \end{DoxyCompactList}\item 
+void \hyperlink{classoma_1_1_parse_flights_loop_a27c23acb7356b61efbcafd1a3c60ef0e}{operator()} (const blocked\-\_\-range$<$ int $>$ range) const 
+\begin{DoxyCompactList}\small\item\em Actual loop body. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Loop body for parsing flights from an input file. 
+
+This loop body expects that the entire input file is mapped into memory (for example via \char`\"{}mmap\char`\"{}) and that the positions of all line endings in this file are known. Based on the known positions of line endings, the individual lines can then be parsed in parallel. 
+
+Definition at line 29 of file loop\-\_\-bodies.\-h.
+
+
+
+\subsection{Constructor \& Destructor Documentation}
+\hypertarget{classoma_1_1_parse_flights_loop_a920ed611f2613cf4926da79c6c4d65f2}{\index{oma\-::\-Parse\-Flights\-Loop@{oma\-::\-Parse\-Flights\-Loop}!Parse\-Flights\-Loop@{Parse\-Flights\-Loop}}
+\index{Parse\-Flights\-Loop@{Parse\-Flights\-Loop}!oma::ParseFlightsLoop@{oma\-::\-Parse\-Flights\-Loop}}
+\subsubsection[{Parse\-Flights\-Loop}]{\setlength{\rightskip}{0pt plus 5cm}oma\-::\-Parse\-Flights\-Loop\-::\-Parse\-Flights\-Loop (
+\begin{DoxyParamCaption}
+\item[{char $\ast$}]{i, }
+\item[{vector$<$ int $>$ $\ast$}]{l, }
+\item[{{\bf Parameters} $\ast$}]{p}
+\end{DoxyParamCaption}
+)}}\label{classoma_1_1_parse_flights_loop_a920ed611f2613cf4926da79c6c4d65f2}
+
+
+Initial constructor. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em i} & Pointer to mapped input file. \\
+\hline
+{\em l} & Pointer to vector containing positions of line endings (L\-Fs). \\
+\hline
+{\em p} & Pointer to parameters object. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 17 of file loop\-\_\-bodies.\-cpp.
+
+
+
+\subsection{Member Function Documentation}
+\hypertarget{classoma_1_1_parse_flights_loop_a27c23acb7356b61efbcafd1a3c60ef0e}{\index{oma\-::\-Parse\-Flights\-Loop@{oma\-::\-Parse\-Flights\-Loop}!operator()@{operator()}}
+\index{operator()@{operator()}!oma::ParseFlightsLoop@{oma\-::\-Parse\-Flights\-Loop}}
+\subsubsection[{operator()}]{\setlength{\rightskip}{0pt plus 5cm}void oma\-::\-Parse\-Flights\-Loop\-::operator() (
+\begin{DoxyParamCaption}
+\item[{const blocked\-\_\-range$<$ int $>$}]{range}
+\end{DoxyParamCaption}
+) const}}\label{classoma_1_1_parse_flights_loop_a27c23acb7356b61efbcafd1a3c60ef0e}
+
+
+Actual loop body. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em range} & Range to be iterated over. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 24 of file loop\-\_\-bodies.\-cpp.
+
+
+
+The documentation for this class was generated from the following files\-:\begin{DoxyCompactItemize}
+\item 
+src/oma/\hyperlink{loop__bodies_8h}{loop\-\_\-bodies.\-h}\item 
+src/oma/\hyperlink{loop__bodies_8cpp}{loop\-\_\-bodies.\-cpp}\end{DoxyCompactItemize}

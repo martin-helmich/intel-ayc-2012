@@ -1,0 +1,96 @@
+\hypertarget{classoma_1_1_play_hard_merge_triple_task}{\section{oma\-:\-:Play\-Hard\-Merge\-Triple\-Task Class Reference}
+\label{classoma_1_1_play_hard_merge_triple_task}\index{oma\-::\-Play\-Hard\-Merge\-Triple\-Task@{oma\-::\-Play\-Hard\-Merge\-Triple\-Task}}
+}
+
+
+Task for creating a specific subset of the \char`\"{}play hard\char`\"{} solution.  
+
+
+
+
+{\ttfamily \#include $<$tasks.\-h$>$}
+
+Inheritance diagram for oma\-:\-:Play\-Hard\-Merge\-Triple\-Task\-:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{classoma_1_1_play_hard_merge_triple_task}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{classoma_1_1_play_hard_merge_triple_task_a97729e9e7ff12f386daa603e0e7a8031}{Play\-Hard\-Merge\-Triple\-Task} (\hyperlink{types_8h_aef021ba284c03a12dddcfa082468e831}{Travels} $\ast$r, tbb\-::mutex $\ast$rl, \hyperlink{types_8h_aef021ba284c03a12dddcfa082468e831}{Travels} $\ast$t1, \hyperlink{types_8h_aef021ba284c03a12dddcfa082468e831}{Travels} $\ast$t2, \hyperlink{types_8h_aef021ba284c03a12dddcfa082468e831}{Travels} $\ast$t3, \hyperlink{types_8h_a942cbcc40778424afe78605ae5c364c0}{Alliances} $\ast$a)
+\begin{DoxyCompactList}\small\item\em Creates a new \char`\"{}play hard merge\char`\"{} task. \end{DoxyCompactList}\item 
+task $\ast$ \hyperlink{classoma_1_1_play_hard_merge_triple_task_ac8ddaba33e85a0a468131a814ca51640}{execute} ()
+\begin{DoxyCompactList}\small\item\em Executes the \char`\"{}play hard merge\char`\"{} task. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Task for creating a specific subset of the \char`\"{}play hard\char`\"{} solution. 
+
+This task creates a specific subset of the \char`\"{}play hard\char`\"{} solution (i.\-e. either \char`\"{}home -\/$>$ vacation -\/$>$ conference -\/$>$ home\char`\"{} or \char`\"{}home -\/$>$ conference -\/$>$ vacation-\/$>$ home\char`\"{}). 
+
+Definition at line 130 of file tasks.\-h.
+
+
+
+\subsection{Constructor \& Destructor Documentation}
+\hypertarget{classoma_1_1_play_hard_merge_triple_task_a97729e9e7ff12f386daa603e0e7a8031}{\index{oma\-::\-Play\-Hard\-Merge\-Triple\-Task@{oma\-::\-Play\-Hard\-Merge\-Triple\-Task}!Play\-Hard\-Merge\-Triple\-Task@{Play\-Hard\-Merge\-Triple\-Task}}
+\index{Play\-Hard\-Merge\-Triple\-Task@{Play\-Hard\-Merge\-Triple\-Task}!oma::PlayHardMergeTripleTask@{oma\-::\-Play\-Hard\-Merge\-Triple\-Task}}
+\subsubsection[{Play\-Hard\-Merge\-Triple\-Task}]{\setlength{\rightskip}{0pt plus 5cm}oma\-::\-Play\-Hard\-Merge\-Triple\-Task\-::\-Play\-Hard\-Merge\-Triple\-Task (
+\begin{DoxyParamCaption}
+\item[{{\bf Travels} $\ast$}]{r, }
+\item[{tbb\-::mutex $\ast$}]{rl, }
+\item[{{\bf Travels} $\ast$}]{t1, }
+\item[{{\bf Travels} $\ast$}]{t2, }
+\item[{{\bf Travels} $\ast$}]{t3, }
+\item[{{\bf Alliances} $\ast$}]{a}
+\end{DoxyParamCaption}
+)}}\label{classoma_1_1_play_hard_merge_triple_task_a97729e9e7ff12f386daa603e0e7a8031}
+
+
+Creates a new \char`\"{}play hard merge\char`\"{} task. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em r} & Output result vector. \\
+\hline
+{\em rl} & Mutex for synchronizing access on output result vector. \\
+\hline
+{\em t1} & Input travel vector \#1. \\
+\hline
+{\em t2} & Input travel vector \#2. \\
+\hline
+{\em t3} & Input travel vector \#3. \\
+\hline
+{\em a} & Alliances. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 134 of file tasks.\-cpp.
+
+
+
+\subsection{Member Function Documentation}
+\hypertarget{classoma_1_1_play_hard_merge_triple_task_ac8ddaba33e85a0a468131a814ca51640}{\index{oma\-::\-Play\-Hard\-Merge\-Triple\-Task@{oma\-::\-Play\-Hard\-Merge\-Triple\-Task}!execute@{execute}}
+\index{execute@{execute}!oma::PlayHardMergeTripleTask@{oma\-::\-Play\-Hard\-Merge\-Triple\-Task}}
+\subsubsection[{execute}]{\setlength{\rightskip}{0pt plus 5cm}tbb\-::task $\ast$ oma\-::\-Play\-Hard\-Merge\-Triple\-Task\-::execute (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{classoma_1_1_play_hard_merge_triple_task_ac8ddaba33e85a0a468131a814ca51640}
+
+
+Executes the \char`\"{}play hard merge\char`\"{} task. 
+
+
+
+Definition at line 145 of file tasks.\-cpp.
+
+
+
+The documentation for this class was generated from the following files\-:\begin{DoxyCompactItemize}
+\item 
+src/oma/\hyperlink{tasks_8h}{tasks.\-h}\item 
+src/oma/\hyperlink{tasks_8cpp}{tasks.\-cpp}\end{DoxyCompactItemize}
