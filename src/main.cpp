@@ -55,14 +55,12 @@ concurrent_hash_map<int, time_t> times;
  *     solutions. Then the cheapest of each set of possible solutions is
  *     computed. Just like in the first phase, this is parallelized using tasks.
  *
- *  @param flights    The list of available flights.
  *  @param parameters The parameters.
  *  @param alliances  The alliances between companies.
  *  @return           A solution object containing the "Work Hard" solution and
  *                    a list of "Play Hard" solutions (one for each vacation
  *                    destination). */
-Solution play_and_work_hard(vector<Flight> *flights, Parameters& parameters,
-		vector<vector<string> >& alliances)
+Solution play_and_work_hard(Parameters& parameters, Alliances *alliances)
 {
 	int n = parameters.airports_of_interest.size();
 	Solution solution(n);
@@ -78,13 +76,13 @@ Solution play_and_work_hard(vector<Flight> *flights, Parameters& parameters,
 	// Conference to Home
 	tasks.push_back(
 			*new (task::allocate_root()) FindPathTask(parameters.to, parameters.from,
-					parameters.ar_time_min, parameters.ar_time_max, &parameters, flights,
-					&conference_to_home, &alliances));
+					parameters.ar_time_min, parameters.ar_time_max, &parameters,
+					&conference_to_home, alliances));
 	// Home to Conference
 	tasks.push_back(
 			*new (task::allocate_root()) FindPathTask(parameters.from, parameters.to,
 					parameters.dep_time_min, parameters.dep_time_max, &parameters,
-					flights, &home_to_conference, &alliances));
+					&home_to_conference, alliances));
 
 	for (int i = 0; i < n; i++)
 	{
@@ -108,20 +106,20 @@ Solution play_and_work_hard(vector<Flight> *flights, Parameters& parameters,
 						current_airport_of_interest,
 						parameters.dep_time_min - parameters.vacation_time_max,
 						parameters.dep_time_min - parameters.vacation_time_min,
-						&parameters, flights, &home_to_vacation[i], &alliances));
+						&parameters, &home_to_vacation[i], alliances));
 
 		// Vacation[i] to Conference
 		tasks.push_back(
 				*new (task::allocate_root()) FindPathTask(current_airport_of_interest,
 						parameters.to, parameters.dep_time_min, parameters.dep_time_max,
-						&parameters, flights, &vacation_to_conference[i], &alliances));
+						&parameters, &vacation_to_conference[i], alliances));
 
 		// Conference to Vacation[i]
 		tasks.push_back(
 				*new (task::allocate_root()) FindPathTask(parameters.to,
 						current_airport_of_interest, parameters.ar_time_min,
-						parameters.ar_time_max, &parameters, flights,
-						&conference_to_vacation[i], &alliances));
+						parameters.ar_time_max, &parameters, &conference_to_vacation[i],
+						alliances));
 
 		// Vacation[i] to Home
 		tasks.push_back(
@@ -129,7 +127,7 @@ Solution play_and_work_hard(vector<Flight> *flights, Parameters& parameters,
 						parameters.from,
 						parameters.ar_time_max + parameters.vacation_time_min,
 						parameters.ar_time_max + parameters.vacation_time_max,
-						&parameters, flights, &vacation_to_home[i], &alliances));
+						&parameters, &vacation_to_home[i], alliances));
 	}
 
 	task::spawn_root_and_wait(tasks);
@@ -141,7 +139,7 @@ Solution play_and_work_hard(vector<Flight> *flights, Parameters& parameters,
 	// and search for the cheapest of the merged routes.
 	mergereduce_tasks.push_back(
 			*new (task::allocate_root()) WorkHardTask(&home_to_conference,
-					&conference_to_home, &solution, &alliances));
+					&conference_to_home, &solution, alliances));
 
 	for (unsigned int i = 0; i < parameters.airports_of_interest.size(); i++)
 	{
@@ -165,7 +163,7 @@ Solution play_and_work_hard(vector<Flight> *flights, Parameters& parameters,
 				*new (task::allocate_root()) PlayHardTask(&home_to_vacation[i],
 						&vacation_to_conference[i], &conference_to_home,
 						&home_to_conference, &vacation_to_home[i],
-						&conference_to_vacation[i], &solution, i, &alliances));
+						&conference_to_vacation[i], &solution, i, alliances));
 	}
 
 	// Complete all mergereduce tasks. Each task is handed a pointer to the solution object.
@@ -180,7 +178,7 @@ Solution play_and_work_hard(vector<Flight> *flights, Parameters& parameters,
 /// Compute the cost of a travel and uses the discounts when possible.
 /** @param travel The travel.
  *  @param alliances The alliances. */
-float compute_cost(Travel *travel, vector<vector<string> >*alliances)
+float compute_cost(Travel *travel, Alliances*alliances)
 {
 	// Parallelism does not make much sense here... Due to various optimizations, most
 	// travels are only 3 to 6 flights in length. Scheduling overhead becomes pretty obvious
@@ -198,7 +196,6 @@ float compute_cost(Travel *travel, vector<vector<string> >*alliances)
 /** The flights must be scheduled between t_min and t_max. It is also important
  *  to take the layover in consideration.
  *
- *  @param flights       All the flights that are available.
  *  @param to            The destination.
  *  @param travels       The list of possible travels that we are building.
  *  @param t_min         You must not be in a plane before this value (epoch)
@@ -207,9 +204,9 @@ float compute_cost(Travel *travel, vector<vector<string> >*alliances)
  *  @param final_travels The output vector.
  *  @param min_range     The minimum price range in which all found routes must fit.
  *  @param alliances     The global alliance vector. */
-void compute_path(vector<Flight>& flights, string to, vector<Travel> *travels,
-		unsigned long t_min, unsigned long t_max, Parameters parameters,
-		vector<Travel> *final_travels, CostRange *min_range, Alliances *alliances)
+void compute_path(string to, vector<Travel> *travels, unsigned long t_min,
+		unsigned long t_max, Parameters parameters, vector<Travel> *final_travels,
+		CostRange *min_range, Alliances *alliances)
 {
 	mutex final_travels_lock;
 	ComputePathOuterLoop cpol(final_travels, &final_travels_lock, parameters, to, t_min,
@@ -222,7 +219,7 @@ void compute_path(vector<Flight>& flights, string to, vector<Travel> *travels,
 
 /// Fills the travels's vector with flights that take off from the starting_point.
 /** @param travels           A vector of travels under construction
- *  @param flights           All the flights that are available.
+ *  @param final_travels     Output vector for found routes to destination.
  *  @param starting_point    The starting point.
  *  @param travels           The list of possible travels that we are building.
  *  @param t_min             You must not be in a plane before this value (epoch).
@@ -231,9 +228,9 @@ void compute_path(vector<Flight>& flights, string to, vector<Travel> *travels,
  *  @param alliances         The global alliance vector.
  *  @param destination_point The travel destination point. Direct routes between start
  *                           and destination are not further processed. */
-void fill_travel(Travels *travels, Travels *final_travels, vector<Flight>& flights,
-		string starting_point, unsigned long t_min, unsigned long t_max,
-		CostRange *min_range, string destination_point, Alliances *alliances)
+void fill_travel(Travels *travels, Travels *final_travels, string starting_point,
+		unsigned long t_min, unsigned long t_max, CostRange *min_range,
+		string destination_point, Alliances *alliances)
 {
 	const Location *l;
 	concurrent_hash_map<string, Location>::const_accessor a;
@@ -559,8 +556,8 @@ void parse_flight(char *l, Parameters *param)
 {
 	unsigned int p[7];
 
-	int j=0;
-	for (int i=0; l[i] != 0x00; i ++)
+	int j = 0;
+	for (int i = 0; l[i] != 0x00; i++)
 	{
 		if (l[i] == ';')
 		{
@@ -577,8 +574,8 @@ void parse_flight(char *l, Parameters *param)
 	const char* o = (const char*) l;
 
 	Flight flight;
-	flight.take_off_time = convert_string_to_timestamp(&(l[p[1]+1]));
-	flight.land_time = convert_string_to_timestamp(&(l[p[3]+1]));
+	flight.take_off_time = convert_string_to_timestamp(&(l[p[1] + 1]));
+	flight.land_time = convert_string_to_timestamp(&(l[p[3] + 1]));
 
 	// If the flight times are clearly outside of the specified time window, ignore
 	// them completely. This saves quite a lot of useless computing time later.
@@ -586,10 +583,10 @@ void parse_flight(char *l, Parameters *param)
 	if (flight.take_off_time > param->ar_time_max + param->vacation_time_max) return;
 
 	flight.id = string(&o[0]);
-	flight.from = string(&(o[p[0]+1]));
-	flight.to = string(&(o[p[2]+1]));
-	flight.cost = atof(&(o[p[4]+1]));
-	flight.company = string(&(o[p[5]+1]));
+	flight.from = string(&(o[p[0] + 1]));
+	flight.to = string(&(o[p[2] + 1]));
+	flight.cost = atof(&(o[p[4] + 1]));
+	flight.company = string(&(o[p[5] + 1]));
 	flight.discout = 1.0;
 
 	// Build a big graph from all locations and the flights connecting them.
@@ -629,9 +626,9 @@ void parse_flight(char *l, Parameters *param)
 }
 
 /// This function parses the flights from a file.
-/** @param flights The vector of flights.
- *  @param filename The name of the file containing the flights. */
-void parse_flights(vector<Flight> *flights, string filename, Parameters *parameters)
+/** @param filename   The name of the file containing the flights.
+ *  @param parameters Input parameters. */
+void parse_flights(string filename, Parameters *parameters)
 {
 	char *m = NULL;
 	struct stat stat;
@@ -671,7 +668,7 @@ void parse_flights(vector<Flight> *flights, string filename, Parameters *paramet
 	}
 
 	// Iterate over all found linefeeds and parse each line in parallel.
-	ParseFlightsLoop pfl(m, &lfs, flights, parameters);
+	ParseFlightsLoop pfl(m, &lfs, parameters);
 	parallel_for(blocked_range<int>(1, lfs.size()), pfl);
 
 	// Unmap file from memory and close file handle.
@@ -696,7 +693,7 @@ void parse_alliance(vector<string> &alliance, string line)
 /** @param alliances A 2D vector representing the alliances. Companies on the
  *                   same line are in the same alliance.
  *  @param filename  The name of the file containing the alliances description. */
-void parse_alliances(vector<vector<string> > &alliances, string filename)
+void parse_alliances(Alliances *alliances, string filename)
 {
 	string line = "";
 	ifstream file;
@@ -712,7 +709,7 @@ void parse_alliances(vector<vector<string> > &alliances, string filename)
 		vector<string> alliance;
 		getline(file, line);
 		parse_alliance(alliance, line);
-		alliances.push_back(alliance);
+		alliances->push_back(alliance);
 	}
 }
 
@@ -727,7 +724,7 @@ void parse_alliances(vector<vector<string> > &alliances, string filename)
  *  @param alliances A 2D vector representing the alliances. Companies on the
  *                   same line are in the same alliance. */
 bool company_are_in_a_common_alliance(const string& c1, const string& c2,
-		vector<vector<string> > *alliances)
+		Alliances *alliances)
 {
 	concurrent_hash_map<string, bool>::accessor a;
 	if (alliance_map.insert(a, c1 < c2 ? c1 + c2 : c2 + c1))
@@ -770,7 +767,7 @@ bool has_just_traveled_with_company(Flight *flight_before, Flight *current_fligh
  *  @param alliances The alliances.
  *  @return The 2 flights are with the same alliance.  */
 bool has_just_traveled_with_alliance(Flight *flight_before, Flight *current_flight,
-		vector<vector<string> > *alliances)
+		Alliances *alliances)
 {
 	return company_are_in_a_common_alliance(current_flight->company,
 			flight_before->company, alliances);
@@ -778,7 +775,7 @@ bool has_just_traveled_with_alliance(Flight *flight_before, Flight *current_flig
 
 /// Display the alliances on the standard output.
 /** @param alliances The alliances. */
-void print_alliances(vector<vector<string> > &alliances)
+void print_alliances(Alliances &alliances)
 {
 	for (unsigned int i = 0; i < alliances.size(); i++)
 	{
@@ -825,9 +822,13 @@ bool nerver_traveled_to(Travel travel, string city)
 /** @param travel The travel.
  *  @param alliances The alliances (used to compute the price).
  *  @param output The output stream. */
-void print_travel(Travel& travel, vector<vector<string> >&alliances, ofstream& output)
+void print_travel(Travel& travel, Alliances *alliances, ofstream& output)
 {
-	output << "Price : " << compute_cost(&travel, &alliances)/*ravel.max_cost*/<< endl;
+	// Sometimes prices seem to differ one cents (possibly due to some float
+	// arithmetics issues), so we compute the actual travel cost again for
+	// output.
+
+	output << "Price : " << compute_cost(&travel, alliances) << endl;
 	print_flights(travel.flights, travel.discounts, output);
 	output << endl;
 }
@@ -836,14 +837,12 @@ void print_travel(Travel& travel, vector<vector<string> >&alliances, ofstream& o
 /** This method first solves both the "work hard" and all "play hard" problems
  *  and then writes the solutions into the associated output files.
  *
- *  @param flights The list of available flights.
  *  @param parameters The parameters.
  *  @param alliances The alliances between companies. */
-void output_solutions(vector<Flight> *flights, Parameters& parameters,
-		vector<vector<string> >& alliances)
+void output_solutions(Parameters& parameters, Alliances *alliances)
 {
 	// Solve everything.
-	Solution solution = play_and_work_hard(flights, parameters, alliances);
+	Solution solution = play_and_work_hard(parameters, alliances);
 
 	ofstream ph_out, wh_out;
 
@@ -894,7 +893,7 @@ int main(int argc, char **argv)
 {
 	// Declare variables and read the args
 	Parameters parameters;
-	vector<vector<string> > alliances;
+	Alliances *alliances = new Alliances();
 	read_parameters(parameters, argc, argv);
 
 	// Respect nb_threads parameter.
@@ -902,17 +901,14 @@ int main(int argc, char **argv)
 
 	// Initialize flight graph (important: needs to be allocated on heap, otherwise
 	// everything will blow up on larger input datasets).
-	vector<Flight> *flights = new vector<Flight>;
 	location_map = new concurrent_hash_map<string, Location>;
 
 	// Read flights and alliances.
-	parse_flights(flights, parameters.flights_file, &parameters);
-	cout << "Read " << flights->size() << " flights." << endl;
+	parse_flights(parameters.flights_file, &parameters);
 	parse_alliances(alliances, parameters.alliances_file);
-	cout << "Read " << alliances.size() << " alliances." << endl;
 
 	tick_count t0 = tick_count::now();
-	output_solutions(flights, parameters, alliances);
+	output_solutions(parameters, alliances);
 	tick_count t1 = tick_count::now();
 
 	cout << "Duration: " << (t1 - t0).seconds() * 1000 << endl;

@@ -14,11 +14,10 @@
 
 using namespace std;
 
-oma::ParseFlightsLoop::ParseFlightsLoop(char* i, vector<int>* l, vector<Flight> *f, Parameters *p)
+oma::ParseFlightsLoop::ParseFlightsLoop(char* i, vector<int>* l, Parameters *p)
 {
 	input = i;
 	lfs = l;
-	flights = f;
 	parameters = p;
 }
 

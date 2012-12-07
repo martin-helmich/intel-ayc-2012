@@ -29,7 +29,6 @@ namespace oma
 class ParseFlightsLoop
 {
 private:
-	vector<Flight> *flights;
 	char *input;
 	vector<int>* lfs;
 	Parameters *parameters;
@@ -39,9 +38,8 @@ public:
 	/// Initial constructor.
 	/** @param i Pointer to mapped input file.
 	 *  @param l Pointer to vector containing positions of line endings (LFs).
-	 *  @param f Pointer to flight output vector.
 	 *  @param p Pointer to parameters object. */
-	ParseFlightsLoop(char* i, vector<int>* l, vector<Flight> *f, Parameters *p);
+	ParseFlightsLoop(char* i, vector<int>* l, Parameters *p);
 
 	/// Actual loop body.
 	/** @param range Range to be iterated over. */

@@ -18,13 +18,12 @@ using namespace std;
 using namespace oma;
 
 oma::FindPathTask::FindPathTask(string f, string t, int tmi, int tma, Parameters *p,
-		vector<Flight> *fl, vector<Travel> *tr, Alliances *a)
+		vector<Travel> *tr, Alliances *a)
 {
 	from = f;
 	to = t;
 	parameters = p;
 
-	flights = fl;
 	travels = tr;
 	alliances = a;
 
@@ -37,15 +36,15 @@ tbb::task* oma::FindPathTask::execute()
 	Travels temp_travels, all_paths;
 	CostRange min_range;
 
-	fill_travel(&temp_travels, &all_paths, *flights, from, t_min, t_max, &min_range, to,
-			alliances);
+	fill_travel(&temp_travels, &all_paths, from, t_min, t_max, &min_range, to, alliances);
 
-	compute_path(*flights, to, &temp_travels, t_min, t_max, *parameters, &all_paths,
-			&min_range, alliances);
+	compute_path(to, &temp_travels, t_min, t_max, *parameters, &all_paths, &min_range,
+			alliances);
 
 	FilterPathsLoop fpl(&all_paths, travels, &min_range);
 
-	if(all_paths.size() > 500) parallel_reduce(blocked_range<unsigned int>(0, all_paths.size()), fpl);
+	if (all_paths.size() > 500) parallel_reduce(
+			blocked_range<unsigned int>(0, all_paths.size()), fpl);
 	else fpl(blocked_range<unsigned int>(0, all_paths.size()));
 
 	return NULL;

@@ -33,7 +33,6 @@ class FindPathTask: public tbb::task
 private:
 	string from, to;
 	Parameters *parameters;
-	vector<Flight> *flights;
 	Travels *travels;
 	int t_min, t_max;
 	Alliances *alliances;
@@ -46,11 +45,10 @@ public:
 	 *  @param tmi Minimum departure time.
 	 *  @param tma Maximum departure time.
 	 *  @param p Input parameters.
-	 *  @param fl Flight list.
 	 *  @param tr Output travel vector.
 	 *  @param a All alliances. */
-	FindPathTask(string f, string t, int tmi, int tma, Parameters *p, vector<Flight> *fl,
-			Travels *tr, Alliances *a);
+	FindPathTask(string f, string t, int tmi, int tma, Parameters *p, Travels *tr,
+			Alliances *a);
 
 	/// Executes the "find path" task.
 	task* execute();
