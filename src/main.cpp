@@ -36,31 +36,31 @@ concurrent_hash_map<string, Location> *location_map;
 concurrent_hash_map<string, bool> alliance_map;
 concurrent_hash_map<int, time_t> times;
 
-/**
- * Solves BOTH the "Work Hard" AND the "Play Hard" problem.
+/// Solves BOTH the "Work Hard" AND the "Play Hard" problem.
+/** This function solves both the "work hard" AND the "play hard" problem.
+ *  It works in two phases:
  *
- * This function works in two phases:
+ *  1. In the first phase, all partial routes (i.e. all intermediary routes
+ *     with just one origin and destination -- e.g "home to vacation", "home to
+ *     conference", etc). All these partial routes are computed in parallel
+ *     using task parallelism.
  *
- * 1. In the first phase, all partial routes (i.e. all intermediary routes with just one
- *    origin and destination -- e.g "home to vacation", "home to conference", etc). All
- *    these partial routes are computed in parallel using task parallelism.
+ *     Especially the "conference to home" and "home to conference" routes are
+ *     needed to solve both the "work hard" and "play hard" problems. However,
+ *     since these routes are completely independent from any vacation target,
+ *     they need to be computed ONLY ONCE.
  *
- *    Especially the "conference to home" and "home to conference" routes are needed to solve
- *    both the "work hard" and "play hard" problems. However, since these routes are completely
- *    independent from any vacation target, they need to be computed ONLY ONCE.
+ *  2. In the second phase, all routes from the first phase are merged into
+ *     possible solutions for the "work hard" and each of the "play hard"
+ *     solutions. Then the cheapest of each set of possible solutions is
+ *     computed. Just like in the first phase, this is parallelized using tasks.
  *
- * 2. In the second phase, all routes from the first phase are merged into possible solutions
- *    for the "work hard" and each of the "play hard" solutions. Then the cheapest of each
- *    set of possible solutions is computed. Just like in the first phase, this is parallelized
- *    using tasks.
- *
- * @param flights    The list of available flights.
- * @param parameters The parameters.
- * @param alliances  The alliances between companies.
- * @return           A solution object containing the "Work Hard" solution and
- *                   a list of "Play Hard" solutions (one for each vacation
- *                   destination).
- */
+ *  @param flights    The list of available flights.
+ *  @param parameters The parameters.
+ *  @param alliances  The alliances between companies.
+ *  @return           A solution object containing the "Work Hard" solution and
+ *                    a list of "Play Hard" solutions (one for each vacation
+ *                    destination). */
 Solution play_and_work_hard(vector<Flight> *flights, Parameters& parameters,
 		vector<vector<string> >& alliances)
 {
@@ -170,19 +170,16 @@ Solution play_and_work_hard(vector<Flight> *flights, Parameters& parameters,
 
 	// Complete all mergereduce tasks. Each task is handed a pointer to the solution object.
 	// Since each task knows exactly where to modify the solution object, special access synchronization
-	// is not required (apart from some tiny spinlock implementen in the "Solution" struct).
+	// is not required (apart from some tiny spinlock implemented in the "Solution" class).
 	// So ideally, the "solution" variable should be completely filled when all the tasks have run.
 	task::spawn_root_and_wait(mergereduce_tasks);
 
 	return solution;
 }
 
-/**
- * \fn float compute_cost(Travel & travel, vector<vector<string> >&alliances)
- * \brief Compute the cost of a travel and uses the discounts when possible.
- * \param travel The travel.
- * \param alliances The alliances.
- */
+/// Compute the cost of a travel and uses the discounts when possible.
+/** @param travel The travel.
+ *  @param alliances The alliances. */
 float compute_cost(Travel *travel, vector<vector<string> >*alliances)
 {
 	// Parallelism does not make much sense here... Due to various optimizations, most
@@ -197,17 +194,19 @@ float compute_cost(Travel *travel, vector<vector<string> >*alliances)
 	return travel->total_cost;
 }
 
-/**
- * \fn void compute_path(vector<Flight>& flights, string to, vector<Travel>& travels, unsigned long t_min, unsigned long t_max, Parameters parameters)
- * \brief Computes a path from a point A to a point B. The flights must be scheduled between t_min and t_max. It is also important to take the layover in consideration.
- * 	You should try to improve and parallelize this function. A lot of stuff can probably done here. You can do almost what you want but the program output must not be modified.
- * \param flights All the flights that are available.
- * \param to The destination.
- * \param travels The list of possible travels that we are building.
- * \param t_min You must not be in a plane before this value (epoch)
- * \param t_max You must not be in a plane after this value (epoch)
- * \param parameters The program parameters
- */
+/// Computes a path from a point A to a point B.
+/** The flights must be scheduled between t_min and t_max. It is also important
+ *  to take the layover in consideration.
+ *
+ *  @param flights       All the flights that are available.
+ *  @param to            The destination.
+ *  @param travels       The list of possible travels that we are building.
+ *  @param t_min         You must not be in a plane before this value (epoch)
+ *  @param t_max         You must not be in a plane after this value (epoch)
+ *  @param parameters    The program parameters
+ *  @param final_travels The output vector.
+ *  @param min_range     The minimum price range in which all found routes must fit.
+ *  @param alliances     The global alliance vector. */
 void compute_path(vector<Flight>& flights, string to, vector<Travel> *travels,
 		unsigned long t_min, unsigned long t_max, Parameters parameters,
 		vector<Travel> *final_travels, CostRange *min_range, Alliances *alliances)
@@ -221,17 +220,17 @@ void compute_path(vector<Flight>& flights, string to, vector<Travel> *travels,
 	return;
 }
 
-/**
- * \fn void fill_travel(vector<Travel>& travels, vector<Flight>& flights, string starting_point, unsigned long t_min, unsigned long t_max)
- * \brief Fills the travels's vector with flights that take off from the starting_point.
- * This function might probably be improved.
- * \param travels A vector of travels under construction
- * \param flights All the flights that are available.
- * \param starting_point The starting point.
- * \param travels The list of possible travels that we are building.
- * \param t_min You must not be in a plane before this value (epoch).
- * \param t_max You must not be in a plane after this value (epoch).
- */
+/// Fills the travels's vector with flights that take off from the starting_point.
+/** @param travels           A vector of travels under construction
+ *  @param flights           All the flights that are available.
+ *  @param starting_point    The starting point.
+ *  @param travels           The list of possible travels that we are building.
+ *  @param t_min             You must not be in a plane before this value (epoch).
+ *  @param t_max             You must not be in a plane after this value (epoch).
+ *  @param min_range         The minimum price range in which all found routes must fit.
+ *  @param alliances         The global alliance vector.
+ *  @param destination_point The travel destination point. Direct routes between start
+ *                           and destination are not further processed. */
 void fill_travel(Travels *travels, Travels *final_travels, vector<Flight>& flights,
 		string starting_point, unsigned long t_min, unsigned long t_max,
 		CostRange *min_range, string destination_point, Alliances *alliances)
@@ -277,12 +276,8 @@ void fill_travel(Travels *travels, Travels *final_travels, vector<Flight>& fligh
 	else fpl(blocked_range<unsigned int>(0, temp.size()));
 }
 
-/**
- * \fn time_t convert_to_timestamp(int day, int month, int year, int hour, int minute, int seconde)
- * \brief Convert a date to timestamp
- * Parameter's names are self-sufficient. You shouldn't modify this part of the code unless you know what you are doing.
- * \return a timestamp (epoch) corresponding to the given parameters.
- */
+/// Convert a date to timestamp
+/** @return a timestamp (epoch) corresponding to the given parameters. */
 time_t convert_to_timestamp(int day, int month, int year, int hour, int minute,
 		int seconde)
 {
@@ -296,30 +291,35 @@ time_t convert_to_timestamp(int day, int month, int year, int hour, int minute,
 	return timegm(&time);
 }
 
-/**
- * \fn time_t timegm(struct tm *tm)
- * \brief Convert a tm structure into a timestamp.
- * \return a timestamp (epoch) corresponding to the given parameter.
- */
+/// Convert a tm structure into a timestamp.
+/** This function was completely rewritten in favor of a more performant and
+ *  scalable implementation.
+ *
+ *  On Linux, mktime() apparently requires exclusive access to some system
+ *  resource that is ensured by using futex locks. This makes it very hard to
+ *  parallelize.
+ *
+ *  In order to minimize the amount of these expensive mktime() calls, we only
+ *  compute "base dates" for each month/year combination which are subsequently
+ *  stored into a concurrent hash map. The actual timestamps are then computed
+ *  manually using the "base timestamp" plus the amount of seconds for the
+ *  day/hour/minute.
+ *
+ *  EDIT: Apparently, for larger input files (> 200000 flights), mktime is still
+ *  making trouble (by mixing up timezones on occasion). In order to avoid these
+ *  problems altogether, we compute the timestamp COMPLETELY manually (yes, this is
+ *  pain; luckily we can at least ignore the timezone problem -- it's all UTC,
+ *  after all).
+ *
+ *  @return a timestamp (epoch) corresponding to the given parameter. */
 time_t timegm(struct tm *tm)
 {
 	// Create a simple hash from the year and month.
 	int year = tm->tm_year * 100 + tm->tm_mon;
 	time_t month_ts;
 
-	// On Linux, mktime() apparently requires exclusive access to some system
-	// resource that is ensured by using futex locks. This makes it very hard to
-	// parallelize.
-	// In order to minimize the amount of these expensive mktime() calls, we only
-	// compute "base dates" for each month/year combination which are subsequently
-	// stored into a concurrent hash map. The actual timestamps are then computed
-	// manually using the "base timestamp" plus the amount of seconds for the
-	// day/hour/minute.
-	// EDIT: Apparently, for larger input files (> 200000 flights), mktime is still
-	// making trouble (by mixing up timezones on occasion). In order to avoid these
-	// problems altogether, we compute the timestamp COMPLETELY manually (yes, this is
-	// pain; luckily we can at least ignore the timezone problem -- it's all UTC,
-	// after all).
+	// Try to look up the month/year hash in the time map. Use the existing
+	// base timestamp if it exists, otherwise compute it.
 	concurrent_hash_map<int, time_t>::const_accessor a;
 	if (times.find(a, year))
 	{
@@ -385,7 +385,11 @@ time_t timegm(struct tm *tm)
  * @return a timestamp (epoch) corresponding to the given parameters.
  *
  * You shouldn't modify this part of the code unless you know what you are doing.
- * (Yep, I'm not really sure I know what I'm doing, but is works nonetheless).
+ * (Yep, I'm not really sure I know what I'm doing, but it works nonetheless).
+ *
+ * This function was completely rewritten in favour of a more performant approach.
+ * Instead of working with substrings and numerous "atoi" calls, we perform the
+ * "string -> integer" conversion manually.
  */
 time_t convert_string_to_timestamp(char *s)
 {
@@ -400,10 +404,8 @@ time_t convert_string_to_timestamp(char *s)
 	return convert_to_timestamp(day, month, year, hour, minute, seconde);
 }
 
-/**
- * \fn void print_params(Parameters &parameters)
- * \brief You can use this function to display the parameters
- */
+/// You can use this function to display the parameters
+/** @param parameters The parameter object. */
 void print_params(Parameters &parameters)
 {
 	cout << "From : " << parameters.from << endl;
@@ -427,10 +429,10 @@ void print_params(Parameters &parameters)
 	cout << "nb_threads : " << parameters.nb_threads << endl;
 }
 
-/**
- * \fn void print_flight(Flight& flight)
- * \brief You can use this function to display a flight
- */
+/// You can use this function to display a flight
+/** @param flight   The flight.
+ *  @param discount The discount.
+ *  @param output   The output stream. */
 void print_flight(Flight& flight, float discount, ofstream& output)
 {
 	struct tm * take_off_t, *land_t;
@@ -523,13 +525,10 @@ void read_parameters(Parameters& parameters, int argc, char **argv)
 	}
 }
 
-/**
- * \fn void split_string(vector<string>& result, string line, char separator)
- * \brief This function split a string into a vector of strings regarding the separator.
- * \param result The vector of separated strings
- * \param line The line that must be split.
- * \param separator The separator character.
- */
+/// This function split a string into a vector of strings regarding the separator.
+/** @param result The vector of separated strings
+ *  @param line The line that must be split.
+ *  @param separator The separator character. */
 void split_string(vector<string>& result, string line, char separator)
 {
 	while (line.find(separator) != string::npos)
@@ -578,8 +577,8 @@ void parse_flight(char *l, Parameters *param)
 	const char* o = (const char*) l;
 
 	Flight flight;
-	flight.take_off_time = convert_string_to_timestamp((char*)&(l[p[1]+1]));
-	flight.land_time = convert_string_to_timestamp((char*)&(l[p[3]+1]));
+	flight.take_off_time = convert_string_to_timestamp(&(l[p[1]+1]));
+	flight.land_time = convert_string_to_timestamp(&(l[p[3]+1]));
 
 	// If the flight times are clearly outside of the specified time window, ignore
 	// them completely. This saves quite a lot of useless computing time later.
@@ -680,12 +679,9 @@ void parse_flights(vector<Flight> *flights, string filename, Parameters *paramet
 	close(fd);
 }
 
-/**
- * \fn void parse_alliance(vector<string> &alliance, string line)
- * \brief This function parses a line containing alliances between companies.
- * \param alliance A vector of companies sharing a same alliance.
- * \param line A line that contains the name of companies in the same alliance.
- */
+/// This function parses a line containing alliances between companies.
+/** @param alliance A vector of companies sharing a same alliance.
+ *  @param line     A line that contains the name of companies in the same alliance. */
 void parse_alliance(vector<string> &alliance, string line)
 {
 	vector<string> splittedLine;
@@ -695,12 +691,11 @@ void parse_alliance(vector<string> &alliance, string line)
 		alliance.push_back(splittedLine[i]);
 	}
 }
-/**
- * \fn void parse_alliances(vector<vector<string> > &alliances, string filename)
- * \brief This function parses a line containing alliances between companies.
- * \param alliances A 2D vector representing the alliances. Companies on the same line are in the same alliance.
- * \param filename The name of the file containing the alliances description.
- */
+
+/// This function parses a line containing alliances between companies.
+/** @param alliances A 2D vector representing the alliances. Companies on the
+ *                   same line are in the same alliance.
+ *  @param filename  The name of the file containing the alliances description. */
 void parse_alliances(vector<vector<string> > &alliances, string filename)
 {
 	string line = "";
@@ -760,26 +755,20 @@ bool company_are_in_a_common_alliance(const string& c1, const string& c2,
 	}
 }
 
-/**
- * \fn bool has_just_traveled_with_company(vector<Flight>& flights_before, Flight& current_flight)
- * \brief The 2 last flights are with the same company.
- * \param flight_before The first flight.
- * \param current_flight The second flight.
- * \return The 2 flights are with the same company
- */
+/// The 2 last flights are with the same company.
+/** @param flight_before The first flight.
+ *  @param current_flight The second flight.
+ *  @return The 2 flights are with the same company. */
 bool has_just_traveled_with_company(Flight *flight_before, Flight *current_flight)
 {
 	return flight_before->company == current_flight->company;
 }
 
-/**
- * \fn bool has_just_traveled_with_alliance(Flight& flight_before, Flight& current_flight, vector<vector<string> >& alliances)
- * \brief The 2 last flights are with the same alliance.
- * \param flight_before The first flight.
- * \param current_flight The second flight.
- * \param alliances The alliances.
- * \return The 2 flights are with the same alliance.
- */
+/// The 2 last flights are with the same alliance.
+/** @param flight_before The first flight.
+ *  @param current_flight The second flight.
+ *  @param alliances The alliances.
+ *  @return The 2 flights are with the same alliance.  */
 bool has_just_traveled_with_alliance(Flight *flight_before, Flight *current_flight,
 		vector<vector<string> > *alliances)
 {
@@ -787,11 +776,8 @@ bool has_just_traveled_with_alliance(Flight *flight_before, Flight *current_flig
 			flight_before->company, alliances);
 }
 
-/**
- * \fn void print_alliances(vector<vector<string> > &alliances)
- * \brief Display the alliances on the standard output.
- * \param alliances The alliances.
- */
+/// Display the alliances on the standard output.
+/** @param alliances The alliances. */
 void print_alliances(vector<vector<string> > &alliances)
 {
 	for (unsigned int i = 0; i < alliances.size(); i++)
@@ -817,8 +803,10 @@ void print_flights(vector<Flight>& flights, vector<float> discounts, ofstream& o
 	}
 }
 
-/// Indicates if the city has already been visited in the travel. This function is used to avoid stupid loops.
-/** @param travel The travels.
+/// Indicates if the city has already been visited in the travel.
+/** This function is used to avoid stupid loops.
+ *
+ *  @param travel The travels.
  *  @param city The city.
  *  @return The current travel has never visited the given city. */
 bool nerver_traveled_to(Travel travel, string city)
@@ -876,11 +864,8 @@ void output_solutions(vector<Flight> *flights, Parameters& parameters,
 	wh_out.close();
 }
 
-/**
- * Dumps the flight graph.
- *
- * This function dumps the entire flight graph, grouped by cities.
- */
+/// Dumps the flight graph.
+/** This function dumps the entire flight graph, grouped by cities. */
 void print_cities()
 {
 	concurrent_hash_map<string, Location>::iterator i;
@@ -907,24 +892,27 @@ void print_cities()
 
 int main(int argc, char **argv)
 {
-	//Declare variables and read the args
+	// Declare variables and read the args
 	Parameters parameters;
 	vector<vector<string> > alliances;
 	read_parameters(parameters, argc, argv);
 
+	// Respect nb_threads parameter.
 	task_scheduler_init init(parameters.nb_threads);
 
+	// Initialize flight graph (important: needs to be allocated on heap, otherwise
+	// everything will blow up on larger input datasets).
 	vector<Flight> *flights = new vector<Flight>;
 	location_map = new concurrent_hash_map<string, Location>;
 
+	// Read flights and alliances.
 	parse_flights(flights, parameters.flights_file, &parameters);
 	cout << "Read " << flights->size() << " flights." << endl;
 	parse_alliances(alliances, parameters.alliances_file);
 	cout << "Read " << alliances.size() << " alliances." << endl;
+
 	tick_count t0 = tick_count::now();
-
 	output_solutions(flights, parameters, alliances);
-
 	tick_count t1 = tick_count::now();
 
 	cout << "Duration: " << (t1 - t0).seconds() * 1000 << endl;
