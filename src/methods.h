@@ -24,13 +24,13 @@ bool has_just_traveled_with_alliance(Flight *flight_before, Flight *current_flig
 		vector<vector<string> > *alliances);
 time_t convert_to_timestamp(int day, int month, int year, int hour, int minute,
 		int seconde);
-time_t convert_string_to_timestamp(string s);
+time_t convert_string_to_timestamp(char *s);
 void print_params(Parameters &parameters);
 void print_flight(Flight& flight, float discount, ofstream& output);
 void read_parameters(Parameters& parameters, int argc, char **argv);
 void split_string(vector<string>& result, string line, char separator);
-void parse_flight(vector<Flight> *flights, string *line);
-void parse_flights(vector<Flight> *flights, string filename);
+void parse_flight(char *line, Parameters *p);
+void parse_flights(vector<Flight> *flights, string filename, Parameters *parameters);
 void parse_alliance(vector<string> &alliance, string line);
 void parse_alliances(vector<vector<string> > &alliances, string filename);
 float compute_cost(Travel *travel, vector<vector<string> >*alliances);

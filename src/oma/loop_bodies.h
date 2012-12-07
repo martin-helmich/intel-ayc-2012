@@ -32,26 +32,20 @@ private:
 	vector<Flight> *flights;
 	char *input;
 	vector<int>* lfs;
+	Parameters *parameters;
 
 public:
 
 	/// Initial constructor.
 	/** @param i Pointer to mapped input file.
 	 *  @param l Pointer to vector containing positions of line endings (LFs).
-	 *  @param f Pointer to flight output vector. */
-	ParseFlightsLoop(char* i, vector<int>* l, vector<Flight> *f);
-
-	/// Split constructor.
-	/** @param pfl Parent loop. */
-//	ParseFlightsLoop(ParseFlightsLoop &pfl, split);
+	 *  @param f Pointer to flight output vector.
+	 *  @param p Pointer to parameters object. */
+	ParseFlightsLoop(char* i, vector<int>* l, vector<Flight> *f, Parameters *p);
 
 	/// Actual loop body.
 	/** @param range Range to be iterated over. */
 	void operator()(const blocked_range<int> range) const;
-
-	/// Joins two loop results into one.
-	/** @param pfl Another loop body. */
-//	void join(ParseFlightsLoop &pfl);
 };
 
 /// Loop body for merging two seperate sets of routes into one set of routes.

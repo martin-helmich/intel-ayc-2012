@@ -374,37 +374,30 @@ time_t timegm(struct tm *tm)
 	return month_ts;
 }
 
-/**
- * \fn time_t convert_string_to_timestamp(string s)
- * \brief Parses the string s and returns a timestamp (epoch)
- * \param s A string that represents a date with the following format MMDDYYYYhhmmss with
- * M = Month number
- * D = Day number
- * Y = Year number
- * h = hour number
- * m = minute number
- * s = second number
+/// Parses the string s and returns a timestamp (epoch)
+/** @param s A string that represents a date with the following format MMDDYYYYhhmmss with
+ *      M = Month number
+ *      D = Day number
+ *      Y = Year number
+ *      h = hour number
+ *      m = minute number
+ *      s = second number
+ * @return a timestamp (epoch) corresponding to the given parameters.
+ *
  * You shouldn't modify this part of the code unless you know what you are doing.
- * \return a timestamp (epoch) corresponding to the given parameters.
+ * (Yep, I'm not really sure I know what I'm doing, but is works nonetheless).
  */
-time_t convert_string_to_timestamp(string s)
+time_t convert_string_to_timestamp(char *s)
 {
-	if (s.size() != 14)
-	{
-		cerr << "The given string '" << s << "' is not a valid timestamp" << endl;
-		exit(0);
-	}
-	else
-	{
-		int day, month, year, hour, minute, seconde;
-		day = ((int)(s[2]-48)*10) + ((int)s[3]-48);
-		month = ((int)(s[0]-48)*10) + ((int)s[1]-48);
-		year = ((int)(s[4]-48)*1000) + ((int)(s[5]-48)*100) + ((int)(s[6]-48)*10) + ((int)(s[7]-48));
-		hour = ((int)(s[8]-48)*10) + ((int)s[9]-48);
-		minute = ((int)(s[10]-48)*10) + ((int)s[11]-48);
-		seconde = ((int)(s[12]-48)*10) + ((int)s[13]-48);
-		return convert_to_timestamp(day, month, year, hour, minute, seconde);
-	}
+	int day, month, year, hour, minute, seconde;
+	day = ((int) (s[2] - 48) * 10) + ((int) s[3] - 48);
+	month = ((int) (s[0] - 48) * 10) + ((int) s[1] - 48);
+	year = ((int) (s[4] - 48) * 1000) + ((int) (s[5] - 48) * 100)
+			+ ((int) (s[6] - 48) * 10) + ((int) (s[7] - 48));
+	hour = ((int) (s[8] - 48) * 10) + ((int) s[9] - 48);
+	minute = ((int) (s[10] - 48) * 10) + ((int) s[11] - 48);
+	seconde = ((int) (s[12] - 48) * 10) + ((int) s[13] - 48);
+	return convert_to_timestamp(day, month, year, hour, minute, seconde);
 }
 
 /**
@@ -548,22 +541,30 @@ void split_string(vector<string>& result, string line, char separator)
 	result.push_back(line);
 }
 
-/**
- * \fn void parse_flight(vector<Flight>& flights, string& line)
- * \brief This function parses a line containing a flight description.
- * \param flights The vector of flights.
- * \param line The line that must be parsed.
- */
-void parse_flight(vector<Flight> *flights, string *line)
+/// Parses a line containing a flight description.
+/** This function parses a string containing a flight description.
+ *
+ *  It implements the following optimizations:
+ *
+ *    * (char*) instead of std::string saves unnecessary copying.
+ *    * Flights that are clearly outside the specified time window are
+ *      completely ignored, reducing the amount of data to be processed
+ *      later.
+ *    * A flight graph is constructed while parsing flights, allowing
+ *      quick (and O(1)) access to outgoing and incoming flights from or
+ *      to certain locations.
+ *
+ *  @param l       The line that must be parsed.
+ *  @param param   A pointer to the input parameter object.*/
+void parse_flight(char *l, Parameters *param)
 {
-	char *l = (char*) line->c_str();
-	size_t n = line->length();
 	unsigned int p[7];
 
 	int j=0;
-	for (int i=0; i < n; i ++)
+	for (int i=0; l[i] != 0x00; i ++)
 	{
-		if (l[i] == ';') {
+		if (l[i] == ';')
+		{
 			if (j >= 6) return;
 			p[j] = i;
 			l[i] = 0x00;
@@ -574,14 +575,22 @@ void parse_flight(vector<Flight> *flights, string *line)
 	}
 	if (j < 6) return;
 
+	const char* o = (const char*) l;
+
 	Flight flight;
-	flight.id = string((const char*)&(l[0]));
-	flight.from = string((const char*)&(l[p[0]+1]));
-	flight.take_off_time = convert_string_to_timestamp((const char*)&(l[p[1]+1]));
-	flight.to = string((const char*)&(l[p[2]+1]));
-	flight.land_time = convert_string_to_timestamp((const char*)&(l[p[3]+1]));
-	flight.cost = atof((const char*)&(l[p[4]+1]));
-	flight.company = string((const char*)&(l[p[5]+1]));
+	flight.take_off_time = convert_string_to_timestamp((char*)&(l[p[1]+1]));
+	flight.land_time = convert_string_to_timestamp((char*)&(l[p[3]+1]));
+
+	// If the flight times are clearly outside of the specified time window, ignore
+	// them completely. This saves quite a lot of useless computing time later.
+	if (flight.land_time < param->dep_time_min - param->vacation_time_max) return;
+	if (flight.take_off_time > param->ar_time_max + param->vacation_time_max) return;
+
+	flight.id = string(&o[0]);
+	flight.from = string(&(o[p[0]+1]));
+	flight.to = string(&(o[p[2]+1]));
+	flight.cost = atof(&(o[p[4]+1]));
+	flight.company = string(&(o[p[5]+1]));
 	flight.discout = 1.0;
 
 	// Build a big graph from all locations and the flights connecting them.
@@ -623,7 +632,7 @@ void parse_flight(vector<Flight> *flights, string *line)
 /// This function parses the flights from a file.
 /** @param flights The vector of flights.
  *  @param filename The name of the file containing the flights. */
-void parse_flights(vector<Flight> *flights, string filename)
+void parse_flights(vector<Flight> *flights, string filename, Parameters *parameters)
 {
 	char *m = NULL;
 	struct stat stat;
@@ -663,11 +672,8 @@ void parse_flights(vector<Flight> *flights, string filename)
 	}
 
 	// Iterate over all found linefeeds and parse each line in parallel.
-	tick_count t0 = tick_count::now();
-	ParseFlightsLoop pfl(m, &lfs, flights);
-//	parallel_reduce(blocked_range<int>(1, lfs.size()), pfl);
+	ParseFlightsLoop pfl(m, &lfs, flights, parameters);
 	parallel_for(blocked_range<int>(1, lfs.size()), pfl);
-	cout << "Read input file in " << (tick_count::now() - t0).seconds() * 1000  << endl;
 
 	// Unmap file from memory and close file handle.
 	munmap(m, stat.st_size);
@@ -911,7 +917,7 @@ int main(int argc, char **argv)
 	vector<Flight> *flights = new vector<Flight>;
 	location_map = new concurrent_hash_map<string, Location>;
 
-	parse_flights(flights, parameters.flights_file);
+	parse_flights(flights, parameters.flights_file, &parameters);
 	cout << "Read " << flights->size() << " flights." << endl;
 	parse_alliances(alliances, parameters.alliances_file);
 	cout << "Read " << alliances.size() << " alliances." << endl;

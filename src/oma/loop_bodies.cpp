@@ -14,17 +14,13 @@
 
 using namespace std;
 
-oma::ParseFlightsLoop::ParseFlightsLoop(char* i, vector<int>* l, vector<Flight> *f) :
-		input(i), lfs(l)
+oma::ParseFlightsLoop::ParseFlightsLoop(char* i, vector<int>* l, vector<Flight> *f, Parameters *p)
 {
+	input = i;
+	lfs = l;
 	flights = f;
+	parameters = p;
 }
-
-//oma::ParseFlightsLoop::ParseFlightsLoop(ParseFlightsLoop &pfl, split) :
-//		input(pfl.input), lfs(pfl.lfs)
-//{
-//	flights = new vector<Flight>;
-//}
 
 void oma::ParseFlightsLoop::operator()(const blocked_range<int> range) const
 {
@@ -42,18 +38,10 @@ void oma::ParseFlightsLoop::operator()(const blocked_range<int> range) const
 		// Add 0-byte to mark string end.
 		b[lfs->at(i) - lfs->at(i - 1) - 1] = 0x00;
 
-		// Create string from character array and parse line.
-		string s(b);
-		parse_flight(flights, &s);
+		// Parse line.
+		parse_flight(b, parameters);
 	}
 }
-
-//void oma::ParseFlightsLoop::join(ParseFlightsLoop &pfl)
-//{
-//	// Merge flight lists.
-//	flights->insert(flights->end(), pfl.flights->begin(), pfl.flights->end());
-//	delete pfl.flights;
-//}
 
 oma::PathMergingOuterLoop::PathMergingOuterLoop(Travels *t1, Travels *t2, Alliances *a)
 {
