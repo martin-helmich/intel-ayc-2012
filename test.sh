@@ -17,6 +17,8 @@ for S in scenarios/scenario{1..12} ; do
 
 	rm play_hard.txt work_hard.txt
 
+	printf "%-20s : " $S
+
 	./script.sh &> /dev/null
 	EXIT=$?
 	if [ $? -ne 0 ] ; then
@@ -24,9 +26,6 @@ for S in scenarios/scenario{1..12} ; do
 		echo -e "033[1;31mEXIT: $EXIT\033[0m"
 		continue
 	fi
-
-	printf "%-20s : " $S
-	#echo -n "$S: "
 
 	if [ "$(getmd5 work_hard.txt)" = "$(getmd5 work_hard_ref.txt)" ] ; then
 		echo -ne "  \033[1;32mOK \033[0m"
