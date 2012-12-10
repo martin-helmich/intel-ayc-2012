@@ -155,3 +155,86 @@ tbb::task* oma::PlayHardMergeTripleTask::execute()
 
 	return NULL;
 }
+
+ComputePathTask::ComputePathTask(Travel *t, string dst, Travels *ft, mutex *ftl,
+		unsigned long tmi, unsigned long tma, Parameters *p, Alliances *a, CostRange *mr,
+		concurrent_hash_map<string, Location> *lm, unsigned int l)
+{
+	travel = t;
+	destination = dst;
+	final_travels = ft;
+	final_travels_lock = ftl;
+	t_min = tmi;
+	t_max = tma;
+	parameters = p;
+	alliances = a;
+	min_range = mr;
+	location_map = lm;
+	level = l;
+}
+
+/** This method spawns more compute path tasks. If a path to the destination
+ *  is found, it is placed into the "final_travels" vector. */
+task* ComputePathTask::execute()
+{
+	Flight *current_city = &(travel->flights.back());
+
+	concurrent_hash_map<string, Location>::const_accessor a;
+	if (!location_map->find(a, current_city->to))
+	{
+		cerr << "Fehler: Stadt " << current_city->to << " ist nicht bekannt." << endl;
+		return NULL;
+	}
+
+	const Location *from = &(a->second);
+
+	tbb::task_list tl;
+	unsigned int tl_count = 0;
+
+	unsigned int s = from->outgoing_flights.size();
+	for (unsigned int i = 0; i < s; i++)
+	{
+		Flight *flight = (Flight*) &(from->outgoing_flights[i]);
+		if (flight->take_off_time >= t_min && flight->land_time <= t_max
+				&& (flight->take_off_time > current_city->land_time)
+				&& flight->take_off_time - current_city->land_time
+						<= parameters->max_layover_time
+				&& nerver_traveled_to(*travel, flight->to)
+				&& flight->cost * 0.7 + travel->min_cost <= min_range->max)
+		{
+
+			Travel *new_travel = new Travel(*travel);
+			new_travel->add_flight(*flight, alliances);
+
+			if (flight->to == destination)
+			{
+				mutex::scoped_lock lock(*final_travels_lock);
+
+				final_travels->push_back(*new_travel);
+				min_range->from_travel(new_travel);
+			}
+			else
+			{
+				tl.push_back(
+						*new (tbb::task::allocate_child()) ComputePathTask(new_travel,
+								destination, final_travels, final_travels_lock, t_min,
+								t_max, parameters, alliances, min_range, location_map,
+								level + 1));
+				tl_count++;
+			}
+		}
+	}
+
+	if (level > 0)
+	{
+		delete travel;
+	}
+
+	if (tl_count > 0)
+	{
+		set_ref_count(tl_count + 1);
+		tbb::task::spawn_and_wait_for_all(tl);
+	}
+
+	return NULL;
+}

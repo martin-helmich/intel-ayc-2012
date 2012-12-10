@@ -125,48 +125,6 @@ public:
 	Travel* get_cheapest();
 };
 
-/// Loop body for computing all possible paths between two locations.
-/** This loop body computes all possible paths between two locations. It is
- *  intended to be used with a parallel_do call.
- *
- *  In comparison to the reference implementation, this algorithms performs a
- *  breadth-first-search (instead of a depth-first-search). This is more
- *  efficient, since the optimal route is probably rather short and should
- *  be found quicker using BFS. */
-class ComputePathOuterLoop
-{
-private:
-	vector<Travel> *final_travels;
-	mutex *final_travels_lock;
-	Parameters parameters;
-	string to;
-	unsigned long t_min, t_max;
-	CostRange *min_range;
-	Alliances *alliances;
-	concurrent_hash_map<string, Location> *location_map;
-
-public:
-
-	/// Constructor
-	/** @param ft Vector containing found routes to destination.
-	 *  @param ftl Mutex for synchronizing access on "ft".
-	 *  @param p Input parameters.
-	 *  @param t Destination
-	 *  @param tmi Minimum departure time.
-	 *  @param tma Maximum departure time.
-	 *  @param r Global cost-range object.
-	 *  @param a Alliance vector.
-	 *  @param lm Global location map. */
-	ComputePathOuterLoop(vector<Travel> *ft, mutex *ftl, Parameters &p, string t,
-			unsigned long tmi, unsigned long tma, CostRange *r, Alliances *a,
-			concurrent_hash_map<string, Location> *lm);
-
-	/// Actual loop body.
-	/** @param t Travel object to be worked on.
-	 *  @param f Queue in order to add more items to be processed into the parallel_do queue. */
-	void operator()(Travel t, parallel_do_feeder<Travel>& f) const;
-};
-
 /// Loop body for filtering travels by minimal costs.
 /** This loop body filters a set of travels by a predefined minimal cost.
  *  It takes an input vector "in" and a "CostRange" object pointer as arguments and

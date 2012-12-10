@@ -195,6 +195,9 @@ float compute_cost(Travel *travel, Alliances*alliances)
 /** The flights must be scheduled between t_min and t_max. It is also important
  *  to take the layover in consideration.
  *
+ *  Optimization: This method now uses task-based parallelism in order to
+ *  compute possible paths in parallel.
+ *
  *  @param to            The destination.
  *  @param travels       The list of possible travels that we are building.
  *  @param t_min         You must not be in a plane before this value (epoch)
@@ -208,10 +211,19 @@ void compute_path(string to, vector<Travel> *travels, unsigned long t_min,
 		CostRange *min_range, Alliances *alliances)
 {
 	mutex final_travels_lock;
-	ComputePathOuterLoop cpol(final_travels, &final_travels_lock, parameters, to, t_min,
-			t_max, min_range, alliances, location_map);
 
-	parallel_do(travels->begin(), travels->end(), cpol);
+	tbb::task_list tl;
+
+	unsigned int s = travels->size();
+	for (unsigned int i = 0; i < s; i++)
+	{
+		tl.push_back(
+				*new (tbb::task::allocate_root()) ComputePathTask(&(travels->at(i)), to,
+						final_travels, &final_travels_lock, t_min, t_max, &parameters,
+						alliances, min_range, location_map, 0));
+	}
+
+	tbb::task::spawn_root_and_wait(tl);
 
 	return;
 }

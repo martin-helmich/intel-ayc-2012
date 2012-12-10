@@ -151,6 +151,72 @@ public:
 	task* execute();
 };
 
+/// Task for computing a path between two different locations.
+/** This task recursively computes possible paths between two different
+ *  locations. It accepts a single travel as input parameter and creates new
+ *  tasks, each exploring a different follow-up travel of the input travel.
+ *
+ *  In comparison to the reference implementation, this algorithms performs a
+ *  breadth-first-search (instead of a depth-first-search). This is more
+ *  efficient, since the optimal route is probably rather short and should
+ *  be found quicker using BFS. */
+class ComputePathTask: public tbb::task
+{
+private:
+	/// Recursion level
+	unsigned int level;
+
+	/// Input travel
+	Travel *travel;
+
+	/// Name of destination location.
+	std::string destination;
+
+	/// Output travel vector
+	Travels *final_travels;
+
+	/// Mutex for synchronizing access on output travel vector.
+	mutex *final_travels_lock;
+
+	/// Minimum flight time.
+	unsigned long t_min;
+
+	/// Maximum flight time.
+	unsigned long t_max;
+
+	/// Program parameters.
+	Parameters *parameters;
+
+	/// Alliance list.
+	Alliances *alliances;
+
+	/// Minimum cost range.
+	CostRange *min_range;
+
+	/// Location map.
+	tbb::concurrent_hash_map<std::string, Location> *location_map;
+
+public:
+	/// Constructor.
+	/** @param t   Input travel.
+	 *  @param dst Name of destination.
+	 *  @param ft  Output vector.
+	 *  @param ftl Output vector mutex.
+	 *  @param tmi Minimum departure time.
+	 *  @param tma Maximum departure time.
+	 *  @param p   Program parameters.
+	 *  @param a   Alliance list.
+	 *  @param mr  Minimum cost range.
+	 *  @param lm  Location map.
+	 *  @param r   Recursion level. */
+	ComputePathTask(Travel *t, std::string dst, Travels *ft, mutex *ftl,
+			unsigned long tmi, unsigned long tma, Parameters *p, Alliances *a,
+			CostRange *mr, tbb::concurrent_hash_map<string, Location> *lm, unsigned int l = 0);
+
+	/// Executes the "Compute Path" task.
+	task* execute();
+};
+
 }
 
 #endif /* TASKS_H_ */
