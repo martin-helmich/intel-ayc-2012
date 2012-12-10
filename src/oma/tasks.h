@@ -11,6 +11,7 @@
 #include <vector>
 #include "tbb/task.h"
 #include "tbb/mutex.h"
+#include "tbb/concurrent_hash_map.h"
 
 #include "../types.h"
 #include "../methods.h"

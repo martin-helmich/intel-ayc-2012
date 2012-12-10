@@ -9,6 +9,8 @@
 #include <limits>
 
 #include "tbb/parallel_reduce.h"
+#include "tbb/blocked_range2d.h"
+#include "tbb/blocked_range3d.h"
 
 #include "tasks.h"
 #include "loop_bodies.h"
@@ -70,7 +72,9 @@ tbb::task* oma::WorkHardTask::execute()
 	}
 
 	PathMergingOuterLoop pmol(home_to_conference, conference_to_home, alliances);
-	parallel_reduce(blocked_range<unsigned int>(0, home_to_conference->size()), pmol);
+	parallel_reduce(
+			blocked_range2d<unsigned int, unsigned int>(0, home_to_conference->size(), 0,
+					conference_to_home->size()), pmol);
 
 	if (pmol.get_cheapest() != NULL)
 	{
@@ -145,7 +149,9 @@ oma::PlayHardMergeTripleTask::PlayHardMergeTripleTask(Travels *r, tbb::mutex *rl
 tbb::task* oma::PlayHardMergeTripleTask::execute()
 {
 	PathMergingTripleOuterLoop pmtol(travels1, travels2, travels3, alliances);
-	parallel_reduce(blocked_range<unsigned int>(0, travels1->size()), pmtol);
+	parallel_reduce(
+			blocked_range3d<unsigned int, unsigned int, unsigned int>(0, travels1->size(),
+					0, travels2->size(), 0, travels3->size()), pmtol);
 
 	if (pmtol.get_cheapest() != NULL)
 	{
@@ -225,6 +231,7 @@ task* ComputePathTask::execute()
 		}
 	}
 
+	// Delete input travel before starting new tasks. We don't need it anymore.
 	if (level > 0)
 	{
 		delete travel;

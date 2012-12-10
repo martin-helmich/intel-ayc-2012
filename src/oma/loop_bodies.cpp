@@ -58,16 +58,15 @@ oma::PathMergingOuterLoop::PathMergingOuterLoop(PathMergingOuterLoop &pmol, spli
 	cheapest = NULL;
 }
 
-void oma::PathMergingOuterLoop::operator()(blocked_range<unsigned int> &range)
+void oma::PathMergingOuterLoop::operator()(blocked_range2d<unsigned int, unsigned int> &range)
 {
-	unsigned int s2 = travels2->size();
 	Travel *t1, *t2, *tf;
 	Flight *l1, *f2;
 
-	for (unsigned int i = range.begin(); i != range.end(); ++i)
+	for (unsigned int i = range.rows().begin(); i != range.rows().end(); ++i)
 	{
 		t1 = &(travels1->at(i));
-		for (unsigned j = 0; j < s2; j++)
+		for (unsigned int j = range.cols().begin(); j != range.cols().end(); ++j)
 		{
 			t2 = &(travels2->at(j));
 			l1 = &(t1->flights.back());
@@ -126,16 +125,16 @@ oma::PathMergingTripleOuterLoop::PathMergingTripleOuterLoop(
 	cheapest = NULL;
 }
 
-void oma::PathMergingTripleOuterLoop::operator()(blocked_range<unsigned int> &range)
+void oma::PathMergingTripleOuterLoop::operator()(
+		blocked_range3d<unsigned int, unsigned int, unsigned int> &range)
 {
-	unsigned int s2 = travels2->size(), s3 = travels3->size();
 	Travel *t1, *t2, *t3, *t12, *tf;
 	Flight *l1, *l2, *f2, *f3;
 
-	for (unsigned int i = range.begin(); i != range.end(); ++i)
+	for (unsigned int i = range.pages().begin(); i != range.pages().end(); ++i)
 	{
 		t1 = &(travels1->at(i));
-		for (unsigned int j = 0; j < s2; j++)
+		for (unsigned int j = range.rows().begin(); j != range.rows().end(); ++j)
 		{
 			t2 = &(travels2->at(j));
 
@@ -147,7 +146,7 @@ void oma::PathMergingTripleOuterLoop::operator()(blocked_range<unsigned int> &ra
 				t12 = new Travel(*t1);
 				t12->merge_travel(t2, alliances);
 
-				for (unsigned int k = 0; k < s3; k++)
+				for (unsigned int k = range.cols().begin(); k != range.cols().end(); ++k)
 				{
 					t3 = &(travels3->at(k));
 
