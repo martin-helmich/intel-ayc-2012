@@ -38,6 +38,11 @@ void Travel::add_flight(Flight &f, Alliances *a)
 			discount = 0.8;
 		}
 
+		if (discount > 0.7 && discount < discounts[size - 1])
+		{
+			min_cost += floor((discount - 0.7) * l->cost);
+		}
+
 		if (discount < 1)
 		{
 			if (discounts[size - 1] > discount)
