@@ -1,4 +1,4 @@
-Word Hard/Play Hard Problem
+Work Hard/Play Hard Problem
 ===========================
 
 Martin Helmich <martin.helmich@hs-osnabrueck.de>  
