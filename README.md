@@ -23,7 +23,7 @@ Problem solution
     nodes. **If a flight's depature time lies outside of the specified time
     window, ignore it.**
 
-2.  Divide the problem up into partial routes consisting of two locations each.
+2.  Divide the problem up into partial routes connecting each two locations.
     Then, for each partial route:
    
     1.  Find a set of potentially cheapest routes by performing a breadth-first
