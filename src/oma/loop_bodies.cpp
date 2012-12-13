@@ -6,7 +6,7 @@
  */
 
 #include <iostream>
-
+#include <cstdlib>
 #include "../methods.h"
 #include "loop_bodies.h"
 
