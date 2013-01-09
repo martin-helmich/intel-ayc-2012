@@ -12,6 +12,10 @@
 #include <sys/mman.h>
 #include <fcntl.h>
 
+#ifdef OMA_OPENMP
+#include <omp.h>
+#endif
+
 #include "types.h"
 #include "methods.h"
 
@@ -66,110 +70,127 @@ Solution play_and_work_hard(Parameters& parameters, Alliances *alliances)
 	vector<Travel> results, home_to_conference, conference_to_home, home_to_vacation[n],
 			vacation_to_conference[n], conference_to_vacation[n], vacation_to_home[n];
 
-	task_list tasks, mergereduce_tasks;
-
 	// Compute the "conference to home" and "home to conference" routes. There routes are
 	// needed to solve both the "work hard" and "play hard" problems. However, since these routes
 	// are completely independent from any vacation target, they need to be computed ONLY ONCE.
 
-	// Conference to Home
-	tasks.push_back(
-			*new (task::allocate_root()) FindPathTask(parameters.to, parameters.from,
-					parameters.ar_time_min, parameters.ar_time_max, &parameters,
-					&conference_to_home, alliances));
-	// Home to Conference
-	tasks.push_back(
-			*new (task::allocate_root()) FindPathTask(parameters.from, parameters.to,
-					parameters.dep_time_min, parameters.dep_time_max, &parameters,
-					&home_to_conference, alliances));
-
-	for (int i = 0; i < n; i++)
+	#pragma omp parallel default(shared)
 	{
-		string current_airport_of_interest = parameters.airports_of_interest[i];
-		concurrent_hash_map<string, Location>::const_accessor a;
-
-		// Small optimization: If no route from or to vacation location exist, do not
-		// bother to find routes, since it would be impossible to find any, anyhow.
-		if (!location_map->find(a, current_airport_of_interest)
-				|| a->second.outgoing_flights.size() == 0
-				|| a->second.incoming_flights.size() == 0)
+		#pragma omp single
 		{
-			a.release();
-			continue;
+			// Conference to Home
+			#pragma omp task default(shared)
+			find_path_task(parameters.to, parameters.from, parameters.ar_time_min, parameters.ar_time_max,
+					&parameters, &conference_to_home, alliances);
+
+			// Home to Conference
+			#pragma omp task default(shared)
+			find_path_task(parameters.from, parameters.to, parameters.dep_time_min, parameters.dep_time_max,
+					&parameters, &home_to_conference, alliances);
+
+			for (int i = 0; i < n; i++)
+			{
+				string current_airport_of_interest = parameters.airports_of_interest[i];
+				concurrent_hash_map<string, Location>::const_accessor a;
+
+				// Small optimization: If no route from or to vacation location exist, do not
+				// bother to find routes, since it would be impossible to find any, anyhow.
+				if (!location_map->find(a, current_airport_of_interest)
+						|| a->second.outgoing_flights.size() == 0
+						|| a->second.incoming_flights.size() == 0)
+				{
+					a.release();
+					continue;
+				}
+				a.release();
+
+				#pragma omp task default(shared) firstprivate(i,current_airport_of_interest)
+				{
+					Travels *htv = &(home_to_vacation[i]);
+					find_path_task(parameters.from, current_airport_of_interest,
+							parameters.dep_time_min - parameters.vacation_time_max,
+							parameters.dep_time_min - parameters.vacation_time_min, &parameters,
+							htv, alliances);
+				}
+
+				// Vacation[i] to Conference
+				#pragma omp task default(shared) firstprivate(i,current_airport_of_interest)
+				{
+					Travels *vtc = &(vacation_to_conference[i]);
+					find_path_task(current_airport_of_interest, parameters.to,
+								parameters.dep_time_min, parameters.dep_time_max, &parameters,
+								vtc, alliances);
+				}
+
+				// Conference to Vacation[i]
+				#pragma omp task default(shared) firstprivate(i,current_airport_of_interest)
+				{
+					Travels *ctv = &(conference_to_vacation[i]);
+					find_path_task(parameters.to, current_airport_of_interest, parameters.ar_time_min,
+							parameters.ar_time_max, &parameters, ctv, alliances);
+				}
+
+				// Vacation[i] to Home
+				#pragma omp task default(shared) firstprivate(i,current_airport_of_interest)
+				{
+					Travels *vth = &(vacation_to_home[i]);
+					find_path_task(current_airport_of_interest, parameters.from,
+							parameters.ar_time_max + parameters.vacation_time_min,
+							parameters.ar_time_max + parameters.vacation_time_max, &parameters,
+							vth, alliances);
+				}
+			}
+
+			#pragma omp taskwait
+
+			// Merge the computed paths.
+			// Solve the "work hard" problem in one task, and each "play hard" problem in another
+			// seperate task.
+			// These merge/reduce tasks merge the partial routes computed in the parallel step before
+			// and search for the cheapest of the merged routes.
+
+			Travels *cth = &conference_to_home, *htc = &home_to_conference;
+			Solution *sp = &solution;
+
+			#pragma omp task default(shared)
+			work_hard_task(htc, cth, sp, alliances);
+
+			for (unsigned int i = 0; i < parameters.airports_of_interest.size(); i++)
+			{
+				string current_airport_of_interest = parameters.airports_of_interest[i];
+				concurrent_hash_map<string, Location>::const_accessor a;
+
+				// Small optimization: If no route from or to vacation location exist, do not
+				// bother to find routes, since it would be impossible to find any, anyhow.
+				if (!location_map->find(a, current_airport_of_interest)
+						|| a->second.outgoing_flights.size() == 0
+						|| a->second.incoming_flights.size() == 0)
+				{
+					Travel t;
+					a.release();
+					solution.add_play_hard(i, t);
+				}
+				else
+				{
+					a.release();
+
+					#pragma omp task default(shared) firstprivate(i)
+					{
+						Travels *htv = &(home_to_vacation[i]), *vtc = &(vacation_to_conference[i]), *ctv =
+								&(conference_to_vacation[i]), *vth = &(vacation_to_home[i]);
+						play_hard_task(htv, vtc, cth, htc, vth, ctv, sp, i, alliances);
+					}
+				}
+			}
+
+			// Complete all mergereduce tasks. Each task is handed a pointer to the solution object.
+			// Since each task knows exactly where to modify the solution object, special access synchronization
+			// is not required (apart from some tiny spinlock implemented in the "Solution" class).
+			// So ideally, the "solution" variable should be completely filled when all the tasks have run.
+			#pragma omp taskwait
+
 		}
-		a.release();
-
-		// Home to Vacation[i]
-		tasks.push_back(
-				*new (task::allocate_root()) FindPathTask(parameters.from,
-						current_airport_of_interest,
-						parameters.dep_time_min - parameters.vacation_time_max,
-						parameters.dep_time_min - parameters.vacation_time_min,
-						&parameters, &home_to_vacation[i], alliances));
-
-		// Vacation[i] to Conference
-		tasks.push_back(
-				*new (task::allocate_root()) FindPathTask(current_airport_of_interest,
-						parameters.to, parameters.dep_time_min, parameters.dep_time_max,
-						&parameters, &vacation_to_conference[i], alliances));
-
-		// Conference to Vacation[i]
-		tasks.push_back(
-				*new (task::allocate_root()) FindPathTask(parameters.to,
-						current_airport_of_interest, parameters.ar_time_min,
-						parameters.ar_time_max, &parameters, &conference_to_vacation[i],
-						alliances));
-
-		// Vacation[i] to Home
-		tasks.push_back(
-				*new (task::allocate_root()) FindPathTask(current_airport_of_interest,
-						parameters.from,
-						parameters.ar_time_max + parameters.vacation_time_min,
-						parameters.ar_time_max + parameters.vacation_time_max,
-						&parameters, &vacation_to_home[i], alliances));
 	}
-
-	task::spawn_root_and_wait(tasks);
-
-	// Merge the computed paths.
-	// Solve the "work hard" problem in one task, and each "play hard" problem in another
-	// seperate task.
-	// These merge/reduce tasks merge the partial routes computed in the parallel step before
-	// and search for the cheapest of the merged routes.
-	mergereduce_tasks.push_back(
-			*new (task::allocate_root()) WorkHardTask(&home_to_conference,
-					&conference_to_home, &solution, alliances));
-
-	for (unsigned int i = 0; i < parameters.airports_of_interest.size(); i++)
-	{
-		string current_airport_of_interest = parameters.airports_of_interest[i];
-		concurrent_hash_map<string, Location>::const_accessor a;
-
-		// Small optimization: If no route from or to vacation location exist, do not
-		// bother to find routes, since it would be impossible to find any, anyhow.
-		if (!location_map->find(a, current_airport_of_interest)
-				|| a->second.outgoing_flights.size() == 0
-				|| a->second.incoming_flights.size() == 0)
-		{
-			Travel t;
-			a.release();
-			solution.add_play_hard(i, t);
-			continue;
-		}
-		a.release();
-
-		mergereduce_tasks.push_back(
-				*new (task::allocate_root()) PlayHardTask(&home_to_vacation[i],
-						&vacation_to_conference[i], &conference_to_home,
-						&home_to_conference, &vacation_to_home[i],
-						&conference_to_vacation[i], &solution, i, alliances));
-	}
-
-	// Complete all mergereduce tasks. Each task is handed a pointer to the solution object.
-	// Since each task knows exactly where to modify the solution object, special access synchronization
-	// is not required (apart from some tiny spinlock implemented in the "Solution" class).
-	// So ideally, the "solution" variable should be completely filled when all the tasks have run.
-	task::spawn_root_and_wait(mergereduce_tasks);
 
 	return solution;
 }
@@ -212,18 +233,20 @@ void compute_path(string to, vector<Travel> *travels, unsigned long t_min,
 {
 	mutex final_travels_lock;
 
-	tbb::task_list tl;
-
 	unsigned int s = travels->size();
+	if (s == 0) return;
+
 	for (unsigned int i = 0; i < s; i++)
 	{
-		tl.push_back(
-				*new (tbb::task::allocate_root()) ComputePathTask(&(travels->at(i)), to,
-						final_travels, &final_travels_lock, t_min, t_max, &parameters,
-						alliances, min_range, location_map, 0));
+		#pragma omp task default(shared) firstprivate(i)
+		{
+			compute_path_task(&(travels->at(i)), to,
+							final_travels, &final_travels_lock, t_min, t_max, &parameters,
+							alliances, min_range, location_map, 0);
+		}
 	}
 
-	tbb::task::spawn_root_and_wait(tl);
+	#pragma omp taskwait
 
 	return;
 }
@@ -277,11 +300,14 @@ void fill_travel(Travels *travels, Travels *final_travels, string starting_point
 		}
 	}
 
-	FilterPathsLoop fpl(&temp, travels, min_range);
-
-	if (temp.size() > 500) parallel_reduce(blocked_range<unsigned int>(0, temp.size()),
-			fpl);
-	else fpl(blocked_range<unsigned int>(0, temp.size()));
+	#pragma omp parallel for shared(temp, travels)
+	for (unsigned int i = 0; i < temp.size(); i++)
+	{
+		if ((&(temp.at(i)))->min_cost <= min_range->max)
+		{
+			travels->push_back(temp.at(i));
+		}
+	}
 }
 
 /// Convert a date to timestamp
@@ -679,8 +705,26 @@ void parse_flights(string filename, Parameters *parameters)
 	}
 
 	// Iterate over all found linefeeds and parse each line in parallel.
-	ParseFlightsLoop pfl(m, &lfs, parameters);
-	parallel_for(blocked_range<int>(1, lfs.size()), pfl);
+	int s = lfs.size();
+
+	#pragma omp parallel for
+	for (int i = 1; i < s; i ++)
+	{
+		// Determine the length of the line by computing the difference between the
+		// current LF character and the previous (does always work, since the first element
+		// in the "lfs" vector is a "-1").
+		// Then, allocate an appropriate amount of memory (plus 1 byte for the trailing 0-byte).
+		char* b = (char*) malloc(lfs[i] - lfs[i - 1] + 1);
+
+		// Copy the line into the previously allocated line buffer.
+		strncpy(b, (m + lfs[i - 1] + 1), lfs[i] - lfs[i - 1] - 1);
+
+		// Add 0-byte to mark string end.
+		b[lfs[i] - lfs[i - 1] - 1] = 0x00;
+
+		// Parse line.
+		parse_flight(b, parameters);
+	}
 
 	// Unmap file from memory and close file handle.
 	munmap(m, stat.st_size);
@@ -908,7 +952,9 @@ int main(int argc, char **argv)
 	read_parameters(parameters, argc, argv);
 
 	// Respect nb_threads parameter.
-	task_scheduler_init init(parameters.nb_threads);
+#ifdef OMA_OPENMP
+	omp_set_num_threads(parameters.nb_threads);
+#endif
 
 	// Initialize flight graph (important: needs to be allocated on heap, otherwise
 	// everything will blow up on larger input datasets).

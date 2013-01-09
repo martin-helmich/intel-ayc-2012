@@ -10,8 +10,6 @@
 
 #include <vector>
 #include "tbb/blocked_range.h"
-#include "tbb/blocked_range2d.h"
-#include "tbb/blocked_range3d.h"
 #include "tbb/mutex.h"
 #include "tbb/parallel_do.h"
 #include "tbb/concurrent_hash_map.h"
@@ -77,7 +75,7 @@ public:
 
 	/// Actual loop body.
 	/** @param range Range to be iterated over. */
-	void operator()(blocked_range2d<unsigned int, unsigned int> &range);
+	void operator()(blocked_range<unsigned int> &range);
 
 	/// Joins two loop results into one.
 	/** @param pmol Another loop body. */
@@ -117,7 +115,7 @@ public:
 
 	/// Actual loop body.
 	/** @param range Range to be iterated over. */
-	void operator()(blocked_range3d<unsigned int, unsigned int, unsigned int> &range);
+	void operator()(blocked_range<unsigned int> &range);
 
 	/// Joins two loop results into one.
 	/** @param pmol Another loop body. */

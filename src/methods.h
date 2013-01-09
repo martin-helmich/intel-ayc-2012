@@ -36,7 +36,7 @@ void parse_alliances(Alliances *alliances, string filename);
 float compute_cost(Travel *travel, Alliances *alliances);
 void print_alliances(Alliances &alliances);
 void print_flights(vector<Flight>& flights, vector<float> discounts, ofstream& output);
-void print_travel(Travel& travel, Alliances *alliances, ofstream& output);
+void print_travel(Travel& travel, Alliances *alliances);
 Solution play_and_work_hard(Parameters& parameters, Alliances *alliances);
 time_t timegm(struct tm *tm);
 void print_cities();

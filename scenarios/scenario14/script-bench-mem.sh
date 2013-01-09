@@ -1,6 +1,6 @@
 #!/bin/bash
 
-IMP="TBB"
+IMP="OMP"
 
 for I in {1..24} ; do
 	for J in {0..9} ; do

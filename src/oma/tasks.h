@@ -28,102 +28,53 @@ namespace oma
  *  potentially cheaper than the cheapest known solution (there is a small window
  *  if uncertainty because the flight discounts are not completely known in
  *  advance, so instead of fixed costs we use "cost ranges" consisting of the
- *  minimum and maximum possible costs of a route). */
-class FindPathTask: public tbb::task
-{
-private:
-	string from, to;
-	Parameters *parameters;
-	Travels *travels;
-	int t_min, t_max;
-	Alliances *alliances;
-
-public:
-
-	/// Creates a new task.
-	/** @param f Starting point.
-	 *  @param t Destination point.
-	 *  @param tmi Minimum departure time.
-	 *  @param tma Maximum departure time.
-	 *  @param p Input parameters.
-	 *  @param tr Output travel vector.
-	 *  @param a All alliances. */
-	FindPathTask(string f, string t, int tmi, int tma, Parameters *p, Travels *tr,
-			Alliances *a);
-
-	/// Executes the "find path" task.
-	task* execute();
-};
+ *  minimum and maximum possible costs of a route).
+ *
+ *  @param f Starting point.
+ *  @param t Destination point.
+ *  @param tmi Minimum departure time.
+ *  @param tma Maximum departure time.
+ *  @param p Input parameters.
+ *  @param tr Output travel vector.
+ *  @param a All alliances. */
+void find_path_task(string f, string t, int tmi, int tma, Parameters *p, Travels *tr, Alliances *a);
 
 /// Solves the "work hard" problem.
 /** This task accepts sets of possible paths from "home to conference" and vice
- *  versa as input parameters and then
+ *  versa as input parameters and then merges the two sets of input routes (by
+ *  building the carthesian product and selecting all items where arrival time
+ *  of the last flight of set A is less then departure time of the first flight of
+ *  set B) and finds the cheapest of the possible routes.
  *
- *    1. merges these paths to possible solutions for the "work hard" problem, AND
- *    2. finds the cheapest of these solutions. */
-class WorkHardTask: public tbb::task
-{
-private:
-	Travels *home_to_conference, *conference_to_home;
-	Solution *solution;
-	Alliances *alliances;
-
-public:
-
-	/// Creates a new "work hard" task.
-	/** @param htc All possible "home to conference" routes.
-	 *  @param cth All possible "conference to home" routes.
-	 *  @param s   A pointer to the solution object. When done, the best route is written
-	 *             to "s->work_hard".
-	 *  @param a   A pointer to the alliances vector. */
-	WorkHardTask(Travels *htc, Travels *cth, Solution *s, Alliances *a);
-
-	/// Executes the "work hard" task.
-	/** Merges the two sets of input routes (by building the carthesian product and selecting
-	 *  all items where arrival time of the last flight of set A is less then departure time
-	 *  of the first flight of set B) and finds the cheapest of the possible routes. */
-	task* execute();
-};
+ *  @param htc All possible "home to conference" routes.
+ *  @param cth All possible "conference to home" routes.
+ *  @param s   A pointer to the solution object. When done, the best route is written
+ *             to "s->work_hard".
+ *  @param a   A pointer to the alliances vector. */
+void work_hard_task(Travels *htc, Travels *cth, Solution *s, Alliances *a);
 
 /// Solves ONE specific of the "play hard" problems.
-/** This task accepts sets of possible paths from "home to conference", "home to vacation",
- *  "vacation to conference" and each vice versa as input parameters and then
+/** This task accepts sets of possible paths from "home to conference", "home
+ *  to vacation", "vacation to conference" and each vice versa as input
+ *  parameters and then merges the three sets of input routes (by building the
+ *  carthesian product and selecting all items where arrival time of the last
+ *  flight of set A is less then departure time of the first flight of set B)
+ *  and finds the cheapest of the possible routes.
  *
- *    1. merges these paths to possible solutions for ONE of the "play hard" problems, AND
- *    2. finds the cheapest of these solutions. */
-class PlayHardTask: public tbb::task
-{
-private:
-	Travels *home_to_vacation, *vacation_to_conference, *conference_to_home,
-			*home_to_conference, *vacation_to_home, *conference_to_vacation;
-	Solution *solution;
-	unsigned int solution_index;
-	Alliances *alliances;
-
-public:
-
-	/// Creates a new "play hard" task.
-	/** @param htv All possible "home to vacation" routes.
-	 *  @param vtc All possible "vacation to conference" routes.
-	 *  @param cth All possible "conference to home" routes.
-	 *  @param htc All possible "home to conference" routes.
-	 *  @param vth All possible "vacation to home" routes.
-	 *  @param ctv All possible "conference to vacation" routes.
-	 *  @param s   A pointer to the solution object. When done, the best route is written
-	 *             to "s->play_hard[i]".
-	 *  @param i   Index at which this solution should be inserted into the solution vector.
-	 *             The order of insertion is quite important, otherwise a simple ->push_back
-	 *             would have sufficed.
-	 *  @param a   A pointer to the alliances vector. */
-	PlayHardTask(Travels *htv, Travels *vtc, Travels *cth, Travels *htc, Travels *vth,
-			Travels *ctv, Solution *s, unsigned int i, Alliances *a);
-
-	/// Executes the "play hard" task.
-	/** Merges the three sets of input routes (by building the carthesian product and selecting
-	 *  all items where arrival time of the last flight of set A is less then departure time
-	 *  of the first flight of set B) and finds the cheapest of the possible routes. */
-	task* execute();
-};
+ *  @param htv All possible "home to vacation" routes.
+ *  @param vtc All possible "vacation to conference" routes.
+ *  @param cth All possible "conference to home" routes.
+ *  @param htc All possible "home to conference" routes.
+ *  @param vth All possible "vacation to home" routes.
+ *  @param ctv All possible "conference to vacation" routes.
+ *  @param s   A pointer to the solution object. When done, the best route is written
+ *             to "s->play_hard[i]".
+ *  @param i   Index at which this solution should be inserted into the solution vector.
+ *             The order of insertion is quite important, otherwise a simple ->push_back
+ *             would have sufficed.
+ *  @param a   A pointer to the alliances vector. */
+void play_hard_task(Travels *htv, Travels *vtc, Travels *cth, Travels *htc, Travels *vth,
+		Travels *ctv, Solution *s, unsigned int i, Alliances *a);
 
 /// Task for creating a specific subset of the "play hard" solution.
 /** This task creates a specific subset of the "play hard" solution (i.e. either
@@ -160,63 +111,25 @@ public:
  *  In comparison to the reference implementation, this algorithms performs a
  *  breadth-first-search (instead of a depth-first-search). This is more
  *  efficient, since the optimal route is probably rather short and should
- *  be found quicker using BFS. */
-class ComputePathTask: public tbb::task
-{
-private:
-	/// Recursion level
-	unsigned int level;
-
-	/// Input travel
-	Travel *travel;
-
-	/// Name of destination location.
-	std::string destination;
-
-	/// Output travel vector
-	Travels *final_travels;
-
-	/// Mutex for synchronizing access on output travel vector.
-	mutex *final_travels_lock;
-
-	/// Minimum flight time.
-	unsigned long t_min;
-
-	/// Maximum flight time.
-	unsigned long t_max;
-
-	/// Program parameters.
-	Parameters *parameters;
-
-	/// Alliance list.
-	Alliances *alliances;
-
-	/// Minimum cost range.
-	CostRange *min_range;
-
-	/// Location map.
-	tbb::concurrent_hash_map<std::string, Location> *location_map;
-
-public:
-	/// Constructor.
-	/** @param t   Input travel.
-	 *  @param dst Name of destination.
-	 *  @param ft  Output vector.
-	 *  @param ftl Output vector mutex.
-	 *  @param tmi Minimum departure time.
-	 *  @param tma Maximum departure time.
-	 *  @param p   Program parameters.
-	 *  @param a   Alliance list.
-	 *  @param mr  Minimum cost range.
-	 *  @param lm  Location map.
-	 *  @param r   Recursion level. */
-	ComputePathTask(Travel *t, std::string dst, Travels *ft, mutex *ftl,
-			unsigned long tmi, unsigned long tma, Parameters *p, Alliances *a,
+ *  be found quicker using BFS.
+ *
+ *  @param t   Input travel.
+ *  @param dst Name of destination.
+ *  @param ft  Output vector.
+ *  @param ftl Output vector mutex.
+ *  @param tmi Minimum departure time.
+ *  @param tma Maximum departure time.
+ *  @param p   Program parameters.
+ *  @param a   Alliance list.
+ *  @param mr  Minimum cost range.
+ *  @param lm  Location map.
+ *  @param r   Recursion level. */
+void compute_path_task(Travel *t, std::string &dst, Travels *ft, tbb::mutex *ftl,
+			unsigned long &tmi, unsigned long &tma, Parameters *p, Alliances *a,
 			CostRange *mr, tbb::concurrent_hash_map<string, Location> *lm, unsigned int l = 0);
 
-	/// Executes the "Compute Path" task.
-	task* execute();
-};
+Travel* merge_path_triple(Travels *r, tbb::mutex *rl, Travels *t1,
+		Travels *t2, Travels *t3, Alliances *a);
 
 }
 

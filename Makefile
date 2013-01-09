@@ -6,13 +6,14 @@
 # But if you want it to properly run on our benchmark service, don't rename or delete variables.
 
 # Use Intel Compiler when available, else GCC.
+OMA_OPENMP = 1
 ICC = $(shell which icpc)
 ifneq ($(ICC), )
 COMPILER ?= $(ICC_PATH)icpc
 FLAGS ?= -std=c++0x -U__GXX_EXPERIMENTAL_COMPILER0X__ -xHOST -fast -w1 $(ICC_SUPPFLAGS)
 else
 COMPILER ?= $(GCC_PATH)g++
-FLAGS ?= -O3 -Wall $(GCC_SUPPFLAGS)
+FLAGS ?= -g -O3 -Wall $(GCC_SUPPFLAGS)
 endif
 
 LDFLAGS ?= -g
@@ -21,6 +22,11 @@ UNAME = $(shell uname)
 
 ifneq ($(UNAME), Darwin)
 LDLIBS += -lrt
+endif
+
+ifdef OMA_OPENMP
+FLAGS += -fopenmp -DOMA_OPENMP=1
+LDLIBS += -lgomp
 endif
 
 EXECUTABLE = run

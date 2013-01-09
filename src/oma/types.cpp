@@ -38,11 +38,6 @@ void Travel::add_flight(Flight &f, Alliances *a)
 			discount = 0.8;
 		}
 
-		if (discount > 0.7 && discount < discounts[size - 1])
-		{
-			min_cost += floor((discount - 0.7) * l->cost);
-		}
-
 		if (discount < 1)
 		{
 			if (discounts[size - 1] > discount)
@@ -111,7 +106,7 @@ void Travel::print()
 	{
 		cout << flights[i].id << " (" << flights[i].cost << "@" << discounts[i] << ") - ";
 	}
-	cout << max_cost << endl;
+	cout << min_cost << " - " << max_cost << endl;
 }
 
 /**
